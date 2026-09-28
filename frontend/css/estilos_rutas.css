@@ -1,0 +1,149 @@
+/* =========================================================
+   ESTILOS ESPECÍFICOS - PÁGINA RUTAS DE EVACUACIÓN
+========================================================= */
+:root {
+    --primary-color: #1b4965;
+    --primary-light: #2c7da0;
+    --bg-color: #f4f7f6;
+    --card-bg: #ffffff;
+    --text-main: #2b2d42;
+    --text-muted: #8d99ae;
+    --border-color: #e2e8f0;
+    --radius: 16px;
+    --shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+}
+
+body.dashboard_body {
+    background-color: var(--bg-color);
+    color: var(--text-main);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Cabecera idéntica al dashboard principal (100% ancho) */
+.cabecera_dashboard {
+    background-color: #436097;
+    padding: 15px 30px;
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid var(--border-color);
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+}
+
+.cabecera_izquierda {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.enlace_volver {
+    color: white;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 0.95rem;
+    transition: opacity 0.2s;
+}
+
+.enlace_volver:hover {
+    opacity: 0.8;
+}
+
+.saludo_usuario .nombre_usuario {
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: white;
+}
+
+/* Contenido Principal de Rutas */
+.dashboard_contenido {
+    max-width: 1400px;
+    width: 100%;
+    margin: 0 auto;
+    padding: 25px;
+    display: flex;
+    flex-direction: column;
+    gap: 25px;
+    flex: 1;
+}
+
+.seccion_guardados {
+    background: var(--card-bg);
+    border-radius: var(--radius);
+    padding: 25px;
+    box-shadow: var(--shadow);
+    border: 1px solid var(--border-color);
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.titulo_seccion_guardados {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.titulo_guardados {
+    font-size: 1.25rem;
+    color: var(--text-main);
+    font-weight: 700;
+}
+
+/* Contenedor del Mapa / Simulación de Rutas */
+.guardados_mapa {
+    width: 100%;
+    height: 450px;
+    border-radius: 12px;
+    overflow: hidden;
+    position: relative;
+    background: #e2e8f0;
+    border: 1px solid var(--border-color);
+}
+
+.guardados_mapa iframe {
+    width: 100%;
+    height: 100%;
+    border: none;
+}
+
+/* Panel de Resultados y Lógica del Notebook */
+.resultados_logica {
+    background: #f8fafc;
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.resultados_logica h3 {
+    font-size: 1.05rem;
+    color: var(--primary-color);
+    font-weight: 700;
+}
+
+.resultados_logica p {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    line-height: 1.4;
+}
+
+/* Responsive para pantallas grandes */
+@media (min-width: 992px) {
+    .dashboard_contenido {
+        padding: 35px;
+    }
+}

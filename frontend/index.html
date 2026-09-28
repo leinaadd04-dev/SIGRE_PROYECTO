@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SIGRE - Tu ciudad, siempre preparada</title>
+    <link rel="stylesheet" href="css/estilos.css">
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+
+    <!-- BARRA DE NAVEGACIÓN -->
+    <nav class="barra_navegacion">
+        <div class="nav_contenedor">
+            <a href="index.html" class="nav_logo">
+                <div class="logo_cuadro_mini"><img src="imagenes/logo.png" style="width: 50px;" alt=""></div>
+                <span></span>
+            </a>
+
+            <ul class="nav_menu">
+                <li><a href="#inicio">Inicio</a></li>
+                <li><a href="#modulos">Módulos</a></li>
+                <li><a href="#beneficios">Beneficios</a></li>
+                <li><a href="#ods">ODS 11</a></li>
+            </ul>
+
+            <div class="nav_acciones">
+                <a href="login.html" class="boton_borde">Iniciar Sesión</a>
+                <a href="registro.html" class="boton_naranja">Registrarse</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- SECCIÓN SPLASH/LOGIN -->
+    <section class="splash_pantalla" id="login">
+
+        <!-- Columna izquierda: login -->
+        <div class="splash_columna_izq">
+            <div class="splash_contenido">
+
+                <div class="splash_logo">
+                    <img src="imagenes/logo.png" alt="Logo SIGRE" class="logo_imagen">
+                </div>
+
+                <h1 class="splash_titulo">SIGRE</h1>
+
+                <p class="splash_descripcion">
+                    Sistema Integral de Gestión y Respuesta<br>ante Emergencias
+                </p>
+
+                <p class="splash_eslogan">
+                    <em>Tu ciudad, siempre preparada.</em>
+                </p>
+
+                <div class="splash_botones">
+                    <a href="login.html" class="boton_blanco_ancho">Iniciar Sesión</a>
+                    <a href="registro.html" class="boton_borde_blanco">Registrarse</a>
+                </div>
+
+                <!-- Flecha scroll (dentro del contenido) -->
+                <a href="#inicio" class="scroll_indicador">
+                    <p>Desliza para conocer más</p>
+                    <div class="flecha">⌄</div>
+                </a>
+
+            </div>
+        </div>
+
+        <!-- Columna derecha: info + imagen -->
+        <div class="splash_columna_der">
+            <div class="splash_info_horizontal">
+
+                <!-- Lado izquierdo: texto -->
+                <div class="splash_info_texto">
+                    <span class="splash_badge">ODS 11 · Ciudades Sostenibles</span>
+
+                    <h2 class="splash_info_titulo">
+                        Ciudades <span class="texto_morado">resilientes</span>, comunidades <span class="texto_morado">solidarias</span>
+                    </h2>
+
+                    <p class="splash_info_descripcion">
+                        SIGRE conecta a ciudadanos, voluntarios y autoridades para construir
+                        ciudades más seguras, sostenibles y solidarias ante emergencias urbanas
+                        como inundaciones o sismos.
+                    </p>
+
+                    <p class="splash_info_descripcion">
+                        Una herramienta pensada para actuar con <strong>confianza</strong>,
+                        <strong>solidaridad</strong> y <strong>rapidez</strong>, porque estar
+                        preparados hoy es proteger a nuestra comunidad mañana.
+                    </p>
+
+                    <ul class="splash_features">
+                        <li><span class="check">✓</span> Información clara y confiable</li>
+                        <li><span class="check">✓</span> Fácil de usar para toda la comunidad</li>
+                        <li><span class="check">✓</span> Respuesta rápida ante emergencias</li>
+                        <li><span class="check">✓</span> Solidaridad y trabajo en equipo</li>
+                        <li><span class="check">✓</span> Preparación y prevención constante</li>
+                    </ul>
+                </div>
+
+                <!-- Lado derecho: imagen -->
+                <div class="splash_info_imagen">
+                    <img src="imagenes/emergenciass.png" alt="SIGRE" class="imagen_splash">
+                </div>
+
+            </div>
+        </div>
+
+    </section>
+
+    <!-- SECCIÓN PRINCIPAL -->
+    <section class="seccion_principal" id="inicio">
+        <div class="principal_contenedor">
+            <div class="principal_texto">
+                <span class="etiqueta_aviso">🚨 Sistema activo 24/7 · Alineado con el ODS 11</span>
+                <h1>Respuesta ante <span class="texto_naranja">emergencias</span> para tu ciudad</h1>
+                <p class="principal_descripcion">
+                    SIGRE centraliza la información crítica durante situaciones de emergencia:
+                    rutas seguras y más cortas, centros de acopio y albergues, solicitudes de ayuda
+                    y reporte de desaparecidos.
+                </p>
+                <div class="principal_acciones">
+                    <a href="registro.html" class="boton_naranja_grande">Comenzar ahora</a>
+                    <a href="#modulos" class="boton_gris">Conocer más</a>
+                </div>
+            </div>
+            <div class="principal_ilustracion">
+                <div class="circulo_con_usuario">
+                    <img src="imagenes/userlanding.png" alt="Usuario" class="usuario_saliente">
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- BARRA DE ESTADÍSTICAS -->
+    <section class="barra_estadisticas">
+        <div class="estadisticas_contenedor">
+            <div class="item_estadistica">
+                <div class="numero_estadistica">5</div>
+                <div class="etiqueta_estadistica">Módulos</div>
+                <div class="detalle_estadistica">Integrados</div>
+            </div>
+            <div class="item_estadistica">
+                <div class="numero_estadistica">24/7</div>
+                <div class="etiqueta_estadistica">Disponible</div>
+                <div class="detalle_estadistica">En emergencias</div>
+            </div>
+            <div class="item_estadistica">
+                <div class="numero_estadistica">Fácil</div>
+                <div class="etiqueta_estadistica">De usar</div>
+                <div class="detalle_estadistica">Para toda la comunidad</div>
+             </div>
+            <div class="item_estadistica destacada">
+                <div class="numero_estadistica">ODS 11</div>
+                <div class="etiqueta_estadistica">Alineado</div>
+                <a href="#ods" class="enlace_estadistica">Ver más →</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- SECCIÓN ACERCA DE -->
+    <section class="seccion_acerca" id="modulos">
+        <div class="acerca_contenedor">
+            <div class="acerca_lateral">
+                <div class="lateral_numero">5</div>
+                <div class="lateral_titulo">módulos</div>
+                <div class="lateral_texto">
+                    Rutas · Acopio y albergues · Entregas · Solicitudes · Jornadas
+                </div>
+                <div class="lateral_nivel">Plataforma Integral</div>
+            </div>
+            <div class="acerca_contenido">
+                <h2>¿Qué es <span class="texto_naranja">SIGRE</span>?</h2>
+                <p>
+                    SIGRE (Sistema Integral de Gestión y Respuesta ante Emergencias) es una plataforma
+                    que integra cinco módulos para ayudar a los ciudadanos y autoridades durante
+                    emergencias urbanas y rurales. Consume datos geoespaciales de OpenStreetMap
+                    y mapas de riesgo oficiales, y no requiere sensores físicos.
+                </p>
+                <p>
+                    Alineado con las metas 11.5, 11.b, 11.3 y 11.7 del ODS 11, SIGRE busca salvar vidas
+                    y construir ciudades más resilientes, inclusivas y seguras.
+                </p>
+               <button class="boton_oscuro" id="boton-conocer-mas">Conocer más</button>
+
+<!-- Sección de Misión y Visión (oculta por defecto) -->
+<div class="mision-vision" id="mision-vision">
+    <div class="mv-tarjeta">
+        <div class="mv-icono"></div>
+        <h3 class="mv-titulo">Misión</h3>
+        <p class="mv-texto">
+            Proveer a las ciudades una plataforma tecnológica accesible, confiable
+            y en tiempo real que conecte a ciudadanos, voluntarios y autoridades
+            durante emergencias urbanas, facilitando la evacuación segura, la
+            distribución de ayuda y la comunicación efectiva en los momentos
+            más críticos.
+        </p>
+        <p class="mv-texto">
+            Además, SIGRE acompaña a la comunidad en su día a día: permite reportar
+            personas o animales desaparecidos, organizar y consultar jornadas
+            comunitarias como entregas de ayuda, campañas de vacunación y
+            actividades de bienestar, fortaleciendo la solidaridad y la
+            preparación antes de que ocurra una emergencia.
+        </p>
+    </div>
+
+    <div class="mv-tarjeta">
+        <div class="mv-icono"></div>
+        <h3 class="mv-titulo">Visión</h3>
+        <p class="mv-texto">
+            Consolidar a SIGRE como una herramienta de referencia para las
+            comunidades, integrando tecnología accesible con un enfoque humano,
+            solidario y sostenible. Aspiramos a que las ciudades cuenten con
+            sistemas de información confiables que fortalezcan la resiliencia,
+            la prevención y el bienestar colectivo, contribuyendo al cumplimiento
+            de los Objetivos de Desarrollo Sostenible y a la construcción de
+            comunidades más unidas y preparadas.
+        </p>
+    </div>
+</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SECCIÓN BENEFICIOS -->
+    <section class="seccion_beneficios" id="beneficios">
+        <h2>¿A quién <span class="texto_naranja">beneficia</span>?</h2>
+        <div class="cuadricula_beneficios">
+            <div class="tarjeta_beneficio">
+                <div class="icono_circular"><i data-lucide="users"></i></div>
+                <h3>Ciudadanos</h3>
+                <p>Encuentran rutas de evacuación cortas y seguras y acceden a la información que necesitan durante una emergencia.</p>
+            </div>
+            <div class="tarjeta_beneficio">
+                <div class="icono_circular"><i data-lucide="building-2"></i></div>
+                <h3>Autoridades</h3>
+                <p>Gestionan centros de acopio, inventarios, entregas de ayuda y solicitudes ciudadanas desde un solo lugar.</p>
+            </div>
+            <div class="tarjeta_beneficio">
+                <div class="icono_circular"><i data-lucide="heart-handshake"></i></div>
+                <h3>Voluntarios</h3>
+                <p>Coordinan el apoyo en jornadas comunitarias y reportan personas o animales desaparecidos.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- SECCIÓN FINAL -->
+    <section class="final_seccion" id="ods">
+        <div class="final_contenedor">
+            <div class="final_ilustracion">
+                <div class="icono_final"></div>
+            </div>
+            <div class="texto_final">
+                <h2>Regístrate ahora y prepárate</h2>
+                <p>Obtén acceso a rutas seguras, centros de acopio y toda la información crítica en un solo lugar.</p>
+                <a href="registro.html" class="boton_blanco">Crear cuenta</a>
+            </div>
+            <div class="final_ilustracion">
+                <div class="icono_final">🛡️</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- PIE DE PÁGINA -->
+    <footer class="pie_pagina">
+        <div class="pie_contenedor">
+            <div class="pie_logo">
+                <div class="logo_cuadro_mini">🛡️</div>
+                <span>SIGRE</span>
+            </div>
+            <p>© 2026 SIGRE · Universidad Cooperativa de Colombia</p>
+            <p>Fabian Muñoz Padilla · Daniel Gómez Urueta</p>
+        </div>
+    </footer>
+
+    <script>
+        lucide.createIcons();
+    </script>
+
+    <script>
+    lucide.createIcons();
+
+    // Botón "Conocer más" -> mostrar/ocultar Misión y Visión
+    const botonConocer = document.getElementById('boton-conocer-mas');
+    const seccionMV = document.getElementById('mision-vision');
+
+    if (botonConocer && seccionMV) {
+        botonConocer.addEventListener('click', () => {
+            seccionMV.classList.toggle('activa');
+            botonConocer.textContent = seccionMV.classList.contains('activa')
+                ? 'Ver menos'
+                : 'Conocer más';
+        });
+    }
+</script>
+
+</body>
+</html>

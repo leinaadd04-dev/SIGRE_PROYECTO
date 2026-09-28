@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crear Cuenta - SIGRE</title>
+    <link rel="stylesheet" href="css/estilos.css">
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+
+    <!-- BARRA DE NAVEGACIÓN -->
+    <nav class="barra_navegacion">
+        <div class="nav_contenedor">
+            <a href="index.html" class="nav_logo">
+                <div class="logo_cuadro_mini"><img src="imagenes/logo.png" style="width: 50px;" alt=""></div>
+                <span>SIGRE</span>
+            </a>
+
+            <ul class="nav_menu">
+                <li><a href="index.html">Inicio</a></li>
+                <li><a href="index.html#modulos">Módulos</a></li>
+                <li><a href="index.html#beneficios">Beneficios</a></li>
+                <li><a href="index.html#ods">ODS 11</a></li>
+            </ul>
+
+            <div class="nav_acciones">
+                <a href="login.html" class="boton_borde">Iniciar Sesión</a>
+                <a href="registro.html" class="boton_naranja">Registrarse</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- SECCIÓN DE REGISTRO -->
+    <section class="seccion_acceso" id="registro">
+
+        <!-- Columna izquierda: formulario -->
+        <div class="columna_formulario">
+            <div class="formulario_contenido">
+
+                <div class="formulario_logo">
+                    <img src="imagenes/logo.png" alt="Logo SIGRE" class="logo_imagen">
+                </div>
+
+                <h1 class="formulario_titulo">Crear cuenta</h1>
+
+                <!-- Mensajes -->
+                <div class="mensaje_error" id="error-msg"></div>
+                <div class="mensaje_exito" id="exito-msg"></div>
+
+                <!-- Formulario -->
+                <form id="form-registro" class="form_registro">
+
+                    <div class="campo_registro">
+                        <div class="campo_con_icono">
+                            <span class="icono_campo"><i data-lucide="user"></i></span>
+                            <input type="text" id="nombre" placeholder="Nombre completo" required>
+                        </div>
+                    </div>
+
+                    <div class="campo_registro">
+                        <div class="campo_con_icono">
+                            <span class="icono_campo"><i data-lucide="mail"></i></span>
+                            <input type="email" id="email" placeholder="Correo electrónico" required>
+                        </div>
+                    </div>
+
+                    <div class="campo_registro">
+                        <div class="campo_con_icono">
+                            <span class="icono_campo"><i data-lucide="phone"></i></span>
+                            <input type="tel" id="telefono" placeholder="Teléfono (opcional)">
+                        </div>
+                    </div>
+
+                    <!-- Selección de tipo de usuario -->
+                    <div class="campo_registro">
+                        <label class="label_rol">Tipo de usuario:</label>
+                        <div class="roles_contenedor">
+
+                            <label class="rol_opcion">
+                                <input type="radio" name="rol" value="ciudadano" checked required>
+                                <span class="rol_icono"><i data-lucide="user"></i></span>
+                                <span class="rol_texto">Ciudadano</span>
+                            </label>
+
+                            <label class="rol_opcion">
+                                <input type="radio" name="rol" value="voluntario">
+                                <span class="rol_icono"><i data-lucide="heart-handshake"></i></span>
+                                <span class="rol_texto">Voluntario</span>
+                            </label>
+
+                            <label class="rol_opcion">
+                                <input type="radio" name="rol" value="autoridad">
+                                <span class="rol_icono"><i data-lucide="landmark"></i></span>
+                                <span class="rol_texto">Autoridad</span>
+                            </label>
+
+                        </div>
+                    </div>
+
+                                        <!-- Campo de código de autorización (oculto por defecto) -->
+                    <div class="campo_registro campo_codigo_autoridad" id="campo-codigo" style="display: none;">
+                        <div class="campo_con_icono">
+                            <span class="icono_campo"><i data-lucide="key-round"></i></span>
+                            <input type="text" id="codigo_autoridad" placeholder="Código de autorización">
+                        </div>
+                        <p class="ayuda_codigo">Ingresa el código que te entregó tu institución.</p>
+                    </div>
+
+                    <div class="campo_registro">
+                        <div class="campo_con_icono">
+                            <span class="icono_campo"><i data-lucide="lock"></i></span>
+                            <input type="password" id="password" placeholder="Contraseña (mínimo 8)" required minlength="8">
+                            <button type="button" class="ojo" id="toggle-password">
+                                <i data-lucide="eye"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Indicador de fuerza de contraseña -->
+<div class="fuerza_contenedor" id="fuerza-contenedor">
+    <div class="fuerza_barras">
+        <span class="fuerza_barra"></span>
+        <span class="fuerza_barra"></span>
+        <span class="fuerza_barra"></span>
+        <span class="fuerza_barra"></span>
+    </div>
+    <p class="fuerza_texto" id="fuerza-texto">Ingresa una contraseña</p>
+</div>
+
+                    <div class="campo_registro">
+                        <div class="campo_con_icono">
+                            <span class="icono_campo"><i data-lucide="lock"></i></span>
+                            <input type="password" id="password2" placeholder="Confirmar contraseña" required>
+                        </div>
+                    </div>
+
+                    <div class="campo_terminos">
+                        <input type="checkbox" id="terminos" required>
+                        <label for="terminos">Acepto los términos y condiciones</label>
+                    </div>
+
+                    <button type="submit" class="boton_blanco_ancho">Crear cuenta</button>
+                </form>
+
+                <p class="enlace_secundario_form">
+                    ¿Ya tienes cuenta? <a href="login.html">Inicia sesión</a>
+                </p>
+
+            </div>
+        </div>
+
+        <!-- Columna derecha: info + imagen -->
+        <div class="columna_ilustracion">
+            <div class="info_horizontal">
+
+                <div class="info_texto">
+                    <span class="info_badge">ODS 11 · Ciudades Sostenibles</span>
+
+                    <h2 class="info_titulo">
+                        Únete a la comunidad <span class="texto_morado">SIGRE</span>
+                    </h2>
+
+                    <p class="info_descripcion">
+                        Al registrarte podrás acceder a rutas seguras de evacuación,
+                        consultar centros de acopio, reportar personas o animales
+                        desaparecidos y estar al tanto de las jornadas comunitarias.
+                    </p>
+
+                    <ul class="lista_beneficios">
+                        <li><span class="check"><i data-lucide="check"></i></span> Acceso a rutas de evacuación seguras</li>
+                        <li><span class="check"><i data-lucide="check"></i></span> Centros de acopio y albergues cercanos</li>
+                        <li><span class="check"><i data-lucide="check"></i></span> Reporte de personas y animales</li>
+                        <li><span class="check"><i data-lucide="check"></i></span> Jornadas comunitarias y vacunación</li>
+                        <li><span class="check"><i data-lucide="check"></i></span> Alertas personalizadas por ubicación</li>
+                    </ul>
+                </div>
+
+                <div class="info_imagen">
+                    <img src="imagenes/bloquesregistro.png" alt="SIGRE" class="imagen_lateral">
+                </div>
+
+            </div>
+        </div>
+
+    </section>
+
+    <script>
+        lucide.createIcons();
+    </script>
+
+    <script src="js/auth.js"></script>
+
+</body>
+</html>

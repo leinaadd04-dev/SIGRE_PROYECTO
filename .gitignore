@@ -1,0 +1,20 @@
+# Claves locales
+.env
+**/.env
+
+# Entorno virtual de Python
+venv/
+**/venv/
+
+# Archivos generados por Python
+__pycache__/
+**/__pycache__/
+*.py[cod]
+
+# Archivos temporales y caché
+cache/
+**/cache/
+
+# Archivos de Windows
+desktop.ini
+Thumbs.db

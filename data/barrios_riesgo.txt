@@ -1,0 +1,113 @@
+============================================================
+LISTADO DE BARRIOS CON RIESGO DE INUNDACIÓN - MONTERÍA
+============================================================
+Fuente: DTS RIESGO POR INUNDACIÓN - Alcaldía de Montería
+Fecha de consulta: Septiembre 2026
+Proyecto: SIGRE - ODS 11
+============================================================
+
+------------------------------------------------------------
+1. MARGEN IZQUIERDA DEL RÍO SINÚ (ZONA MÁS CRÍTICA)
+------------------------------------------------------------
+- El Dorado
+- El Níspero
+- Vallejo
+- El Poblado
+- República de Panamá
+- La Ribera
+- Mi Ranchito
+- Rancho Grande
+- Los Colores
+- Holanda
+- Villa Petro
+
+------------------------------------------------------------
+2. ZONAS RIBEREÑAS Y DE HUMEDALES
+------------------------------------------------------------
+- Nuevo Milenio
+- Playa Brígida
+
+------------------------------------------------------------
+3. ZONA SUR (CANALES Y DESBORDAMIENTOS)
+------------------------------------------------------------
+- El Tambo
+- El Rosario
+- Alboraya
+- Campo Alegre
+- El Campano
+- Casita Nueva
+- Las Viñas
+- Villa Real
+- El Amparo
+- Puente No. 2
+- Río de Janeiro
+- Rosario
+- Magdalena
+
+------------------------------------------------------------
+4. ZONAS DE HUMEDALES PERI-URBANOS
+------------------------------------------------------------
+- Humedal Furatena
+- Humedal Berlín
+
+------------------------------------------------------------
+5. ZONAS CON AMENAZA POR DESLIZAMIENTO (COMPLEMENTARIO)
+------------------------------------------------------------
+- Ranchos del Batallón
+- Invasión 25 de agosto
+- El Limonar
+- Cantaclaro
+- La Pradera
+- Alrededores de Tacasuán
+- Barrio 6 de marzo
+- Barrio El Diamante
+- Edmundo López
+
+------------------------------------------------------------
+6. MEDIDAS DE INTERVENCIÓN IDENTIFICADAS
+------------------------------------------------------------
+Obras de contención:
+- Jarillones en Boca de la Ceiba
+- Jarillones en Arenal
+- Barreras con sacos de suelo
+
+Sistemas de drenaje:
+- Bombeo continuo en La Ribera (9.000 m³/día)
+- Bombeo hacia el río Sinú
+
+Mantenimiento de canales:
+- Canal de Rancho Grande
+- Canal de El Níspero
+- Canal de El Poblado
+- Canal de El Dorado
+- Canal de Vallejo
+
+Bioingeniería:
+- Bosques de galería en zonas críticas
+
+Medidas no estructurales:
+- Reubicación de familias en zonas no mitigables
+- Restricción de paso de vehículos sobre diques
+- Actualización del plan de drenaje pluvial
+- Implementación de SUDS (Sistemas Urbanos de Drenaje Sostenible)
+
+============================================================
+USO EN EL CÓDIGO DEL NOTEBOOK
+============================================================
+Estos barrios deben usarse para crear los polígonos de 
+riesgo en la celda de "zonas_riesgo" del notebook 
+rutas_eva.ipynb.
+
+Coordenadas aproximadas sugeridas (ajustar en Google Maps):
+- Margen izquierda del río Sinú: (-75.895, 8.755) a (-75.875, 8.775)
+- Zona sur: (-75.870, 8.740) a (-75.850, 8.755)
+- Humedales: (-75.885, 8.780) a (-75.870, 8.790)
+
+
+Nota: listado de referencia académica elaborado para SIGRE. 
+Las coordenadas son aproximadas y no representan polígonos oficiales 
+ni deben usarse para decisiones de emergencia. Verificar los límites y 
+datos con la cartografía oficial de la Alcaldía de Montería.
+============================================================
+FIN DEL DOCUMENTO
+============================================================

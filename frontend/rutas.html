@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SIGRE - Rutas de Evacuación</title>
+    <link rel="stylesheet" href="estilos_rutas.css">
+</head>
+<body class="dashboard_body">
+
+    <!-- Cabecera idéntica para mantener la coherencia -->
+    <header class="cabecera_dashboard">
+        <div class="cabecera_izquierda">
+            <a href="index.html" class="enlace_volver">← Volver al Inicio</a>
+        </div>
+        <div class="saludo_usuario">
+            <span class="nombre_usuario">Módulo de Rutas y Análisis</span>
+        </div>
+    </header>
+
+    <!-- Contenido Principal -->
+    <main class="dashboard_contenido">
+        <section class="seccion_guardados">
+            <div class="titulo_seccion_guardados">
+                <h2 class="titulo_guardados">Simulación y Resultados del Modelo</h2>
+            </div>
+            
+            <!-- Mapa interactivo exportado de tu notebook -->
+            <div class="guardados_mapa">
+                <iframe src="/mapa_rutas.html"></iframe>
+            </div>
+
+            <!-- Contenedor para mostrar métricas o datos procesados de tu notebook -->
+            <div class="resultados_logica">
+                <h3>Métricas de Evacuación</h3>
+                <p>
+                    Datos procesados desde el análisis de rutas óptimas y zonas de influencia.
+                </p>
+            </div>
+        </section>
+    </main>
+
+</body>
+</html>

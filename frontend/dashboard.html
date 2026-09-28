@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inicio - SIGRE</title>
+
+    <!-- CSS PRINCIPAL -->
+    <link rel="stylesheet" href="css/estiloso.css">
+
+    <!-- FONT AWESOME -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+</head>
+
+<body class="dashboard_body">
+
+    <!-- =========================================================
+         CABECERA
+    ========================================================== -->
+    <header class="cabecera_dashboard">
+
+        <!-- LOGO + BIENVENIDA -->
+        <div class="cabecera_izquierda">
+            <a href="dashboard.html" class="contenedor_logo">
+                <img src="imagenes/logo.png" alt="SIGRE" class="logo_dashboard">
+            </a>
+
+            <div class="saludo_usuario">
+                <p class="texto_bienvenida">¡Bienvenido,</p>
+                <h1 class="nombre_usuario" id="nombre-usuario">Usuario</h1>
+            </div>
+        </div>
+
+        <!-- NAVEGACIÓN DE ESCRITORIO -->
+        <nav class="navegacion_escritorio">
+            <a href="dashboard.html" class="enlace_escritorio activo">
+                <i class="fa-solid fa-house"></i>
+                <span>Inicio</span>
+            </a>
+            <a href="mapa.html" class="enlace_escritorio">
+                <i class="fa-solid fa-map"></i>
+                <span>Mapa</span>
+            </a>
+            <a href="alertas.html" class="enlace_escritorio">
+                <i class="fa-solid fa-bell"></i>
+                <span>Alertas</span>
+            </a>
+            <a href="perfil.html" class="enlace_escritorio">
+                <i class="fa-solid fa-user"></i>
+                <span>Mi Perfil</span>
+            </a>
+            <a href="#" id="cerrar-sesion" class="enlace_escritorio">
+                <i class="fa-solid fa-right-from-bracket"></i>
+                <span>Cerrar sesión</span>
+            </a>
+        </nav>
+
+        <!-- NOTIFICACIONES -->
+        <div class="cabecera_derecha">
+            <button class="boton_campana" type="button" aria-label="Notificaciones">
+                <i class="fa-solid fa-bell"></i>
+                <span class="contador_notificaciones">0</span>
+            </button>
+        </div>
+
+    </header>
+
+
+    <!-- =========================================================
+         CONTENEDOR PRINCIPAL DEL DASHBOARD
+    ========================================================== -->
+    <main class="dashboard_contenido">
+
+        <!-- =====================================================
+             COLUMNA PRINCIPAL
+        ====================================================== -->
+        <div class="dashboard_columna_principal">
+
+            <!-- =================================================
+                 EMERGENCIA ACTIVA
+            ================================================== -->
+            <section class="seccion_emergencia">
+                <div class="tarjeta_emergencia" id="tarjeta-emergencia">
+                    
+                    <div class="icono_emergencia">
+                        <i class="fa-solid fa-cloud-bolt"></i>
+                    </div>
+
+                    <div class="texto_emergencia">
+                        <h2>Emergencia Activa</h2>
+                        <p class="emergencia_descripcion">Cargando...</p>
+                        <p class="emergencia_ubicacion">
+                            <i class="fa-solid fa-location-dot"></i>
+                            Cargando...
+                        </p>
+                    </div>
+
+                    <button class="boton_mas_info" type="button">
+                        Más Info
+                    </button>
+                </div>
+
+                <div class="personaje_lateral">
+                    <img src="imagenes/userdashboard.png" alt="Asistente SIGRE">
+                </div>
+            </section>
+
+
+            <!-- =================================================
+                 CUADRÍCULA DE MÓDULOS
+            ================================================== -->
+            <section class="cuadricula_modulos" aria-label="Servicios principales">
+
+                <!-- RUTAS DE EVACUACIÓN -->
+                <a href="rutas.html" class="tarjeta_modulo modulo_rutas">
+                    <div class="modulo_interno">
+                        <div class="modulo_info_izquierda">
+                            <div class="modulo_icono icono_morado">
+                                <i class="fa-solid fa-map-location-dot"></i>
+                            </div>
+                            <div class="modulo_texto">
+                                <h3>Rutas de evacuación</h3>
+                                <p>Encuentra la ruta más segura</p>
+                            </div>
+                        </div>
+                        <div class="modulo_imagen_derecha">
+                            <i class="fa-solid fa-chevron-right modulo_flecha_flotante"></i>
+                            <img src="imagenes/modulo01.png" alt="Personaje de rutas de evacuación">
+                        </div>
+                    </div>
+                </a>
+
+                <!-- CENTROS DE ACOPIO -->
+                <a href="centros.html" class="tarjeta_modulo modulo_acopio">
+                    <div class="modulo_interno">
+                        <div class="modulo_info_izquierda">
+                            <div class="modulo_icono icono_amarillo">
+                                <i class="fa-solid fa-kit-medical"></i>
+                            </div>
+                            <div class="modulo_texto">
+                                <h3>Centros de acopio y albegues</h3>
+                                <p>Inventario y estado de productos</p>
+                            </div>
+                        </div>
+                        <div class="modulo_imagen_derecha">
+                            <i class="fa-solid fa-chevron-right modulo_flecha_flotante"></i>
+                            <img src="imagenes/modulo1.png" alt="Personaje de centros de acopio">
+                        </div>
+                    </div>
+                </a>
+
+      <!-- SOLICITAR AYUDA -->
+                <a href="solicitar_ayuda.html" class="tarjeta_modulo modulo_ayuda">
+                    <div class="modulo_interno">
+                        <div class="modulo_info_izquierda">
+                            <div class="modulo_icono icono_amarillo">
+                      <i class="fa-solid fa-hand-holding-hand"></i>
+                            </div>
+                            <div class="modulo_texto">
+                                <h3>Solicitar ayuda</h3>
+                                <p>Reporta necesidades no atendidas</p>
+                            </div>
+                        </div>
+                        <div class="modulo_imagen_derecha">
+                            <img src="imagenes/modulo3.png" alt="Personaje de solicitar ayuda">
+                        </div>
+                    </div>
+                    <i class="fa-solid fa-chevron-right modulo_flecha_flotante"></i>
+                </a>
+
+                <!-- REPORTAR DESAPARECIDOS -->
+                <a href="reportar_desaparecidos.html" class="tarjeta_modulo tarjeta_desaparecidos modulo_desaparecidos">
+                    <div class="modulo_interno">
+                        <div class="modulo_info_izquierda">
+                            <div class="modulo_icono_imagen">
+                                <img src="imagenes/wanted.png" alt="Reportar desaparecidos">
+                            </div>
+                            <div class="modulo_texto contenido_desaparecidos">
+                                <h3>Reportar desaparecidos</h3>
+                                <p>Personas o animales</p>
+                            </div>
+                        </div>
+                        <div class="modulo_imagen_derecha">
+                            <i class="fa-solid fa-chevron-right modulo_flecha_flotante"></i>
+                            <img src="imagenes/modulo4.png" alt="Personaje de reportar desaparecidos">
+                        </div>
+                    </div>
+                </a>
+
+            </section>
+
+
+            <!-- =================================================
+                 CAMPAÑAS SOLIDARIAS
+            ================================================== -->
+            <section class="tarjeta_campanas">
+                <img src="imagenes/modulo03.png" alt="Personaje de reportar desaparecidos" style="height: 120px; width: 400px;">
+                <div class="campanas_icono">
+                    
+                    <i class="fa-solid fa-calendar-check"></i>
+                </div>
+                <div class="campanas_contenido">
+                    <h2>Campañas Solidarias</h2>
+                    <p>Eventos, campañas y actividades para la comunidad</p>
+                </div>
+                <i class="fa-solid fa-chevron-right campanas_flecha"></i>
+                 
+            </section>
+
+        </div>
+
+
+        <!-- =====================================================
+             COLUMNA LATERAL / MAPA Y ACTIVIDAD
+        ====================================================== -->
+        <aside class="dashboard_columna_lateral">
+            <div class="dashboard-container"></div>
+
+
+        <!-- 🌤️ WIDGET DEL CLIMA AUTOMÁTICO -->
+        <div class="weather-widget" id="weather-widget">
+            <div class="weather-info">
+                <span class="weather-city">Montería, Córdoba</span>
+                <span id="weather-desc" class="weather-desc">Conectando con el clima...</span>
+            </div>
+            <div class="weather-temp" id="weather-temp">--°C</div>
+        </div>
+
+       <!-- TUS GUARDADOS -->
+            <section class="seccion_guardados">
+                <div class="titulo_seccion_guardados">
+                    <h2 class="titulo_guardados">Tus guardados</h2>
+                    <a href="#" class="enlace_ver_todos">Ver todos</a>
+                </div>
+
+                <div class="guardados_contenedor">
+                    <!-- MAPA -->
+                    <div class="guardados_mapa" id="mapa-guardados" style="overflow: hidden; padding: 0;">
+                        <!-- Reemplazamos la imagen estática por el iframe del mapa interactivo -->
+                       <iframe src="/mapa_rutas.html" style="width: 100%; height: 100%; border: none;"></iframe>
+                    </div>
+
+                    <!-- LISTA DE RECIENTES -->
+                    <div class="guardados_lista_contenedor">
+                        <div class="lista_cabecera">
+                            <h3>Recientes</h3>
+                            <a href="#" class="enlace_ver_todos">Ver todos</a>
+                        </div>
+                        <div class="guardados_lista" id="lista-recientes">
+                            <!-- Contenido dinámico -->
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            </div>
+
+            <!-- ACCESO RÁPIDO SOS PARA ESCRITORIO -->
+            <div class="sos_escritorio">
+                <button class="boton_sos escritorio" id="boton-sos-escritorio" type="button">
+                    <i class="fa-solid fa-light-emergency"></i>
+                    <span>SOS</span>
+                    <small>Emergencia</small>
+                </button>
+            </div>
+
+        </aside>
+
+    </main>
+
+
+    <!-- =========================================================
+         NAVEGACIÓN INFERIOR - CELULAR
+    ========================================================== -->
+    <nav class="navegacion_inferior">
+        <a href="dashboard.html" class="item_navegacion activo">
+            <i class="fa-solid fa-house"></i>
+            <span>Inicio</span>
+        </a>
+        <a href="mapa.html" class="item_navegacion">
+            <i class="fa-solid fa-map"></i>
+            <span>Mapa</span>
+        </a>
+        <button class="boton_sos" id="boton-sos" type="button">
+            <span>SOS</span>
+        </button>
+        <a href="alertas.html" class="item_navegacion">
+            <i class="fa-solid fa-bell"></i>
+            <span>Alertas</span>
+        </a>
+        <a href="perfil.html" class="item_navegacion">
+            <i class="fa-solid fa-user"></i>
+            <span>Mi Perfil</span>
+        </a>
+    </nav>
+
+
+    <!-- =========================================================
+         SCRIPTS
+    ========================================================== -->
+    <script src="js/auth.js"></script>
+    <script src="js/dashboard.js"></script>
+    <script>
+    async function cargarClimaReal() {
+        try {
+            // Coordenadas exactas de Montería, Córdoba
+            const lat = 8.7479;
+            const lon = -75.8814;
+            const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,relative_humidity_2m`;
+            
+            const respuesta = await fetch(url);
+            const datos = await respuesta.json();
+            
+            // Extraemos los datos actuales
+            const temperatura = datos.current.temperature_2m;
+            const humedad = datos.current.relative_humidity_2m;
+            
+            // Los inyectamos en el HTML automáticamente
+            document.getElementById('weather-temp').innerText = `${temperatura}°C`;
+            document.getElementById('weather-desc').innerText = `Humedad: ${humedad}%`;
+            
+        } catch (error) {
+            console.error("No se pudo obtener el clima:", error);
+            document.getElementById('weather-desc').innerText = "Clima no disponible";
+        }
+    }
+
+    // Ejecutar la función al cargar la página
+    cargarClimaReal();
+</script>
+
+</body>
+
+</html>

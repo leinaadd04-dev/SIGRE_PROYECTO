@@ -1,0 +1,639 @@
+/* =========================================================
+   VARIABLES Y CONFIGURACIÓN BASE
+========================================================= */
+:root {
+    --primary-color: #1b4965;
+    --primary-light: #2c7da0;
+    --accent-color: #e63946;
+    --warning-color: #ffb703;
+    --bg-color: #f4f7f6;
+    --card-bg: #ffffff;
+    --text-main: #2b2d42;
+    --text-muted: #8d99ae;
+    --border-color: #e2e8f0;
+    --radius: 16px;
+    --shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+}
+
+body.dashboard_body {
+    background-color: var(--bg-color);
+    color: var(--text-main);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+/* =========================================================
+   CABECERA
+========================================================= */
+.cabecera_dashboard {
+    background-color: #436097;
+    padding: 15px 5%; /* Margen lateral dinámico para que respire en cualquier pantalla */
+    width: 100%; /* Ocupa todo el ancho absoluto */
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid var(--border-color);
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+}
+
+.cabecera_izquierda {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.logo_dashboard {
+    height: 40px;
+    object-fit: contain;
+}
+
+.saludo_usuario .texto_bienvenida {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+}
+
+.saludo_usuario .nombre_usuario {
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: white;
+}
+
+/* Navegación Escritorio */
+.navegacion_escritorio {
+    display: none;
+    gap: 25px;
+}
+
+.enlace_escritorio {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    text-decoration: none;
+    color: white;
+    font-weight: 600;
+    font-size: 0.95rem;
+    transition: color 0.3s;
+}
+
+.enlace_escritorio:hover,
+.enlace_escritorio.activo {
+    color: var(--primary-color);
+}
+
+/* Campana de notificaciones */
+.cabecera_derecha .boton_campana {
+    background: var(--bg-color);
+    border: none;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    position: relative;
+    cursor: pointer;
+    color: var(--primary-color);
+    font-size: 1.1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.contador_notificaciones {
+    position: absolute;
+    top: -2px;
+    right: -2px;
+    background: var(--accent-color);
+    color: white;
+    font-size: 0.7rem;
+    padding: 2px 6px;
+    border-radius: 10px;
+    font-weight: 700;
+}
+
+/* =========================================================
+   CONTENEDOR PRINCIPAL (GRID / FLEX)
+========================================================= */
+.dashboard_contenido {
+    max-width: 1400px;
+    width: 100%;
+    margin: 0 auto;
+    padding: 25px;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 25px;
+    flex: 1;
+    padding-bottom: 90px; /* Espacio para barra móvil inferior */
+}
+
+/* =========================================================
+   COLUMNA PRINCIPAL
+========================================================= */
+.dashboard_columna_principal {
+    display: flex;
+    flex-direction: column;
+    gap: 25px;
+}
+
+/* Tarjeta Emergencia Activa */
+.seccion_emergencia {
+    background: linear-gradient(135deg, #1b4965 0%, #2c7da0 100%);
+    border-radius: var(--radius);
+    padding: 25px;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: relative;
+    overflow: hidden;
+    box-shadow: var(--shadow);
+}
+
+.tarjeta_emergencia {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    width: 100%;
+}
+
+.icono_emergencia {
+    background: rgba(255, 255, 255, 0.15);
+    width: 60px;
+    height: 60px;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.8rem;
+    flex-shrink: 0;
+}
+
+.texto_emergencia h2 {
+    font-size: 1.25rem;
+    margin-bottom: 5px;
+}
+
+.emergencia_descripcion {
+    font-size: 0.95rem;
+    opacity: 0.9;
+    margin-bottom: 5px;
+}
+
+.emergencia_ubicacion {
+    font-size: 0.85rem;
+    opacity: 0.8;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.boton_mas_info {
+    background: white;
+    color: var(--primary-color);
+    border: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: transform 0.2s;
+    margin-left: auto;
+}
+
+.boton_mas_info:hover {
+    transform: scale(1.05);
+}
+
+.personaje_lateral img {
+    height: 100px;
+    display: none;
+}
+
+/* =========================================================
+   CUADRÍCULA Y TARJETAS DE MÓDULOS
+========================================================= */
+.cuadricula_modulos {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr); /* Siempre 2 columnas: 2 arriba y 2 abajo */
+    gap: 15px; /* Espacio equilibrado para celular */
+}
+
+.tarjeta_modulo {
+    position: relative;
+    overflow: hidden;
+    background: var(--card-bg);
+    border-radius: var(--radius);
+    padding: 20px;
+    text-decoration: none;
+    color: var(--text-main);
+    box-shadow: var(--shadow);
+    border: 1px solid var(--border-color);
+    transition: transform 0.3s, box-shadow 0.3s;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.tarjeta_modulo:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+}
+
+.modulo_interno {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+}
+
+.modulo_info_izquierda {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    flex: 1;
+}
+
+.modulo_icono, .modulo_icono_imagen {
+    width: 45px;
+    height: 45px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.1rem;
+    flex-shrink: 0;
+    overflow: hidden;
+}
+
+.icono_morado { 
+    background: #5c6bc0; 
+    color: #ffffff; 
+}
+
+.icono_amarillo { 
+    background: #d97706; 
+    color: #ffffff; 
+}
+
+.modulo_icono_imagen img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.modulo_texto h3 {
+    font-size: 0.95rem;
+    color: var(--text-main);
+    margin-bottom: 3px;
+    line-height: 1.2;
+}
+
+.modulo_texto p {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    line-height: 1.3;
+}
+
+.modulo_imagen_derecha {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    height: 100%;
+    min-height: 90px;
+    flex-shrink: 0;
+}
+
+.modulo_flecha_flotante {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    background: rgba(255, 255, 255, 0.85);
+    color: var(--text-main);
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.7rem;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.15);
+    z-index: 2;
+    transition: background 0.2s, transform 0.2s;
+}
+
+.modulo_imagen_derecha img {
+    height: 100%;
+    max-height: 110px;
+    width: auto;
+    object-fit: cover;
+    border-radius: 0 12px 12px 0;
+}
+
+/* Campañas Solidarias */
+.tarjeta_campanas {
+    background: var(--card-bg);
+    border-radius: var(--radius);
+    padding: 20px;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    box-shadow: var(--shadow);
+    border: 1px solid var(--border-color);
+    cursor: pointer;
+    transition: transform 0.3s;
+}
+
+.tarjeta_campanas:hover {
+    transform: translateY(-2px);
+}
+
+.campanas_icono {
+    background: #e8f5e9;
+    color: #2e7d32;
+    width: 50px;
+    height: 50px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.4rem;
+    flex-shrink: 0;
+}
+
+.campanas_contenido h2 {
+    font-size: 1.05rem;
+    margin-bottom: 3px;
+}
+
+.campanas_contenido p {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+}
+
+.campanas_flecha {
+    margin-left: auto;
+    color: var(--text-muted);
+}
+
+/* =========================================================
+   WIDGET DEL CLIMA RESPONSIVO
+========================================================= */
+.weather-widget {
+    background: linear-gradient(135deg, #4B739E, #2c4a6e);
+    color: white;
+    padding: 15px 20px;
+    border-radius: var(--radius);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: var(--shadow);
+    width: 100%;
+}
+
+.weather-city {
+    font-size: 0.95rem;
+    font-weight: bold;
+    display: block;
+}
+
+.weather-desc {
+    font-size: 0.8rem;
+    opacity: 0.9;
+}
+
+.weather-temp {
+    font-size: 1.8rem;
+    font-weight: bold;
+}
+
+/* =========================================================
+   COLUMNA LATERAL (MAPA Y GUARDADOS)
+========================================================= */
+.dashboard_columna_lateral {
+    display: flex;
+    flex-direction: column;
+    gap: 25px;
+}
+
+.seccion_guardados {
+    background: var(--card-bg);
+    border-radius: var(--radius);
+    padding: 20px;
+    box-shadow: var(--shadow);
+    border: 1px solid var(--border-color);
+}
+
+.titulo_seccion_guardados, .lista_cabecera {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.titulo_guardados {
+    font-size: 1.1rem;
+}
+
+.enlace_ver_todos {
+    font-size: 0.85rem;
+    color: var(--primary-light);
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.guardados_contenedor {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.guardados_mapa {
+    width: 100%;
+    height: 220px;
+    border-radius: 12px;
+    overflow: hidden;
+    position: relative;
+    background: #e2e8f0;
+}
+
+.guardados_mapa iframe {
+    width: 100%;
+    height: 100%;
+    border: none;
+}
+
+.mapa_placeholder {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.guardados_lista_contenedor .lista_cabecera h3 {
+    font-size: 0.95rem;
+    color: var(--text-main);
+}
+
+.guardados_lista {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    min-height: 50px;
+}
+
+/* Botón SOS Escritorio */
+.sos_escritorio {
+    display: none;
+}
+
+.boton_sos.escritorio {
+    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+    color: white;
+    width: 100%;
+    border: none;
+    padding: 15px;
+    border-radius: var(--radius);
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    box-shadow: 0 4px 15px rgba(230, 57, 70, 0.3);
+    transition: background-image 0.3s, transform 0.2s, box-shadow 0.3s;
+}
+
+.boton_sos.escritorio:hover {
+    background: linear-gradient(135deg, #d97706 0%, #b45309 100%);
+    box-shadow: 0 6px 20px rgba(230, 57, 70, 0.5);
+    transform: translateY(-1px);
+}
+
+.boton_sos.escritorio span {
+    font-size: 1.4rem;
+    letter-spacing: 1px;
+}
+
+.boton_sos.escritorio small {
+    font-size: 0.75rem;
+    opacity: 0.9;
+}
+
+/* =========================================================
+   NAVEGACIÓN INFERIOR (MÓVIL)
+========================================================= */
+.navegacion_inferior {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background: var(--card-bg);
+    border-top: 1px solid var(--border-color);
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    padding: 10px 0;
+    z-index: 1000;
+}
+
+.item_navegacion {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-decoration: none;
+    color: var(--text-muted);
+    font-size: 0.75rem;
+    gap: 4px;
+}
+
+.item_navegacion i {
+    font-size: 1.2rem;
+}
+
+.item_navegacion.activo, .item_navegacion:hover {
+    color: var(--primary-color);
+}
+
+/* Botón SOS Central en móvil */
+.navegacion_inferior .boton_sos {
+    background: var(--accent-color);
+    color: white;
+    border: none;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    font-weight: 700;
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 12px rgba(230, 57, 70, 0.4);
+    cursor: pointer;
+    transform: translateY(-10px);
+}
+
+/* =========================================================
+   RESPONSIVE DESIGN (MÓVILES MUY PEQUEÑOS / TABLETS / ESCRITORIO)
+========================================================= */
+@media (max-width: 480px) {
+   .cuadricula_modulos {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr); /* Siempre 2 columnas: 2 arriba y 2 abajo */
+    gap: 15px; /* Espacio equilibrado para celular */
+}
+
+.modulo_imagen_derecha img {
+    height: 100%;
+    max-height: 110px;
+    width: 120px;
+    object-fit: cover;
+    border-radius: 0 12px 12px 0;
+}
+
+
+    
+  .cabecera_dashboard {
+    background-color: #436097;
+    padding: 15px 5%; /* Margen lateral dinámico para que respire en cualquier pantalla */
+    width: 100%; /* Ocupa todo el ancho absoluto */
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid var(--border-color);
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+}
+}
+
+@media (min-width: 992px) {
+    .dashboard_contenido {
+        grid-template-columns: 2fr 1fr;
+        padding: 35px;
+        padding-bottom: 35px;
+    }
+
+    .navegacion_escritorio {
+        display: flex;
+    }
+
+    .navegacion_inferior {
+        display: none;
+    }
+
+    .sos_escritorio {
+        display: block;
+    }
+
+    .personaje_lateral img {
+        display: block;
+    }
+}
