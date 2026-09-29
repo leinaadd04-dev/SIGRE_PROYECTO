@@ -1,12 +1,14 @@
+import io
 import os 
 from pathlib import Path
 
 import re
+from datetime import datetime
 import psycopg
 import unicodedata
 
 from dotenv import load_dotenv
-from flask import Flask, jsonify,request
+from flask import Flask, jsonify,request, send_file
 from flask_jwt_extended import JWTManager,create_access_token
 from flask_jwt_extended import get_jwt, get_jwt_identity, jwt_required
 
@@ -19,6 +21,7 @@ load_dotenv(Path(__file__).resolve().parent / ".env")
 
 
 app = Flask(__name__)
+app.config["MAX_CONTENT_LENGTH"] = 5 * 1024 * 1024 + 64 * 1024
 
 #flask toma la clave del archivo .env
 
@@ -184,6 +187,171 @@ def listar_emergencias():
     return jsonify([dict(zip(columnas, fila)) for fila in filas])
 
 
+
+# Módulo de reportes de personas y animales desaparecidos.
+# API para el prototipo local; exige autorización explícita de publicación.
+@app.after_request
+def habilitar_cors_frontend_local(respuesta):
+    origen = request.headers.get("Origin", "")
+    origenes_locales = {
+        "http://127.0.0.1:5500",
+        "http://localhost:5500",
+        "http://127.0.0.1:8000",
+        "http://localhost:8000",
+    }
+    if origen in origenes_locales:
+        respuesta.headers["Access-Control-Allow-Origin"] = origen
+        respuesta.headers["Access-Control-Allow-Methods"] = "GET, POST, OPTIONS"
+        respuesta.headers["Access-Control-Allow-Headers"] = "Content-Type"
+        respuesta.headers["Vary"] = "Origin"
+    return respuesta
+
+
+@app.route("/api/desaparecidos", methods=["OPTIONS"])
+def opciones_desaparecidos():
+    return "", 204
+
+
+@app.get("/api/desaparecidos")
+def listar_desaparecidos():
+    tipo = request.args.get("tipo", "").strip().lower()
+    estado = request.args.get("estado", "").strip().lower()
+    busqueda = request.args.get("q", "").strip()
+
+    if tipo and tipo not in ("persona", "animal"):
+        return jsonify({"error": "Tipo de reporte no válido"}), 400
+    if estado and estado not in ("activo", "encontrado"):
+        return jsonify({"error": "Estado no válido"}), 400
+
+    condiciones = []
+    parametros = []
+    if tipo:
+        condiciones.append("tipo = %s")
+        parametros.append(tipo)
+    if estado:
+        condiciones.append("estado = %s")
+        parametros.append(estado)
+    if busqueda:
+        condiciones.append("(nombre ILIKE %s OR sector ILIKE %s)")
+        parametros.extend((f"%{busqueda}%", f"%{busqueda}%"))
+
+    where_sql = "WHERE " + " AND ".join(condiciones) if condiciones else ""
+    consulta = f"""
+        SELECT id, tipo, nombre, edad, genero, sector, fecha_visto,
+               descripcion, estado, creado_en
+        FROM reportes_desaparecidos
+        {where_sql}
+        ORDER BY creado_en DESC
+    """
+
+    with obtener_conexion() as conexion:
+        filas = conexion.execute(consulta, parametros).fetchall()
+
+    columnas = (
+        "id", "tipo", "nombre", "edad", "genero", "sector",
+        "fecha_visto", "descripcion", "estado", "creado_en"
+    )
+    reportes = []
+    for fila in filas:
+        reporte = dict(zip(columnas, fila))
+        for campo in ("fecha_visto", "creado_en"):
+            if reporte[campo] is not None:
+                reporte[campo] = reporte[campo].isoformat()
+        reporte["foto_url"] = f"/api/desaparecidos/{reporte['id']}/foto"
+        reportes.append(reporte)
+
+    return jsonify(reportes)
+
+
+@app.get("/api/desaparecidos/<int:reporte_id>/foto")
+def foto_desaparecido(reporte_id):
+    with obtener_conexion() as conexion:
+        fila = conexion.execute(
+            """
+            SELECT foto, foto_mime
+            FROM reportes_desaparecidos
+            WHERE id = %s
+            """,
+            (reporte_id,)
+        ).fetchone()
+
+    if fila is None:
+        return jsonify({"error": "Foto no encontrada"}), 404
+
+    respuesta = send_file(
+        io.BytesIO(bytes(fila[0])),
+        mimetype=fila[1],
+        download_name=f"reporte-{reporte_id}"
+    )
+    respuesta.headers["Cache-Control"] = "public, max-age=300"
+    respuesta.headers["X-Content-Type-Options"] = "nosniff"
+    return respuesta
+
+
+@app.post("/api/desaparecidos")
+def crear_reporte_desaparecido():
+    tipo = limpiar_texto(request.form.get("tipo"), 10)
+    nombre = limpiar_texto(request.form.get("nombre"), 120)
+    edad = limpiar_texto(request.form.get("edad", ""), 40)
+    genero = limpiar_texto(request.form.get("genero", ""), 40)
+    sector = limpiar_texto(request.form.get("sector"), 160)
+    descripcion = limpiar_texto(request.form.get("descripcion"), 1200)
+    fecha_visto_texto = limpiar_texto(request.form.get("fecha_visto", ""), 40)
+    foto = request.files.get("foto")
+    autorizada = request.form.get("autoriza_publicacion") == "true"
+
+    if tipo not in ("persona", "animal"):
+        return jsonify({"error": "Selecciona persona o animal"}), 400
+    if not nombre or not sector or not descripcion:
+        return jsonify({"error": "Completa nombre, sector y descripción"}), 400
+    if not autorizada:
+        return jsonify({"error": "Se requiere autorización para publicar la foto y los datos"}), 400
+    if foto is None or not foto.filename:
+        return jsonify({"error": "Selecciona una fotografía"}), 400
+
+    contenido_foto = foto.read(5 * 1024 * 1024 + 1)
+    if not contenido_foto or len(contenido_foto) > 5 * 1024 * 1024:
+        return jsonify({"error": "La imagen debe pesar máximo 5 MB"}), 400
+
+    firma = contenido_foto[:12]
+    if firma.startswith(b"\xff\xd8\xff"):
+        mime = "image/jpeg"
+    elif firma.startswith(b"\x89PNG\r\n\x1a\n"):
+        mime = "image/png"
+    elif firma[:4] == b"RIFF" and firma[8:12] == b"WEBP":
+        mime = "image/webp"
+    else:
+        return jsonify({"error": "Usa una imagen JPG, PNG o WEBP"}), 400
+
+    fecha_visto = None
+    if fecha_visto_texto:
+        try:
+            fecha_visto = datetime.fromisoformat(
+                fecha_visto_texto.replace("Z", "+00:00")
+            )
+        except ValueError:
+            return jsonify({"error": "La fecha indicada no es válida"}), 400
+
+    with obtener_conexion() as conexion:
+        fila = conexion.execute(
+            """
+            INSERT INTO reportes_desaparecidos
+                (tipo, nombre, edad, genero, sector, fecha_visto,
+                 descripcion, foto, foto_mime, autoriza_publicacion)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, TRUE)
+            RETURNING id, creado_en
+            """,
+            (
+                tipo, nombre, edad, genero, sector, fecha_visto,
+                descripcion, psycopg.Binary(contenido_foto), mime
+            )
+        ).fetchone()
+
+    return jsonify({
+        "mensaje": "Reporte publicado",
+        "id": fila[0],
+        "creado_en": fila[1].isoformat()
+    }), 201
 @app.get("/salud")
 def inicio():
     return "SIGRE funcionando"

@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Personas desaparecidas - SIGRE</title>
+
+    <link rel="stylesheet" href="css/estiloso.css">
+    <link rel="stylesheet" href="css/estilos_desaparecidos.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+</head>
+<body class="dashboard_body pagina_desaparecidos">
+
+    <header class="cabecera_dashboard">
+        <div class="cabecera_izquierda">
+            <a href="dashboard.html" class="contenedor_logo">
+                <img src="imagenes/logo.png" alt="SIGRE" class="logo_dashboard">
+            </a>
+
+            <div class="saludo_usuario">
+                <p class="texto_bienvenida">Módulo de</p>
+                <h1 class="nombre_usuario">Desaparecidos</h1>
+            </div>
+        </div>
+
+        <nav class="navegacion_escritorio" aria-label="Navegación principal">
+            <a href="dashboard.html" class="enlace_escritorio">
+                <i class="fa-solid fa-house"></i>
+                <span>Inicio</span>
+            </a>
+
+            <a href="rutas.html" class="enlace_escritorio">
+                <i class="fa-solid fa-map"></i>
+                <span>Mapa</span>
+            </a>
+
+            <a href="alertas.html" class="enlace_escritorio activo">
+                <i class="fa-solid fa-bell"></i>
+                <span>Alertas</span>
+            </a>
+
+            <a href="perfil.html" class="enlace_escritorio">
+                <i class="fa-solid fa-user"></i>
+                <span>Mi Perfil</span>
+            </a>
+
+            <a href="#" id="cerrar-sesion" class="enlace_escritorio">
+                <i class="fa-solid fa-right-from-bracket"></i>
+                <span>Cerrar sesión</span>
+            </a>
+        </nav>
+
+        <div class="cabecera_derecha">
+            <button class="boton_campana" type="button" aria-label="Notificaciones">
+                <i class="fa-solid fa-bell"></i>
+                <span class="contador_notificaciones">0</span>
+            </button>
+        </div>
+    </header>
+
+    <section class="encabezado_desaparecidos">
+        <div>
+            <h2>Personas desaparecidas</h2>
+            <p>Consulta los reportes y ayuda compartiendo información verificada.</p>
+        </div>
+
+        <img
+            src="imagenes/userdashboard.png"
+            alt=""
+            aria-hidden="true"
+        >
+    </section>
+
+    <main class="desaparecidos_contenido">
+
+        <div class="paneles_desaparecidos">
+            <div class="columna_izquierda">
+
+        <section class="seccion_selector_tipo" aria-label="Tipo de reporte">
+            <h2>Reportar persona o animal desaparecido</h2>
+
+            <div class="selector_tipo">
+                <button
+                    type="button"
+                    class="boton_tipo activo"
+                    data-tipo="persona"
+                    aria-pressed="true"
+                >
+                    <i class="fa-solid fa-user"></i>
+                    Persona
+                </button>
+
+                <button
+                    type="button"
+                    class="boton_tipo"
+                    data-tipo="animal"
+                    aria-pressed="false"
+                >
+                    <i class="fa-solid fa-paw"></i>
+                    Animal
+                </button>
+            </div>
+        </section>
+
+        <section class="seccion_subir_foto" aria-label="Subir fotografía">
+            <div
+                class="zona_subida"
+                id="zona-subida"
+                tabindex="0"
+                role="button"
+                aria-label="Seleccionar o arrastrar una fotografía"
+            >
+                <input
+                    type="file"
+                    id="input-foto"
+                    accept="image/jpeg,image/png,image/webp"
+                    hidden
+                >
+
+                <div class="contenido_zona_subida" id="contenido-zona-subida">
+                    <i class="fa-solid fa-camera"></i>
+                    <strong>Arrastra una foto aquí</strong>
+                    <span>o toca para seleccionar una imagen (JPG, PNG o WEBP; máximo 5 MB)</span>
+                </div>
+
+                <img
+                    id="foto-previsualizada"
+                    class="foto_previsualizada"
+                    alt="Vista previa de la foto seleccionada"
+                    hidden
+                >
+            </div>
+        </section>
+
+        <button
+            type="button"
+            class="boton_anadir_datos"
+            id="boton-anadir-datos"
+            hidden
+        >
+            <i class="fa-solid fa-pen"></i>
+            Añadir datos básicos
+        </button>
+
+        </div>
+
+        <section class="seccion_reportes">
+            <div class="titulo_seccion_reportes">
+                <div>
+                    <h2>Reportes de la comunidad</h2>
+                    <p>Las fichas se cargan desde SIGRE.</p>
+                </div>
+
+                <span
+                    class="contador_reportes"
+                    id="contador-reportes"
+                    aria-label="Cantidad de reportes"
+                >0</span>
+            </div>
+
+            <div class="filtros_reportes">
+                <label class="sr-only" for="filtro-texto">
+                    Buscar por nombre o sector
+                </label>
+
+                <input
+                    type="search"
+                    id="filtro-texto"
+                    placeholder="Buscar por nombre o sector"
+                >
+
+                <label class="sr-only" for="filtro-tipo">
+                    Filtrar por tipo
+                </label>
+
+                <select id="filtro-tipo">
+                    <option value="">Personas y animales</option>
+                    <option value="persona">Personas</option>
+                    <option value="animal">Animales</option>
+                </select>
+
+                <label class="sr-only" for="filtro-estado">
+                    Filtrar por estado
+                </label>
+
+                <select id="filtro-estado">
+                    <option value="">Todos los estados</option>
+                    <option value="activo">Activos</option>
+                    <option value="encontrado">Encontrados</option>
+                </select>
+            </div>
+
+            <p
+                class="estado_carga"
+                id="estado-reportes"
+                role="status"
+                aria-live="polite"
+            >
+                Cargando reportes...
+            </p>
+
+            <div class="cuadricula_reportes" id="cuadricula-reportes"></div>
+        </section>
+
+        </div>
+
+        <section class="seccion_formulario" id="seccion-formulario" hidden>
+            <div class="tarjeta_formulario">
+                <div class="encabezado_formulario">
+                    <h2>
+                        <i class="fa-solid fa-id-card"></i>
+                        Datos básicos del reporte
+                    </h2>
+                    <p>Completa la información para enviar el reporte.</p>
+                </div>
+
+                <form id="formulario-reporte">
+                    <input
+                        type="hidden"
+                        name="tipo"
+                        id="tipo-reporte"
+                        value="persona"
+                    >
+
+                    <label for="nombre-reporte">
+                        Nombre de la persona o animal
+                    </label>
+                    <input
+                        id="nombre-reporte"
+                        name="nombre"
+                        type="text"
+                        maxlength="120"
+                        required
+                    >
+
+                    <div class="fila_doble">
+                        <div>
+                            <label for="edad-reporte">Edad aproximada</label>
+                            <input
+                                id="edad-reporte"
+                                name="edad"
+                                type="text"
+                                maxlength="40"
+                                placeholder="Ej. 8 años"
+                            >
+                        </div>
+
+                        <div>
+                            <label for="genero-reporte">Género / sexo</label>
+                            <select id="genero-reporte" name="genero">
+                                <option value="">No especificado</option>
+                                <option value="Femenino">Femenino</option>
+                                <option value="Masculino">Masculino</option>
+                                <option value="No especificado">No especificado</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <label for="sector-reporte">
+                        Sector donde fue visto por última vez
+                    </label>
+                    <input
+                        id="sector-reporte"
+                        name="sector"
+                        type="text"
+                        maxlength="160"
+                        required
+                    >
+
+                    <label for="fecha-reporte">Fecha y hora aproximada</label>
+                    <input
+                        id="fecha-reporte"
+                        name="fecha_visto"
+                        type="datetime-local"
+                    >
+
+                    <label for="descripcion-reporte">
+                        Descripción / señas particulares
+                    </label>
+                    <textarea
+                        id="descripcion-reporte"
+                        name="descripcion"
+                        rows="4"
+                        maxlength="1200"
+                        required
+                    ></textarea>
+
+                    <label class="consentimiento">
+                        <input
+                            type="checkbox"
+                            id="autoriza-publicacion"
+                            name="autoriza_publicacion"
+                            value="true"
+                            required
+                        >
+                        <span>
+                            Confirmo que tengo autorización para publicar esta foto
+                            y la información del reporte.
+                        </span>
+                    </label>
+
+                    <button
+                        type="submit"
+                        class="boton_publicar"
+                        id="boton-publicar"
+                    >
+                        <i class="fa-solid fa-bullhorn"></i>
+                        Publicar reporte
+                    </button>
+
+                    <p
+                        class="mensaje_formulario"
+                        id="mensaje-formulario"
+                        role="status"
+                        aria-live="polite"
+                    ></p>
+                </form>
+            </div>
+        </section>
+    </main>
+
+    <div class="ventana_caso_fondo" id="ventana-caso-fondo" hidden>
+        <section
+            class="ventana_caso"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="ventana-nombre"
+        >
+            <button
+                type="button"
+                class="boton_cerrar_ventana"
+                id="boton-cerrar-ventana"
+                aria-label="Cerrar ficha"
+            >
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+
+            <img id="ventana-foto" class="ventana_foto" alt="">
+
+            <div class="ventana_contenido">
+                <span class="etiqueta_estado" id="ventana-estado"></span>
+                <h2 id="ventana-nombre"></h2>
+
+                <p class="ventana_dato">
+                    <i class="fa-solid fa-cake-candles"></i>
+                    <span id="ventana-edad"></span>
+                </p>
+
+                <p class="ventana_dato">
+                    <i class="fa-solid fa-location-dot"></i>
+                    <span id="ventana-ubicacion"></span>
+                </p>
+
+                <p class="ventana_dato">
+                    <i class="fa-solid fa-clock"></i>
+                    <span id="ventana-fecha"></span>
+                </p>
+
+                <p class="ventana_descripcion" id="ventana-descripcion"></p>
+            </div>
+        </section>
+    </div>
+
+    <nav class="navegacion_inferior" aria-label="Navegación móvil">
+        <a href="dashboard.html" class="item_navegacion">
+            <i class="fa-solid fa-house"></i>
+            <span>Inicio</span>
+        </a>
+
+        <a href="rutas.html" class="item_navegacion">
+            <i class="fa-solid fa-map"></i>
+            <span>Mapa</span>
+        </a>
+
+        <button class="boton_sos" type="button" aria-label="SOS">SOS</button>
+
+        <a href="alertas.html" class="item_navegacion activo">
+            <i class="fa-solid fa-bell"></i>
+            <span>Alertas</span>
+        </a>
+
+        <a href="perfil.html" class="item_navegacion">
+            <i class="fa-solid fa-user"></i>
+            <span>Perfil</span>
+        </a>
+    </nav>
+
+    <script src="js/auth.js"></script>
+    <script src="js/desaparecidos.js"></script>
+</body>
+</html>

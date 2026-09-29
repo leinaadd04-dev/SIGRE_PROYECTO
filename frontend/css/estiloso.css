@@ -584,34 +584,73 @@ body.dashboard_body {
    RESPONSIVE DESIGN (MÓVILES MUY PEQUEÑOS / TABLETS / ESCRITORIO)
 ========================================================= */
 @media (max-width: 480px) {
-   .cuadricula_modulos {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr); /* Siempre 2 columnas: 2 arriba y 2 abajo */
-    gap: 15px; /* Espacio equilibrado para celular */
-}
 
-.modulo_imagen_derecha img {
-    height: 100%;
-    max-height: 110px;
-    width: 120px;
-    object-fit: cover;
-    border-radius: 0 12px 12px 0;
-}
+    .cuadricula_modulos {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 15px;
+    }
+
+    .modulo_imagen_derecha img {
+        height: 100%;
+        max-height: 110px;
+        width: 120px;
+        object-fit: cover;
+        border-radius: 0 12px 12px 0;
+    }
+
+    .cabecera_dashboard {
+        background-color: #436097;
+        padding: 15px 5%;
+        width: 100%;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-bottom: 1px solid var(--border-color);
+        position: sticky;
+        top: 0;
+        z-index: 1000;
+    }
 
 
-    
-  .cabecera_dashboard {
-    background-color: #436097;
-    padding: 15px 5%; /* Margen lateral dinámico para que respire en cualquier pantalla */
-    width: 100%; /* Ocupa todo el ancho absoluto */
+    /* CAMPANAS SOLIDARIAS EN MOVIL */
+
+    .tarjeta_campanas {
     display: flex;
-    justify-content: space-between;
     align-items: center;
-    border-bottom: 1px solid var(--border-color);
-    position: sticky;
-    top: 0;
-    z-index: 1000;
+    gap: 12px;
 }
+
+.tarjeta_campanas .campanas_icono {
+    order: 1;
+    flex-shrink: 0;
+}
+
+.tarjeta_campanas .campanas_contenido {
+    order: 2;
+    flex: 1;
+    min-width: 0;
+}
+
+.tarjeta_campanas img {
+    order: 3;
+    width: 90px !important;
+    height: 90px !important;
+    object-fit: contain;
+    flex-shrink: 0;
+}
+
+.tarjeta_campanas .campanas_flecha {
+    order: 4;
+    flex-shrink: 0;
+}
+
+.tarjeta_campanas .campanas_contenido h2 {
+    font-size: 1rem;
+}
+
+.tarjeta_campanas .campanas_contenido p {
+    font-size: 0.8rem;
 }
 
 @media (min-width: 992px) {
@@ -636,4 +675,5 @@ body.dashboard_body {
     .personaje_lateral img {
         display: block;
     }
+}
 }
