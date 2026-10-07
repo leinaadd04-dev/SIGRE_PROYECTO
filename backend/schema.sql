@@ -39,6 +39,37 @@ CREATE TABLE emergencias(
     )
 );
 
+CREATE TABLE solicitudes_ayuda (
+    id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+
+    usuario_id BIGINT NOT NULL REFERENCES usuarios(id),
+
+    tipo_ayuda TEXT NOT NULL,
+
+    titulo TEXT NOT NULL,
+
+    sector TEXT NOT NULL,
+
+    descripcion TEXT NOT NULL,
+
+    personas_afectadas INTEGER NOT NULL
+        CHECK (personas_afectadas > 0),
+
+    urgencia TEXT NOT NULL
+        CHECK (urgencia IN ('baja', 'media', 'alta', 'critica')),
+
+    ubicacion TEXT NOT NULL,
+
+    evidencia_url TEXT,
+
+    estado TEXT NOT NULL DEFAULT 'pendiente'
+        CHECK (estado IN ('pendiente', 'en_proceso', 'resuelto')),
+
+    creada_en TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+
+    actualizada_en TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
 
 
 

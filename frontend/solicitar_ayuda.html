@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>SIGRE - Solicitar ayuda</title>
+
+    <link rel="stylesheet" href="css/estilos_solicitar_ayuda.css">
+
+    <!-- Iconos -->
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+</head>
+
+<body>
+
+    <header class="cabecera_dashboard">
+
+        <div class="cabecera_izquierda">
+
+            <a href="dashboard.html" class="logo_dashboard">
+
+                <img src="imagenes/logo.png" alt="Logo SIGRE">
+
+                <span>SIGRE</span>
+
+            </a>
+
+        </div>
+
+
+        <div class="titulo_header">
+
+            <i class="fa-solid fa-hand-holding-heart"></i>
+
+            <span>Solicitar ayuda</span>
+
+        </div>
+
+
+        <a href="dashboard.html" class="boton_volver">
+
+            <i class="fa-solid fa-arrow-left"></i>
+
+            Volver
+
+        </a>
+
+    </header>
+
+
+    <main class="contenido_solicitud">
+
+        <section class="panel_solicitud">
+
+            <div class="encabezado_solicitud">
+
+                <span class="etiqueta_solicitud">
+
+                    <i class="fa-solid fa-circle-exclamation"></i>
+
+                    Solicitud ciudadana
+
+                </span>
+
+                <h1>¿Necesitas ayuda?</h1>
+
+                <p>
+                    Reporta una necesidad de tu sector o comunidad
+                    para que pueda ser atendida.
+                </p>
+
+            </div>
+
+
+            <form id="form_solicitud">
+
+
+                <!-- Tipo de ayuda -->
+
+                <div class="campo_solicitud">
+
+                    <label for="tipo_ayuda">
+
+                        <i class="fa-solid fa-list"></i>
+
+                        Tipo de ayuda
+
+                    </label>
+
+                    <select id="tipo_ayuda" required>
+
+                        <option value="">
+                            Selecciona una opción
+                        </option>
+
+                        <option value="alimentos">
+                            Alimentos
+                        </option>
+
+                        <option value="agua">
+                            Agua
+                        </option>
+
+                        <option value="medicamentos">
+                            Medicamentos
+                        </option>
+
+                        <option value="vivienda">
+                            Vivienda / alojamiento
+                        </option>
+
+                        <option value="atencion">
+                            Atención comunitaria
+                        </option>
+
+                        <option value="otro">
+                            Otro
+                        </option>
+
+                    </select>
+
+                </div>
+
+
+                <!-- Título -->
+
+                <div class="campo_solicitud">
+
+                    <label for="titulo_solicitud">
+
+                        <i class="fa-solid fa-heading"></i>
+
+                        Título de la solicitud
+
+                    </label>
+
+                    <input
+                        type="text"
+                        id="titulo_solicitud"
+                        placeholder="Ej. Necesitamos agua para nuestro sector"
+                        required
+                    >
+
+                </div>
+
+
+                <!-- Sector -->
+
+                <div class="campo_solicitud">
+
+                    <label for="sector">
+
+                        <i class="fa-solid fa-location-dot"></i>
+
+                        Sector o comunidad
+
+                    </label>
+
+                    <input
+                        type="text"
+                        id="sector"
+                        placeholder="Ej. Barrio o comunidad"
+                        required
+                    >
+
+                </div>
+
+
+                <!-- Descripción -->
+
+                <div class="campo_solicitud">
+
+                    <label for="descripcion">
+
+                        <i class="fa-solid fa-align-left"></i>
+
+                        Describe la necesidad
+
+                    </label>
+
+                    <textarea
+                        id="descripcion"
+                        rows="5"
+                        placeholder="Cuéntanos qué está ocurriendo y qué ayuda necesitan..."
+                        required
+                    ></textarea>
+
+                </div>
+
+
+                <!-- Personas afectadas -->
+
+                <div class="campo_solicitud">
+
+                    <label for="personas_afectadas">
+
+                        <i class="fa-solid fa-users"></i>
+
+                        Personas afectadas aproximadamente
+
+                    </label>
+
+                    <input
+                        type="number"
+                        id="personas_afectadas"
+                        min="1"
+                        placeholder="Ej. 25"
+                        required
+                    >
+
+                </div>
+
+
+                <!-- Urgencia -->
+
+                <div class="campo_solicitud">
+
+                    <label>
+
+                        <i class="fa-solid fa-triangle-exclamation"></i>
+
+                        Nivel de urgencia
+
+                    </label>
+
+
+                    <div class="opciones_urgencia">
+
+                        <label class="opcion_urgencia">
+
+                            <input
+                                type="radio"
+                                name="urgencia"
+                                value="baja"
+                                required
+                            >
+
+                            <span>Baja</span>
+
+                        </label>
+
+
+                        <label class="opcion_urgencia">
+
+                            <input
+                                type="radio"
+                                name="urgencia"
+                                value="media"
+                            >
+
+                            <span>Media</span>
+
+                        </label>
+
+
+                        <label class="opcion_urgencia">
+
+                            <input
+                                type="radio"
+                                name="urgencia"
+                                value="alta"
+                            >
+
+                            <span>Alta</span>
+
+                        </label>
+
+
+                        <label class="opcion_urgencia">
+
+                            <input
+                                type="radio"
+                                name="urgencia"
+                                value="critica"
+                            >
+
+                            <span>Crítica</span>
+
+                        </label>
+
+                    </div>
+
+                </div>
+
+
+                <!-- Ubicación -->
+
+                <div class="campo_solicitud">
+
+                    <label for="ubicacion">
+
+                        <i class="fa-solid fa-map-location-dot"></i>
+
+                        Ubicación
+
+                    </label>
+
+                    <input
+                        type="text"
+                        id="ubicacion"
+                        placeholder="Indica la ubicación de la comunidad"
+                        required
+                    >
+
+                </div>
+
+
+                <!-- Evidencia -->
+
+                <div class="campo_solicitud">
+
+                    <label for="evidencia">
+
+                        <i class="fa-solid fa-camera"></i>
+
+                        Evidencia fotográfica
+                        <span>(opcional)</span>
+
+                    </label>
+
+                    <input
+                        type="file"
+                        id="evidencia"
+                        accept="image/*"
+                    >
+
+                </div>
+
+
+                <!-- Botón -->
+
+                <button
+                    type="submit"
+                    class="boton_enviar_solicitud"
+                >
+
+                    <i class="fa-solid fa-paper-plane"></i>
+
+                    Enviar solicitud
+
+                </button>
+
+
+                <div
+                    id="mensaje_solicitud"
+                    class="mensaje_solicitud"
+                ></div>
+
+
+            </form>
+
+        </section>
+
+    </main>
+
+
+    <script src="js/solicitar_ayuda.js"></script>
+
+</body>
+
+</html>

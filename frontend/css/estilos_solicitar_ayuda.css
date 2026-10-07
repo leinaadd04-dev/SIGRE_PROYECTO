@@ -1,0 +1,386 @@
+/* =========================================================
+   SOLICITAR AYUDA - ESTILOS PRINCIPALES
+   ========================================================= */
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background-color: #F4F7F6;
+    color: #2B2D42;
+}
+
+
+/* =========================================================
+   HEADER
+   ========================================================= */
+
+.cabecera_dashboard {
+    background-color: #436097;
+    padding: 14px 3%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 25px;
+    border-bottom: 1px solid #dfe5ec;
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+}
+
+.cabecera_izquierda {
+    display: flex;
+    align-items: center;
+}
+
+.logo_dashboard {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    text-decoration: none;
+    color: white;
+    font-size: 28px;
+    font-weight: 700;
+}
+
+.logo_dashboard img {
+    width: 54px;
+    height: 54px;
+    object-fit: contain;
+}
+
+.titulo_header {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    color: white;
+    font-size: 18px;
+    font-weight: 600;
+}
+
+.titulo_header i {
+    font-size: 19px;
+}
+
+.boton_volver {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 18px;
+    background-color: #1B4965;
+    color: white;
+    border-radius: 12px;
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.boton_volver:hover {
+    background-color: #163d54;
+}
+
+
+/* =========================================================
+   CONTENIDO
+   ========================================================= */
+
+.contenido_solicitud {
+    width: 100%;
+    padding: 35px 20px 50px;
+}
+
+.panel_solicitud {
+    width: min(850px, 100%);
+    margin: 0 auto;
+    background-color: #ffffff;
+    border-radius: 24px;
+    padding: 35px;
+    border: 1px solid #e1e7ec;
+    box-shadow: 0 8px 25px rgba(27, 73, 101, 0.08);
+}
+
+
+/* =========================================================
+   ENCABEZADO
+   ========================================================= */
+
+.encabezado_solicitud {
+    margin-bottom: 30px;
+}
+
+.etiqueta_solicitud {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: #2C7DA0;
+    font-size: 14px;
+    font-weight: 700;
+    margin-bottom: 10px;
+}
+
+.encabezado_solicitud h1 {
+    margin: 0 0 8px;
+    color: #1B4965;
+    font-size: 32px;
+}
+
+.encabezado_solicitud p {
+    margin: 0;
+    color: #60758a;
+    font-size: 16px;
+    line-height: 1.5;
+}
+
+
+/* =========================================================
+   CAMPOS
+   ========================================================= */
+
+#form_solicitud {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.campo_solicitud {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.campo_solicitud label {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    color: #2B2D42;
+    font-size: 14px;
+    font-weight: 700;
+}
+
+.campo_solicitud label i {
+    color: #2C7DA0;
+}
+
+.campo_solicitud label span {
+    color: #8a9aaa;
+    font-weight: 400;
+}
+
+
+/* =========================================================
+   INPUTS
+   ========================================================= */
+
+.campo_solicitud input,
+.campo_solicitud select,
+.campo_solicitud textarea {
+    width: 100%;
+    padding: 13px 15px;
+    border: 1px solid #cfd9e2;
+    border-radius: 12px;
+    background-color: #F4F7F6;
+    color: #2B2D42;
+    font-family: inherit;
+    font-size: 15px;
+    outline: none;
+    transition: 0.2s ease;
+}
+
+.campo_solicitud input:focus,
+.campo_solicitud select:focus,
+.campo_solicitud textarea:focus {
+    border-color: #2C7DA0;
+    box-shadow: 0 0 0 3px rgba(44, 125, 160, 0.12);
+    background-color: #ffffff;
+}
+
+.campo_solicitud textarea {
+    resize: vertical;
+    min-height: 120px;
+}
+
+.campo_solicitud input::placeholder,
+.campo_solicitud textarea::placeholder {
+    color: #8a9aaa;
+}
+
+
+/* =========================================================
+   URGENCIA
+   ========================================================= */
+
+.opciones_urgencia {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+}
+
+.opcion_urgencia {
+    position: relative;
+    cursor: pointer;
+}
+
+.opcion_urgencia input {
+    position: absolute;
+    opacity: 0;
+}
+
+.opcion_urgencia span {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 12px 10px;
+    border: 1px solid #cfd9e2;
+    border-radius: 12px;
+    background-color: #F4F7F6;
+    color: #2B2D42;
+    font-size: 14px;
+    transition: 0.2s ease;
+}
+
+.opcion_urgencia input:checked + span {
+    border-color: #2C7DA0;
+    background-color: #e7f3f7;
+    color: #1B4965;
+    font-weight: 700;
+}
+
+
+/* =========================================================
+   ARCHIVO
+   ========================================================= */
+
+.campo_solicitud input[type="file"] {
+    padding: 10px;
+    cursor: pointer;
+}
+
+
+/* =========================================================
+   BOTÓN
+   ========================================================= */
+
+.boton_enviar_solicitud {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 9px;
+
+    width: 100%;
+    min-height: 50px;
+
+    margin-top: 5px;
+
+    border: none;
+    border-radius: 13px;
+
+    background-color: #1B4965;
+    color: white;
+
+    font-size: 15px;
+    font-weight: 700;
+
+    cursor: pointer;
+
+    transition: 0.2s ease;
+}
+
+.boton_enviar_solicitud:hover {
+    background-color: #2C7DA0;
+    transform: translateY(-1px);
+}
+
+
+/* =========================================================
+   MENSAJE
+   ========================================================= */
+
+.mensaje_solicitud {
+    display: none;
+
+    padding: 14px;
+    border-radius: 12px;
+
+    background-color: #e8f5e9;
+    color: #2E7D32;
+
+    font-size: 14px;
+    font-weight: 600;
+    text-align: center;
+}
+
+
+/* =========================================================
+   RESPONSIVE
+   ========================================================= */
+
+@media (max-width: 700px) {
+
+    .cabecera_dashboard {
+        padding: 10px 16px;
+        min-height: 70px;
+    }
+
+    .logo_dashboard span {
+        display: none;
+    }
+
+    .logo_dashboard img {
+        width: 48px;
+        height: 48px;
+    }
+
+    .titulo_header {
+        font-size: 15px;
+        text-align: center;
+    }
+
+    .boton_volver {
+        padding: 10px 12px;
+        font-size: 13px;
+    }
+
+    .boton_volver i {
+        display: none;
+    }
+
+    .contenido_solicitud {
+        padding: 20px 15px 35px;
+    }
+
+    .panel_solicitud {
+        padding: 22px;
+        border-radius: 20px;
+    }
+
+    .encabezado_solicitud h1 {
+        font-size: 26px;
+    }
+
+    .encabezado_solicitud p {
+        font-size: 14px;
+    }
+
+    .opciones_urgencia {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+
+
+@media (max-width: 450px) {
+
+    .titulo_header span {
+        display: none;
+    }
+
+    .panel_solicitud {
+        padding: 18px;
+    }
+
+    .opciones_urgencia {
+        grid-template-columns: 1fr;
+    }
+
+}

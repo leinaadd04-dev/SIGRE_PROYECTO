@@ -92,65 +92,69 @@ document.addEventListener('DOMContentLoaded', () => {
        4. FORMULARIO DE LOGIN
        ============================================================ */
     const formLogin = document.getElementById('form_login');
-    if (formLogin) {
-        formLogin.addEventListener('submit', (e) => {
-            e.preventDefault();
+if (formLogin) {
+    formLogin.addEventListener('submit', async (e) => {
+        e.preventDefault();
 
-            const email = document.getElementById('email').value.trim();
-            const password = document.getElementById('password').value;
-            const errorMsg = document.getElementById('error-msg');
-            const exitoMsg = document.getElementById('exito-msg');
+        const email = document.getElementById('email').value.trim();
+        const password = document.getElementById('password').value;
+        const errorMsg = document.getElementById('error-msg');
+        const exitoMsg = document.getElementById('exito-msg');
 
-            errorMsg.style.display = 'none';
-            exitoMsg.style.display = 'none';
+        errorMsg.style.display = 'none';
+        exitoMsg.style.display = 'none';
 
-            // Validaciones básicas
-            if (!email || !password) {
-                errorMsg.textContent = 'Por favor completa todos los campos.';
+        if (!email || !password) {
+            errorMsg.textContent = 'Por favor completa todos los campos.';
+            errorMsg.style.display = 'block';
+            return;
+        }
+
+        try {
+            const respuesta = await fetch(
+                'http://127.0.0.1:5000/api/auth/login',
+                {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        email: email,
+                        password: password
+                    })
+                }
+            );
+
+            const resultado = await respuesta.json();
+
+            if (!respuesta.ok) {
+                errorMsg.textContent =
+                    resultado.error || 'Correo o contraseña incorrectos.';
                 errorMsg.style.display = 'block';
                 return;
             }
 
-            if (password.length < 8) {
-                errorMsg.textContent = 'La contraseña debe tener al menos 8 caracteres.';
-                errorMsg.style.display = 'block';
-                return;
-            }
+            localStorage.setItem(
+                'access_token',
+                resultado.access_token
+            );
 
-            // Buscar usuario en localStorage
-            const usuarioGuardado = localStorage.getItem('sigre_usuario');
-
-            if (!usuarioGuardado) {
-                errorMsg.textContent = 'No hay ninguna cuenta registrada. Regístrate primero.';
-                errorMsg.style.display = 'block';
-                return;
-            }
-
-            const usuario = JSON.parse(usuarioGuardado);
-
-            // Verificar credenciales
-            if (usuario.email !== email) {
-                errorMsg.textContent = 'Correo o contraseña incorrectos.';
-                errorMsg.style.display = 'block';
-                return;
-            }
-
-            // Verificar contraseña (simulado)
-            if (usuario.password && usuario.password !== password) {
-                errorMsg.textContent = 'Correo o contraseña incorrectos.';
-                errorMsg.style.display = 'block';
-                return;
-            }
-
-            // Login exitoso
-            exitoMsg.textContent = `¡Bienvenido, ${usuario.nombre}! Redirigiendo...`;
+            exitoMsg.textContent = '¡Inicio de sesión exitoso! Redirigiendo...';
             exitoMsg.style.display = 'block';
 
             setTimeout(() => {
-                redirigirSegunRol(usuario.rol);
-            }, 1500);
-        });
-    }
+                window.location.href = 'dashboard.html';
+            }, 1000);
+
+        } catch (error) {
+            console.error(error);
+
+            errorMsg.textContent =
+                'No fue posible conectar con el servidor.';
+            errorMsg.style.display = 'block';
+        }
+    });
+}
 
     /* ============================================================
        5. FORMULARIO DE REGISTRO

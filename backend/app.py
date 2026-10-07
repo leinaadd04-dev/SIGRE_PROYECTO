@@ -187,7 +187,91 @@ def listar_emergencias():
 
     return jsonify([dict(zip(columnas, fila)) for fila in filas])
 
+# =========================================================
+# SOLICITUDES DE AYUDA
+# =========================================================
 
+@app.post("/api/solicitudes-ayuda")
+@jwt_required()
+def crear_solicitud_ayuda():
+
+    usuario_id = get_jwt_identity()
+
+    tipo_ayuda = limpiar_texto(request.form.get("tipo_ayuda"), 50)
+    titulo = limpiar_texto(request.form.get("titulo_solicitud"), 150)
+    sector = limpiar_texto(request.form.get("sector"), 160)
+    descripcion = limpiar_texto(request.form.get("descripcion"), 1200)
+    personas_afectadas = request.form.get("personas_afectadas")
+    urgencia = limpiar_texto(request.form.get("urgencia"), 10)
+    ubicacion = limpiar_texto(request.form.get("ubicacion"), 250)
+
+    # Validar campos obligatorios
+    if not all([
+        tipo_ayuda,
+        titulo,
+        sector,
+        descripcion,
+        personas_afectadas,
+        urgencia,
+        ubicacion
+    ]):
+        return jsonify({
+            "error": "Completa todos los campos obligatorios"
+        }), 400
+
+    # Validar cantidad de personas
+    try:
+        personas_afectadas = int(personas_afectadas)
+
+        if personas_afectadas <= 0:
+            raise ValueError
+
+    except (ValueError, TypeError):
+        return jsonify({
+            "error": "La cantidad de personas afectadas no es válida"
+        }), 400
+
+    # Validar urgencia
+    if urgencia not in ("baja", "media", "alta", "critica"):
+        return jsonify({
+            "error": "El nivel de urgencia no es válido"
+        }), 400
+
+    with obtener_conexion() as conexion:
+
+        fila = conexion.execute(
+            """
+            INSERT INTO solicitudes_ayuda (
+                usuario_id,
+                tipo_ayuda,
+                titulo,
+                sector,
+                descripcion,
+                personas_afectadas,
+                urgencia,
+                ubicacion
+            )
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+            RETURNING id, estado, creada_en
+            """,
+            (
+                usuario_id,
+                tipo_ayuda,
+                titulo,
+                sector,
+                descripcion,
+                personas_afectadas,
+                urgencia,
+                ubicacion
+            )
+        ).fetchone()
+
+    return jsonify({
+        "mensaje": "Solicitud enviada correctamente",
+        "id": fila[0],
+        "estado": fila[1],
+        "creada_en": fila[2].isoformat()
+    }), 201
 
 # Módulo de reportes de personas y animales desaparecidos.
 # API para el prototipo local; exige autorización explícita de publicación.
@@ -201,12 +285,12 @@ def habilitar_cors_frontend_local(respuesta):
     # Esto permite cambiar entre redes Wi-Fi sin actualizar una IP fija.
     if (
         partes.scheme == "http"
-        and partes.hostname == host_api
+        and partes.hostname in ("127.0.0.1", "localhost", host_api)
         and partes.port in (5500, 8000)
     ):
         respuesta.headers["Access-Control-Allow-Origin"] = origen
         respuesta.headers["Access-Control-Allow-Methods"] = "GET, POST, OPTIONS"
-        respuesta.headers["Access-Control-Allow-Headers"] = "Content-Type"
+        respuesta.headers["Access-Control-Allow-Headers"] = "Content-Type, Authorization"
         respuesta.headers["Vary"] = "Origin"
     return respuesta
 
@@ -291,6 +375,9 @@ def foto_desaparecido(reporte_id):
     respuesta.headers["X-Content-Type-Options"] = "nosniff"
     return respuesta
 
+@app.route("/api/solicitudes-ayuda", methods=["OPTIONS"])
+def opciones_solicitudes_ayuda():
+    return "", 204
 
 @app.post("/api/desaparecidos")
 def crear_reporte_desaparecido():
