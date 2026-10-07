@@ -101,7 +101,7 @@ a {
 
     border-radius: 10px;
 
-    color: var(--text-light);
+    color: white;
 
     font-size: 0.95rem;
     font-weight: 600;
@@ -363,15 +363,17 @@ a {
     position: relative;
     z-index: 1;
 
-    width: 190px;
-    height: 170px;
+    width: clamp(260px, 30vw, 340px);
+    height: 230px;
 
     object-fit: contain;
+    transform: scale(1.12);
+    transform-origin: center right;
 
     flex-shrink: 0;
 }
 
-/* Celular: la imagen se oculta y todo pasa a una sola columna */
+/* En pantallas pequeñas la ilustración pasa debajo del texto y sigue visible. */
 @media (max-width: 700px) {
     .jornada_destacada {
         flex-direction: column;
@@ -380,7 +382,11 @@ a {
     }
 
     .destacada_imagen {
-        display: none;
+        display: block;
+        width: min(100%, 340px);
+        height: 205px;
+        margin: 8px auto 0;
+        transform: none;
     }
 }
 
@@ -1201,6 +1207,11 @@ a {
     box-shadow: var(--shadow-card);
 }
 
+.panel_lateral.galeria_jornadas {
+    background: #EAF7FB;
+    border-color: #D5EDF4;
+}
+
 .titulo_lateral {
     margin-bottom: 15px;
 }
@@ -1214,6 +1225,25 @@ a {
     color: var(--primary-color);
     font-size: 1.15rem;
     line-height: 1.3;
+}
+
+.titulo_lateral .titulo_con_estrella {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.estrella_intereses {
+    display: grid;
+    place-items: center;
+    flex: 0 0 36px;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: #FFF4D4;
+    color: #F4C900;
+    font-size: 1rem;
 }
 
 .titulo_lateral p {
@@ -1295,6 +1325,18 @@ a {
     background: #FDE8EA;
     color: var(--accent-color);
     cursor: pointer;
+}
+
+.check_interes {
+    display: grid;
+    place-items: center;
+    flex: 0 0 30px;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: #E8F4E9;
+    color: #5B9B68;
+    font-size: 0.82rem;
 }
 
 .fila_acciones_tarjeta {
@@ -1400,4 +1442,94 @@ a {
     .evidencia_jornada figcaption {
         font-size: 0.63rem;
     }
+}
+/* =========================================================
+   GRÁFICO DE PARTICIPACIÓN (ENCABEZADO)
+========================================================= */
+.encabezado_grafico {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    height: 100%;
+}
+
+.grafico_titulo {
+    font-size: 0.95rem;
+    color: var(--text-main);
+    margin-bottom: 2px;
+}
+
+.grafico_subtitulo {
+    font-size: 0.75rem;
+    color: var(--text-light);
+    margin-bottom: 18px;
+}
+
+.grafico_barras {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-around;
+    gap: 14px;
+    height: 160px;
+}
+
+.barra_item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-end;
+    height: 100%;
+    flex: 1;
+}
+
+.barra_valor {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--text-main);
+    margin-bottom: 4px;
+}
+
+.barra {
+    width: 100%;
+    max-width: 36px;
+    border-radius: 6px 6px 0 0;
+    transition: height 0.6s ease;
+}
+
+.barra_etiqueta {
+    font-size: 0.7rem;
+    color: var(--text-light);
+    margin-top: 6px;
+    text-align: center;
+}
+@media (max-width: 768px) {
+
+    /* "Desenvolvemos" estos contenedores para poder
+       reordenar sus hijos junto con el resto de secciones */
+    .encabezado_jornadas {
+        display: contents;
+    }
+
+    .barra_lateral_jornadas {
+        display: contents;
+    }
+
+    /* La columna principal pasa a ser la que controla
+       el orden de TODO en una sola columna vertical */
+    .columna_principal_jornadas {
+        display: flex;
+        flex-direction: column;
+        gap: 25px;
+    }
+
+    /* Orden final en celular */
+    .encabezado_texto     { order: 1; }
+    .jornada_destacada    { order: 2; }
+    .paneles_jornadas     { order: 3; }
+    .galeria_jornadas     { order: 4; }
+    .columna_participadas { order: 5; }
+    .encabezado_grafico   { order: 6; }
+    .columna_intereses    { order: 7; }
+
 }
