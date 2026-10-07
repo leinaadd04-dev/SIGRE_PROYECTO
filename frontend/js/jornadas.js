@@ -80,15 +80,22 @@ document.addEventListener('DOMContentLoaded', function () {
             nombre.className = 'nombre_item_lista';
             nombre.textContent = elemento.nombre;
 
-            const quitar = document.createElement('button');
-            quitar.type = 'button';
-            quitar.className = 'quitar_item_jornada';
-            quitar.dataset.tipoLista = tipoLista;
-            quitar.dataset.id = elemento.id;
-            quitar.setAttribute('aria-label', 'Quitar ' + elemento.nombre);
-            quitar.innerHTML = '<i class="fa-solid fa-xmark" aria-hidden="true"></i>';
-
-            fila.append(nombre, quitar);
+            if (tipoLista === 'intereses') {
+                const confirmado = document.createElement('span');
+                confirmado.className = 'check_interes';
+                confirmado.setAttribute('aria-label', 'Guardado en mis intereses');
+                confirmado.innerHTML = '<i class="fa-solid fa-check" aria-hidden="true"></i>';
+                fila.append(nombre, confirmado);
+            } else {
+                const quitar = document.createElement('button');
+                quitar.type = 'button';
+                quitar.className = 'quitar_item_jornada';
+                quitar.dataset.tipoLista = tipoLista;
+                quitar.dataset.id = elemento.id;
+                quitar.setAttribute('aria-label', 'Quitar ' + elemento.nombre);
+                quitar.innerHTML = '<i class="fa-solid fa-xmark" aria-hidden="true"></i>';
+                fila.append(nombre, quitar);
+            }
             contenedor.appendChild(fila);
         });
     }
