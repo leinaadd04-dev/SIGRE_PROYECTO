@@ -4,22 +4,128 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SIGRE - Rutas de Evacuación</title>
-    <link rel="stylesheet" href="estilos_rutas.css">
+    <link rel="stylesheet" href="css/estilos_rutas.css">
+    <link rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 </head>
 <body class="dashboard_body">
 
     <!-- Cabecera idéntica para mantener la coherencia -->
     <header class="cabecera_dashboard">
-        <div class="cabecera_izquierda">
-            <a href="index.html" class="enlace_volver">← Volver al Inicio</a>
-        </div>
-        <div class="saludo_usuario">
-            <span class="nombre_usuario">Módulo de Rutas y Análisis</span>
-        </div>
-    </header>
+
+    <div class="cabecera_izquierda">
+        <a href="dashboard.html" class="logo_dashboard">
+            <img src="imagenes/logo.png" alt="Logo SIGRE">
+            <span class="texto_escritorio">SIGRE</span>
+
+            <span class="texto_movil">
+                <small>¡Bienvenido,</small>
+                <strong>Fabian Muñoz</strong>
+            </span>
+        </a>
+    </div>
+
+    <nav class="navegacion_escritorio">
+        <a href="dashboard.html" class="enlace_escritorio">
+            <i class="fa-solid fa-house"></i>
+            Inicio
+        </a>
+        <a href="rutas.html" class="enlace_escritorio activo">
+            <i class="fa-solid fa-route"></i>
+            Rutas
+        </a>
+        <a href="jornadas.html" class="enlace_escritorio">
+            <i class="fa-solid fa-calendar-check"></i>
+            Jornadas
+        </a>
+    </nav>
+
+    <a href="dashboard.html" class="boton_volver">
+        <i class="fa-solid fa-arrow-left"></i>
+        Volver
+    </a>
+    <button class="boton_notificaciones" type="button">
+    <i class="fa-solid fa-bell"></i>
+    <span>1</span>
+</button>
+</header>
 
     <!-- Contenido Principal -->
     <main class="dashboard_contenido">
+        <!-- BUSCADOR DE RUTA -->
+<section class="panel_busqueda_ruta">
+
+    <div class="encabezado_ruta">
+        <div>
+            <span class="etiqueta_ruta">
+                <i class="fa-solid fa-route"></i>
+                Rutas de evacuación
+            </span>
+
+            <h1>Encuentra una ruta segura</h1>
+
+            <p>
+                Indica el punto de partida y el destino para calcular
+                una ruta de evacuación.
+            </p>
+        </div>
+    </div>
+
+
+    <div class="campos_ruta">
+
+        <!-- PUNTO A -->
+        <div class="campo_ruta">
+
+            <label for="punto_origen">
+                <i class="fa-solid fa-location-dot"></i>
+                Punto de partida
+            </label>
+
+            <input
+                type="text"
+                id="punto_origen"
+                placeholder="Ej. Calle 30 # 4-20"
+                autocomplete="off"
+            >
+
+        </div>
+
+
+        <!-- PUNTO B -->
+        <div class="campo_ruta">
+
+            <label for="punto_destino">
+                <i class="fa-solid fa-location-dot"></i>
+                Punto de destino
+            </label>
+
+            <input
+                type="text"
+                id="punto_destino"
+                placeholder="Ej. Parque de la ciudad"
+                autocomplete="off"
+            >
+
+        </div>
+
+
+        <!-- BOTÓN -->
+        <button type="button" id="calcular_ruta" class="boton_calcular_ruta">
+
+            <i class="fa-solid fa-route"></i>
+
+            Calcular ruta
+
+        </button>
+
+    </div>
+
+
+    <!-- MENSAJE DE ESTADO -->
+    <div id="mensaje_ruta" class="mensaje_ruta"></div>
+
+</section>
         <section class="seccion_guardados">
             <div class="titulo_seccion_guardados">
                 <h2 class="titulo_guardados">Simulación y Resultados del Modelo</h2>

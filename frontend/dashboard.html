@@ -170,7 +170,7 @@
                 </a>
 
                 <!-- REPORTAR DESAPARECIDOS -->
-                <a href="reportar_desaparecidos.html" class="tarjeta_modulo tarjeta_desaparecidos modulo_desaparecidos">
+                <a href="desaparecidos.html" class="tarjeta_modulo tarjeta_desaparecidos modulo_desaparecidos">
                     <div class="modulo_interno">
                         <div class="modulo_info_izquierda">
                             <div class="modulo_icono_imagen">
@@ -194,19 +194,21 @@
             <!-- =================================================
                  CAMPAÑAS SOLIDARIAS
             ================================================== -->
-            <section class="tarjeta_campanas">
-                <img src="imagenes/modulo03.png" alt="Personaje de reportar desaparecidos" style="height: 120px; width: 400px;">
-                <div class="campanas_icono">
-                    
-                    <i class="fa-solid fa-calendar-check"></i>
-                </div>
-                <div class="campanas_contenido">
-                    <h2>Campañas Solidarias</h2>
-                    <p>Eventos, campañas y actividades para la comunidad</p>
-                </div>
-                <i class="fa-solid fa-chevron-right campanas_flecha"></i>
-                 
-            </section>
+          
+            <a href="jornadas.html" class="tarjeta_campanas">
+    <img src="imagenes/modulo03.png" alt="Jornadas solidarias">
+
+    <div class="campanas_icono">
+        <i class="fa-solid fa-calendar-check"></i>
+    </div>
+
+    <div class="campanas_contenido">
+        <h2>Jornadas solidarias</h2>
+        <p>Eventos, campañas y actividades para la comunidad</p>
+    </div>
+
+    <i class="fa-solid fa-chevron-right campanas_flecha"></i>
+</a>
 
         </div>
 
@@ -238,7 +240,7 @@
                     <!-- MAPA -->
                     <div class="guardados_mapa" id="mapa-guardados" style="overflow: hidden; padding: 0;">
                         <!-- Reemplazamos la imagen estática por el iframe del mapa interactivo -->
-                       <iframe src="/mapa_rutas.html" style="width: 100%; height: 100%; border: none;"></iframe>
+                       <iframe src="/mapa_rutas.html" allow="geolocation" style="width: 100%; height: 100%; border: none;"></iframe>
                     </div>
 
                     <!-- LISTA DE RECIENTES -->
