@@ -1,0 +1,426 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mi perfil | SIGRE</title>
+    <link rel="stylesheet" href="css/estiloso.css">
+    <link rel="stylesheet" href="css/notificaciones.css">
+    <link rel="stylesheet" href="css/cuenta_sigre.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+    
+<style>
+    body {
+        background: #f1f6f9;
+        margin: 0;
+    }
+
+    .perfil-contenedor {
+        max-width: 1100px;
+        margin: 35px auto;
+        padding: 24px;
+        box-sizing: border-box;
+    }
+
+    .perfil-cabecera,
+    .perfil-seccion {
+        background: #ffffff;
+        padding: 28px;
+        margin-bottom: 22px;
+        border-radius: 18px;
+        border: 1px solid #e2ebf0;
+        box-shadow: 0 6px 22px rgba(27, 73, 101, 0.08);
+    }
+
+    .perfil-cabecera {
+        border-left: 6px solid #1b4965;
+    }
+
+    .perfil-cabecera h1 {
+        margin-top: 0;
+        color: #1b4965;
+        font-size: 1.9rem;
+    }
+
+    .perfil-cabecera p {
+        color: #526575;
+        line-height: 1.6;
+    }
+
+    .perfil-seccion h2 {
+        margin-top: 0;
+        margin-bottom: 22px;
+        padding-bottom: 12px;
+        color: #1b4965;
+        border-bottom: 1px solid #e5edf2;
+        font-size: 1.25rem;
+    }
+
+    .perfil-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 20px;
+    }
+
+    .perfil-campo {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        min-width: 0;
+    }
+
+    .perfil-campo label {
+        font-weight: 600;
+        color: #263746;
+    }
+
+    .perfil-campo input,
+    .perfil-campo select,
+    .perfil-campo textarea {
+        width: 100%;
+        padding: 12px 14px;
+        border: 1px solid #ccd9e2;
+        border-radius: 10px;
+        background: #fafdff;
+        color: #263746;
+        font: inherit;
+        box-sizing: border-box;
+        transition: border-color .2s, box-shadow .2s;
+    }
+
+    .perfil-campo input:focus,
+    .perfil-campo select:focus,
+    .perfil-campo textarea:focus {
+        outline: none;
+        border-color: #1b4965;
+        box-shadow: 0 0 0 3px rgba(27, 73, 101, .12);
+    }
+
+    .perfil-campo textarea {
+        min-height: 100px;
+        resize: vertical;
+    }
+
+    .perfil-ancho {
+        grid-column: 1 / -1;
+    }
+
+    .perfil-acciones {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+    }
+
+    .perfil-boton {
+        padding: 13px 22px;
+        border: 0;
+        border-radius: 10px;
+        cursor: pointer;
+        font: inherit;
+        font-weight: 700;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        transition: transform .2s, background .2s;
+    }
+
+    .perfil-boton:hover {
+        transform: translateY(-1px);
+    }
+
+    .perfil-guardar {
+        background: #1b4965;
+        color: #ffffff;
+    }
+
+    .perfil-guardar:hover {
+        background: #12374e;
+    }
+
+    .perfil-volver {
+        background: #e6eff4;
+        color: #1b4965;
+    }
+
+    #perfil-mensaje {
+        margin: 15px 0;
+        font-weight: 600;
+        color: #1b4965;
+    }
+
+    .perfil-nota {
+        color: #526575;
+        font-size: .92rem;
+    }
+
+    @media (max-width: 650px) {
+        .perfil-contenedor {
+            margin: 16px auto;
+            padding: 12px;
+        }
+
+        .perfil-cabecera,
+        .perfil-seccion {
+            padding: 20px;
+            border-radius: 14px;
+        }
+
+        .perfil-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .perfil-ancho {
+            grid-column: auto;
+        }
+
+        .perfil-acciones {
+            flex-direction: column;
+        }
+
+        .perfil-boton {
+            width: 100%;
+            box-sizing: border-box;
+        }
+    }
+</style>
+
+</head>
+<body>
+    
+    
+<header class="cabecera_dashboard">
+    <div class="cabecera_izquierda">
+        <a href="dashboard.html" class="contenedor_logo">
+            <img src="imagenes/logo.png" alt="SIGRE" class="logo_dashboard">
+        </a>
+        <div class="saludo_usuario">
+            <p class="texto_bienvenida">Tu espacio personal</p>
+            <h1 class="nombre_usuario">Mi perfil</h1>
+            
+        </div>
+    </div>
+
+    <nav class="navegacion_escritorio">
+        <a href="dashboard.html" class="enlace_escritorio">
+            <i class="fa-solid fa-house"></i>
+            <span>Inicio</span>
+        </a>
+
+        <a href="perfil.html" class="enlace_escritorio activo">
+            <i class="fa-solid fa-user"></i>
+            <span>Mi Perfil</span>
+        </a>
+
+        <a href="#" id="cerrar-sesion" class="enlace_escritorio">
+            <i class="fa-solid fa-right-from-bracket"></i>
+            <span>Cerrar sesión</span>
+        </a>
+    </nav>
+</header>
+<main class="perfil-contenedor">
+    <header class="perfil-cabecera">
+        <h1>Mi perfil SIGRE</h1>
+        <p>Administra tus datos personales, información médica y contacto de emergencia.</p>
+        <p class="perfil-nota">La información médica es sensible. Completa solo los datos que desees registrar.</p>
+    </header>
+
+    <form id="form-perfil">
+        <section class="perfil-seccion">
+            <h2>Identificación</h2>
+            <div class="perfil-grid">
+                <div class="perfil-campo">
+                    <label for="tipo_documento">Tipo de documento</label>
+                    <select id="tipo_documento" name="tipo_documento">
+                        <option value="">Seleccionar</option>
+                        <option value="CC">Cédula de ciudadanía</option>
+                        <option value="TI">Tarjeta de identidad</option>
+                        <option value="CE">Cédula de extranjería</option>
+                        <option value="PASAPORTE">Pasaporte</option>
+                    </select>
+                </div>
+                <div class="perfil-campo">
+                    <label for="numero_documento">Número de documento</label>
+                    <input id="numero_documento" name="numero_documento" maxlength="40">
+                </div>
+                <div class="perfil-campo">
+                    <label for="fecha_nacimiento">Fecha de nacimiento</label>
+                    <input id="fecha_nacimiento" name="fecha_nacimiento" type="date">
+                </div>
+                <div class="perfil-campo">
+                    <label for="tipo_sangre">Tipo de sangre</label>
+                    <select id="tipo_sangre" name="tipo_sangre">
+                        <option value="">No especificado</option>
+                        <option>A+</option><option>A-</option>
+                        <option>B+</option><option>B-</option>
+                        <option>AB+</option><option>AB-</option>
+                        <option>O+</option><option>O-</option>
+                    </select>
+                </div>
+            </div>
+        </section>
+
+        <section class="perfil-seccion">
+            <h2>Información médica</h2>
+            <div class="perfil-grid">
+                <div class="perfil-campo perfil-ancho">
+                    <label for="alergias">Alergias</label>
+                    <textarea id="alergias" name="alergias" maxlength="3000"></textarea>
+                </div>
+                <div class="perfil-campo perfil-ancho">
+                    <label for="condiciones_medicas">Condiciones médicas</label>
+                    <textarea id="condiciones_medicas" name="condiciones_medicas" maxlength="3000"></textarea>
+                </div>
+                <div class="perfil-campo perfil-ancho">
+                    <label for="medicamentos">Medicamentos actuales</label>
+                    <textarea id="medicamentos" name="medicamentos" maxlength="3000"></textarea>
+                </div>
+            </div>
+        </section>
+
+        <section class="perfil-seccion">
+            <h2>Contacto de emergencia</h2>
+            <div class="perfil-grid">
+                <div class="perfil-campo">
+                    <label for="contacto_emergencia_nombre">Nombre del contacto</label>
+                    <input id="contacto_emergencia_nombre" name="contacto_emergencia_nombre" maxlength="120">
+                </div>
+                <div class="perfil-campo">
+                    <label for="contacto_emergencia_telefono">Teléfono del contacto</label>
+                    <input id="contacto_emergencia_telefono" name="contacto_emergencia_telefono" type="tel" maxlength="30">
+                </div>
+            </div>
+        </section>
+
+        <section class="perfil-seccion">
+            <h2>Ubicación</h2>
+            <div class="perfil-grid">
+                <div class="perfil-campo perfil-ancho">
+                    <label for="direccion">Dirección o sector</label>
+                    <input id="direccion" name="direccion" maxlength="300">
+                </div>
+                <div class="perfil-campo perfil-ancho">
+                    <label for="comunidad">Barrio, vereda o comunidad</label>
+                    <input id="comunidad" name="comunidad" maxlength="150">
+                </div>
+            </div>
+        </section>
+
+        <section class="perfil-seccion">
+            <div id="perfil-mensaje" role="status" aria-live="polite"></div>
+            <div class="perfil-acciones">
+                <button class="perfil-boton perfil-guardar" type="submit">Guardar perfil</button>
+                <a class="perfil-boton perfil-volver" href="dashboard.html">Volver al inicio</a>
+            </div>
+        </section>
+    </form>
+</main>
+
+<script>
+(() => {
+    const API = `http://${window.location.hostname}:5000`;
+    const token = localStorage.getItem('sigre_token');
+    const form = document.getElementById('form-perfil');
+    const mensaje = document.getElementById('perfil-mensaje');
+
+    const campos = [
+        'tipo_documento', 'numero_documento', 'fecha_nacimiento',
+        'tipo_sangre', 'alergias', 'condiciones_medicas', 'medicamentos',
+        'contacto_emergencia_nombre', 'contacto_emergencia_telefono',
+        'direccion', 'comunidad'
+    ];
+
+    if (!token) {
+        mensaje.textContent = 'Debes iniciar sesión para ver tu perfil.';
+        form.querySelector('button[type="submit"]').disabled = true;
+        return;
+    }
+
+    async function cargarPerfil() {
+        try {
+            const respuesta = await fetch(`${API}/api/mi-perfil`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            if (respuesta.status === 401) {
+                mensaje.textContent = 'Tu sesión expiró. Inicia sesión nuevamente.';
+                return;
+            }
+            const datos = await respuesta.json();
+            if (!respuesta.ok) throw new Error(datos.error || 'No se pudo cargar el perfil.');
+
+            campos.forEach(campo => {
+                const elemento = document.getElementById(campo);
+                if (datos[campo] != null) elemento.value = datos[campo];
+            });
+            mensaje.textContent = 'Perfil cargado.';
+        } catch (error) {
+            mensaje.textContent = `No se pudo cargar el perfil: ${error.message}`;
+        }
+    }
+
+    form.addEventListener('submit', async evento => {
+        evento.preventDefault();
+        const boton = form.querySelector('button[type="submit"]');
+        boton.disabled = true;
+        mensaje.textContent = 'Guardando...';
+
+        const datos = {};
+        campos.forEach(campo => {
+            datos[campo] = document.getElementById(campo).value.trim();
+        });
+
+        try {
+            const respuesta = await fetch(`${API}/api/mi-perfil`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${token}`
+                },
+                body: JSON.stringify(datos)
+            });
+            const resultado = await respuesta.json();
+            if (!respuesta.ok) throw new Error(resultado.error || 'No se pudo guardar.');
+
+            mensaje.textContent = resultado.mensaje || 'Perfil guardado correctamente.';
+        } catch (error) {
+            mensaje.textContent = `Error al guardar: ${error.message}`;
+        } finally {
+            boton.disabled = false;
+        }
+    });
+
+    cargarPerfil();
+})();
+</script>
+
+    <!-- BARRA INFERIOR -->
+    <nav class="navegacion_inferior">
+        <a href="dashboard.html" class="item_navegacion">
+            <i class="fa-solid fa-house"></i>
+            <span>Inicio</span>
+        </a>
+
+        <a href="mapa.html" class="item_navegacion">
+            <i class="fa-solid fa-map"></i>
+            <span>Mapa</span>
+        </a>
+
+        <button class="boton_sos" id="boton-sos" type="button">
+            <span>SOS</span>
+        </button>
+
+        <a href="alertas.html" class="item_navegacion">
+            <i class="fa-solid fa-bell"></i>
+            <span>Alertas</span>
+        </a>
+
+        <a href="perfil.html" class="item_navegacion activo">
+            <i class="fa-solid fa-user"></i>
+            <span>Mi Perfil</span>
+        </a>
+    </nav>
+</body>
+</body>
+</html>

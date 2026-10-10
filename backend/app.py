@@ -279,6 +279,94 @@ def mi_cuenta():
         "telefono": usuario[4]
     })
 
+@app.get("/api/mi-perfil")
+@jwt_required()
+def obtener_mi_perfil():
+    usuario_id = get_jwt_identity()
+
+    with obtener_conexion() as conexion:
+        perfil = conexion.execute(
+            """
+            SELECT tipo_documento, numero_documento, fecha_nacimiento,
+                   tipo_sangre, alergias, condiciones_medicas, medicamentos,
+                   contacto_emergencia_nombre, contacto_emergencia_telefono,
+                   direccion, comunidad
+            FROM usuarios
+            WHERE id = %s
+            """,
+            (usuario_id,)
+        ).fetchone()
+
+    if perfil is None:
+        return jsonify({"error": "Cuenta no encontrada"}), 404
+
+    campos = [
+        "tipo_documento", "numero_documento", "fecha_nacimiento",
+        "tipo_sangre", "alergias", "condiciones_medicas", "medicamentos",
+        "contacto_emergencia_nombre", "contacto_emergencia_telefono",
+        "direccion", "comunidad"
+    ]
+    resultado = dict(zip(campos, perfil))
+    if resultado["fecha_nacimiento"]:
+        resultado["fecha_nacimiento"] = resultado["fecha_nacimiento"].isoformat()
+
+    return jsonify(resultado), 200
+
+
+@app.put("/api/mi-perfil")
+@jwt_required()
+def actualizar_mi_perfil():
+    usuario_id = get_jwt_identity()
+    datos = request.get_json(silent=True)
+
+    if not isinstance(datos, dict):
+        return jsonify({"error": "Envía los datos del perfil en formato JSON"}), 400
+
+    campos = [
+        "tipo_documento", "numero_documento", "fecha_nacimiento",
+        "tipo_sangre", "alergias", "condiciones_medicas", "medicamentos",
+        "contacto_emergencia_nombre", "contacto_emergencia_telefono",
+        "direccion", "comunidad"
+    ]
+
+    valores = [datos.get(campo) or None for campo in campos]
+    try:
+        if valores[2]:
+            valores[2] = date.fromisoformat(valores[2])
+    except (ValueError, TypeError):
+        return jsonify({"error": "La fecha de nacimiento no es válida"}), 400
+
+    if valores[0] and valores[0] not in ("CC", "TI", "CE", "PASAPORTE"):
+        return jsonify({"error": "Tipo de documento no válido"}), 400
+
+    if valores[3] and valores[3] not in (
+        "A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"
+    ):
+        return jsonify({"error": "Tipo de sangre no válido"}), 400
+
+    with obtener_conexion() as conexion:
+        conexion.execute(
+            """
+            UPDATE usuarios SET
+                tipo_documento = %s,
+                numero_documento = %s,
+                fecha_nacimiento = %s,
+                tipo_sangre = %s,
+                alergias = %s,
+                condiciones_medicas = %s,
+                medicamentos = %s,
+                contacto_emergencia_nombre = %s,
+                contacto_emergencia_telefono = %s,
+                direccion = %s,
+                comunidad = %s
+            WHERE id = %s
+            """,
+            (*valores, usuario_id)
+        )
+
+    return jsonify({"mensaje": "Perfil actualizado correctamente"}), 200
+
+
 @app.get("/api/emergencias")
 @jwt_required()
 def listar_emergencias():
@@ -333,7 +421,7 @@ def habilitar_cors_frontend_local(respuesta):
         and partes.port in (5500, 8000)
     ):
         respuesta.headers["Access-Control-Allow-Origin"] = origen
-        respuesta.headers["Access-Control-Allow-Methods"] = "GET, POST, OPTIONS"
+        respuesta.headers["Access-Control-Allow-Methods"] = "GET, POST, PUT, OPTIONS"
         respuesta.headers["Access-Control-Allow-Headers"] = "Content-Type, Authorization"
         respuesta.headers["Vary"] = "Origin"
     return respuesta
