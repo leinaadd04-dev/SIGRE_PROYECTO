@@ -1091,6 +1091,20 @@ a {
     background: #E2E8F0;
 }
 
+#street-view-frame {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    border: 0;
+    background: #E2E8F0;
+}
+
+#street-view-frame[hidden],
+#mapa-jornada-leaflet[hidden] {
+    display: none !important;
+}
+
 .mapa_oscuro_overlay {
     position: absolute;
     inset: 0;
@@ -1139,6 +1153,8 @@ a {
 
     font-size: 0.72rem;
     font-weight: 700;
+    border: 0;
+    cursor: pointer;
 }
 
 .boton_street_view:hover {
@@ -1532,4 +1548,228 @@ a {
     .encabezado_grafico   { order: 6; }
     .columna_intereses    { order: 7; }
 
+}
+
+/* Jornadas publicadas por las entidades desde el panel (js/jornadas_api.js) */
+.jornada_oficial {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    margin-left: 6px;
+    padding: 3px 9px;
+    border-radius: 20px;
+    background: #e8f5e9;
+    color: #2e7d32;
+    font-size: 0.72rem;
+    font-weight: 700;
+}
+
+.tarjeta_jornada.jornada_publicada {
+    border: 2px solid #2e7d32;
+}
+
+
+/* ============================================================
+   JORNADAS CON DATOS REALES (js/jornadas_api.js)
+   ============================================================ */
+
+.jornada_destacada[hidden] {
+    display: none !important;
+}
+
+#destacada-acciones {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+}
+
+#destacada-acciones .boton_ver_ubicacion {
+    margin-top: 18px;
+}
+
+.jornadas_vacio {
+    grid-column: 1 / -1;
+    margin: 0;
+    padding: 28px 18px;
+    border: 1px dashed var(--border-color);
+    border-radius: 14px;
+    text-align: center;
+    color: var(--text-light);
+    font-size: 0.9rem;
+}
+
+/* Fila de avatares: ahora es un botón que abre "Quiénes van" */
+.boton_ver_participantes.jornada_asistentes {
+    width: 100%;
+    padding: 6px 8px;
+    margin-left: -8px;
+    border: 0;
+    border-radius: 10px;
+    background: transparent;
+    font-family: inherit;
+    text-align: left;
+    cursor: pointer;
+}
+
+.boton_ver_participantes.jornada_asistentes:hover:not(:disabled),
+.boton_ver_participantes.jornada_asistentes:focus-visible {
+    background: #F1F6F8;
+}
+
+.boton_ver_participantes.jornada_asistentes:disabled {
+    cursor: default;
+}
+
+.ver_asistentes {
+    margin-left: auto;
+    font-size: 0.7rem;
+    font-weight: 800;
+    color: var(--primary-light);
+    white-space: nowrap;
+}
+
+.avatar_animal {
+    font-size: 0.85rem;
+}
+
+.barra_vacia {
+    opacity: 0.25;
+}
+
+.nombre_item_lista small {
+    display: block;
+    font-weight: 500;
+    color: var(--text-light);
+    font-size: 0.72rem;
+}
+
+/* Ventana "Quiénes van" */
+.ventana_participantes {
+    display: flex;
+    flex-direction: column;
+    width: min(460px, 100%);
+    max-height: min(560px, 85vh);
+    border-radius: 16px;
+    overflow: hidden;
+    background: #FFFFFF;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
+}
+
+.ventana_participantes h3 {
+    margin: 0;
+}
+
+.participantes_subtitulo {
+    margin: 2px 0 0;
+    font-size: 0.8rem;
+    color: var(--text-light);
+}
+
+.participantes_estado {
+    margin: 0;
+    padding: 24px 18px;
+    text-align: center;
+    color: var(--text-light);
+}
+
+.participantes_estado[hidden] {
+    display: none;
+}
+
+.lista_participantes {
+    list-style: none;
+    margin: 0;
+    padding: 8px 14px 16px;
+    overflow-y: auto;
+}
+
+.participante {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 6px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.participante:last-child {
+    border-bottom: 0;
+}
+
+.participante_yo {
+    background: #F1F8F4;
+    border-radius: 10px;
+}
+
+.avatar_participante {
+    flex: 0 0 38px;
+    height: 38px;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    color: #FFFFFF;
+    font-weight: 800;
+    font-size: 0.95rem;
+}
+
+.avatar_participante.avatar_animal {
+    font-size: 1.3rem;
+}
+
+.participante_datos {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+    font-size: 0.82rem;
+}
+
+.participante_datos strong {
+    color: var(--text-main);
+}
+
+.participante_datos em {
+    font-style: normal;
+    font-weight: 600;
+    color: var(--success-color);
+}
+
+.participante_datos a {
+    color: var(--primary-light);
+    text-decoration: none;
+    overflow-wrap: anywhere;
+}
+
+.participante_datos small {
+    color: var(--text-light);
+    font-size: 0.72rem;
+}
+
+/* Aviso flotante (inscripción, errores) */
+.aviso_flotante_jornadas {
+    position: fixed;
+    left: 50%;
+    bottom: 90px;
+    transform: translate(-50%, 20px);
+    max-width: calc(100vw - 32px);
+    padding: 12px 18px;
+    border-radius: 12px;
+    background: var(--success-color);
+    color: #FFFFFF;
+    font-weight: 700;
+    font-size: 0.88rem;
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.2);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.25s, transform 0.25s;
+    z-index: 2500;
+}
+
+.aviso_flotante_jornadas[data-tipo="error"] {
+    background: var(--accent-color);
+}
+
+.aviso_flotante_jornadas.visible {
+    opacity: 1;
+    transform: translate(-50%, 0);
 }

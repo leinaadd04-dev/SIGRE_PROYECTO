@@ -1,3 +1,6 @@
+-- Los archivos están en UTF-8: sin esto, psql en Windows daña las tildes.
+SET client_encoding = 'UTF8';
+
 CREATE TABLE IF NOT EXISTS reportes_desaparecidos (
     id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     tipo TEXT NOT NULL CHECK (tipo IN ('persona', 'animal')),
@@ -15,8 +18,22 @@ CREATE TABLE IF NOT EXISTS reportes_desaparecidos (
     actualizado_en TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
+-- Teléfono público de contacto para el reporte y el cartel descargable.
+-- También actualiza instalaciones anteriores sin borrar los reportes existentes.
+ALTER TABLE reportes_desaparecidos
+    ADD COLUMN IF NOT EXISTS telefono_contacto VARCHAR(20);
+
 CREATE INDEX IF NOT EXISTS idx_reportes_desaparecidos_estado_fecha
     ON reportes_desaparecidos (estado, creado_en DESC);
 
 CREATE INDEX IF NOT EXISTS idx_reportes_desaparecidos_tipo
     ON reportes_desaparecidos (tipo);
+
+DO $$
+BEGIN
+    IF EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'sigre_app') THEN
+        GRANT SELECT (telefono_contacto) ON reportes_desaparecidos TO sigre_app;
+        GRANT INSERT (telefono_contacto) ON reportes_desaparecidos TO sigre_app;
+    END IF;
+END
+$$;

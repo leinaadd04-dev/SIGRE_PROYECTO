@@ -8,7 +8,9 @@
     <title>Jornadas Comunitarias - SIGRE</title>
 
     <link rel="stylesheet" href="css/estiloso.css">
+    <link rel="stylesheet" href="css/notificaciones.css">
     <link rel="stylesheet" href="css/estilosjornadas.css">
+    <link rel="stylesheet" href="css/cuenta_sigre.css">
 
     <link rel="stylesheet"
         href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
@@ -104,35 +106,14 @@
             <div class="encabezado_grafico">
 
     <h3 class="grafico_titulo">Participación por categoría</h3>
-    <p class="grafico_subtitulo">Promedio aproximado de personas por actividad</p>
+    <p class="grafico_subtitulo" id="grafico-subtitulo">Promedio de personas inscritas por jornada</p>
 
-    <div class="grafico_barras" role="img"
-        aria-label="Gráfico de barras: participación aproximada por categoría de actividad">
-
-        <div class="barra_item">
-            <span class="barra_valor">45</span>
-            <div class="barra" style="height: 75%; background: #2e7d32;"></div>
-            <span class="barra_etiqueta">Limpieza</span>
-        </div>
-
-        <div class="barra_item">
-            <span class="barra_valor">60</span>
-            <div class="barra" style="height: 100%; background: #2c7da0;"></div>
-            <span class="barra_etiqueta">Salud</span>
-        </div>
-
-        <div class="barra_item">
-            <span class="barra_valor">38</span>
-            <div class="barra" style="height: 63%; background: #e63946;"></div>
-            <span class="barra_etiqueta">Solidaridad</span>
-        </div>
-
-        <div class="barra_item">
-            <span class="barra_valor">25</span>
-            <div class="barra" style="height: 42%; background: #ffb703;"></div>
-            <span class="barra_etiqueta">Apoyo</span>
-        </div>
-
+    <div class="grafico_barras" id="grafico-barras" role="img"
+        aria-label="Gráfico de barras: promedio de personas inscritas por jornada en cada categoría">
+        <div class="barra_item"><span class="barra_valor">–</span><div class="barra barra_vacia" style="height: 6%; background: #2e7d32;"></div><span class="barra_etiqueta">Limpieza</span></div>
+        <div class="barra_item"><span class="barra_valor">–</span><div class="barra barra_vacia" style="height: 6%; background: #2c7da0;"></div><span class="barra_etiqueta">Salud</span></div>
+        <div class="barra_item"><span class="barra_valor">–</span><div class="barra barra_vacia" style="height: 6%; background: #e63946;"></div><span class="barra_etiqueta">Solidaridad</span></div>
+        <div class="barra_item"><span class="barra_valor">–</span><div class="barra barra_vacia" style="height: 6%; background: #ffb703;"></div><span class="barra_etiqueta">Apoyo</span></div>
     </div>
 </div>
 
@@ -140,63 +121,43 @@
 
 
         <!-- JORNADA DESTACADA -->
-        <section class="jornada_destacada">
+        <section class="jornada_destacada" id="jornada-destacada" hidden>
 
             <div class="destacada_etiqueta">
                 <i class="fa-solid fa-star"></i>
-                Destacada
+                Próxima jornada
             </div>
 
             <div class="destacada_contenido">
 
-                <span class="jornada_categoria categoria_clara">
-                    Salud comunitaria
-                </span>
+                <span class="jornada_categoria categoria_clara" id="destacada-categoria"></span>
 
-                <h2>Jornada de vacunación — Barrio Centro</h2>
+                <h2 id="destacada-nombre"></h2>
 
-                <p>
-                    Brigada médica gratuita para toda la familia:
-                    vacunación, control de presión y asesoría nutricional.
-                </p>
+                <p id="destacada-descripcion"></p>
 
                 <div class="jornada_datos datos_claros">
                     <div>
                         <i class="fa-regular fa-calendar"></i>
-                        <span>Sábado 11 de octubre · 8:00 a.m.</span>
+                        <span id="destacada-fecha"></span>
                     </div>
                     <div>
                         <i class="fa-solid fa-location-dot"></i>
-                        <span>Parque Simón Bolívar</span>
+                        <span id="destacada-lugar"></span>
+                    </div>
+                    <div>
+                        <i class="fa-solid fa-user-group"></i>
+                        <span id="destacada-asistentes"></span>
                     </div>
                 </div>
 
-                <button
-                    type="button"
-                    class="boton_unirme boton_participar"
-                    data-id="jornada-3"
-                    data-nombre="Jornada de vacunación — Barrio Centro"
-                    aria-pressed="false"
-                >
-                    Quiero participar
-                </button>
-
-                <button
-                    type="button"
-                    class="boton_ver_ubicacion"
-                    data-lat="8.7510"
-                    data-lon="-75.8820"
-                    data-nombre="Jornada de vacunación"
-                >
-                    <i class="fa-solid fa-location-dot"></i>
-                    Ver ubicación
-                </button>
+                <div id="destacada-acciones"></div>
 
             </div>
 
             <img
                 src="imagenes/destacada__2_-removebg-preview.png"
-                alt="Ilustración de una familia acompañada por personal de salud en una jornada de vacunación"
+                alt="Ilustración de una familia acompañada por personal de salud en una jornada comunitaria"
                 class="destacada_imagen"
             >
 
@@ -219,9 +180,7 @@
                         <h2>Próximas jornadas</h2>
                     </div>
 
-                    <span class="estado_info">
-                        Información de ejemplo
-                    </span>
+                    <span class="estado_info" id="estado-jornadas">Cargando...</span>
 
                 </div>
 
@@ -245,389 +204,8 @@
                 </div>
 
 
-                <div class="jornadas_grid">
-
-
-                    <!-- JORNADA 1 -->
-                    <article class="tarjeta_jornada" data-categoria="limpieza">
-
-                        <div class="jornada_icono icono_verde">
-                            <i class="fa-solid fa-broom"></i>
-                        </div>
-
-                        <div class="jornada_contenido">
-
-                            <span class="jornada_categoria">
-                                Limpieza comunitaria
-                            </span>
-
-                            <h3>Limpieza de barrios</h3>
-
-                            <p>
-                                Actividad comunitaria orientada al cuidado
-                                y recuperación de espacios del barrio.
-                            </p>
-
-                            <div class="jornada_datos">
-
-                                <div>
-                                    <i class="fa-regular fa-calendar"></i>
-
-                                    <span>
-                                        Fecha:
-                                        <strong>Ejemplo</strong>
-                                    </span>
-                                </div>
-
-                                <div>
-                                    <i class="fa-solid fa-location-dot"></i>
-
-                                    <span>
-                                        Lugar:
-                                        <strong>Por confirmar</strong>
-                                    </span>
-                                </div>
-
-                            </div>
-
-                            <!-- AVATARES DE ASISTENTES -->
-                            <div class="jornada_asistentes">
-
-                                <div class="avatares_grupo">
-                                    <span class="avatar_mini" style="background:#4A90D9;">A</span>
-                                    <span class="avatar_mini" style="background:#5A4FCF;">M</span>
-                                    <span class="avatar_mini" style="background:#F4C900; color:#1A365D;">J</span>
-                                </div>
-
-                                <span class="texto_asistentes">+12 personas van</span>
-
-                            </div>
-
-                            <div class="fila_acciones_tarjeta">
-
-                                <button
-                                    type="button"
-                                    class="boton_ver_ubicacion"
-                                    data-lat="8.7510"
-                                    data-lon="-75.8820"
-                                    data-nombre="Limpieza de barrios"
-                                >
-                                    <i class="fa-solid fa-location-dot"></i>
-                                    Ver ubicación
-                                </button>
-
-                                <button
-                                    type="button"
-                                    class="boton_participar boton_participar_tarjeta"
-                                    data-id="jornada-1"
-                                    data-nombre="Limpieza de barrios"
-                                    aria-pressed="false"
-                                >
-                                    Quiero participar
-                                </button>
-
-                                <button
-                                    type="button"
-                                    class="boton_me_gusta"
-                                    data-id="jornada-1"
-                                    data-nombre="Limpieza de barrios"
-                                    aria-pressed="false"
-                                    aria-label="Guardar en mis intereses"
-                                >
-                                    <i class="fa-regular fa-heart"></i>
-                                </button>
-
-                            </div>
-
-                        </div>
-
-                    </article>
-
-
-                    <!-- JORNADA 2 -->
-                    <article class="tarjeta_jornada" data-categoria="apoyo">
-
-                        <div class="jornada_icono icono_azul">
-                            <i class="fa-solid fa-hand-holding-heart"></i>
-                        </div>
-
-                        <div class="jornada_contenido">
-
-                            <span class="jornada_categoria">
-                                Apoyo comunitario
-                            </span>
-
-                            <h3>Apoyo a la comunidad</h3>
-
-                            <p>
-                                Espacio pensado para promover la colaboración
-                                y el apoyo entre miembros de la comunidad.
-                            </p>
-
-                            <div class="jornada_datos">
-
-                                <div>
-                                    <i class="fa-regular fa-calendar"></i>
-
-                                    <span>
-                                        Fecha:
-                                        <strong>Ejemplo</strong>
-                                    </span>
-                                </div>
-
-                                <div>
-                                    <i class="fa-solid fa-location-dot"></i>
-
-                                    <span>
-                                        Lugar:
-                                        <strong>Por confirmar</strong>
-                                    </span>
-                                </div>
-
-                            </div>
-                             <!-- AVATARES DE ASISTENTES -->
-                            <div class="jornada_asistentes">
-
-                                <div class="avatares_grupo">
-                                    <span class="avatar_mini" style="background:#4A90D9;">A</span>
-                                    <span class="avatar_mini" style="background:#5A4FCF;">M</span>
-                                    <span class="avatar_mini" style="background:#F4C900; color:#1A365D;">J</span>
-                                </div>
-
-                                <span class="texto_asistentes">+12 personas van</span>
-
-                            </div>
-
-                            <div class="fila_acciones_tarjeta">
-
-                                <button
-                                    type="button"
-                                    class="boton_ver_ubicacion"
-                                    data-lat="8.7495"
-                                    data-lon="-75.8790"
-                                    data-nombre="Apoyo a la comunidad"
-                                >
-                                    <i class="fa-solid fa-location-dot"></i>
-                                    Ver ubicación
-                                </button>
-
-                                <button
-                                    type="button"
-                                    class="boton_participar boton_participar_tarjeta"
-                                    data-id="jornada-2"
-                                    data-nombre="Apoyo a la comunidad"
-                                    aria-pressed="false"
-                                >
-                                    Quiero participar
-                                </button>
-
-                                <button
-                                    type="button"
-                                    class="boton_me_gusta"
-                                    data-id="jornada-2"
-                                    data-nombre="Apoyo a la comunidad"
-                                    aria-pressed="false"
-                                    aria-label="Guardar en mis intereses"
-                                >
-                                    <i class="fa-regular fa-heart"></i>
-                                </button>
-
-                            </div>
-
-                        </div>
-
-                    </article>
-
-
-                    <!-- JORNADA 3 -->
-                    <article class="tarjeta_jornada" data-categoria="salud">
-
-                        <div class="jornada_icono icono_amarillo">
-                            <i class="fa-solid fa-syringe"></i>
-                        </div>
-
-                        <div class="jornada_contenido">
-
-                            <span class="jornada_categoria">
-                                Salud comunitaria
-                            </span>
-
-                            <h3>Jornada de vacunación</h3>
-
-                            <p>
-                                Ejemplo de actividad comunitaria relacionada
-                                con la promoción de la salud y la prevención.
-                            </p>
-
-                            <div class="jornada_datos">
-
-                                <div>
-                                    <i class="fa-regular fa-calendar"></i>
-
-                                    <span>
-                                        Fecha:
-                                        <strong>Ejemplo</strong>
-                                    </span>
-                                </div>
-
-                                <div>
-                                    <i class="fa-solid fa-location-dot"></i>
-
-                                    <span>
-                                        Lugar:
-                                        <strong>Por confirmar</strong>
-                                    </span>
-                                </div>
-
-                            </div>
-                             <!-- AVATARES DE ASISTENTES -->
-                            <div class="jornada_asistentes">
-
-                                <div class="avatares_grupo">
-                                    <span class="avatar_mini" style="background:#4A90D9;">A</span>
-                                    <span class="avatar_mini" style="background:#5A4FCF;">M</span>
-                                    <span class="avatar_mini" style="background:#F4C900; color:#1A365D;">J</span>
-                                </div>
-
-                                <span class="texto_asistentes">+12 personas van</span>
-
-                            </div>
-
-                            <div class="fila_acciones_tarjeta">
-
-                                <button
-                                    type="button"
-                                    class="boton_ver_ubicacion"
-                                    data-lat="8.7510"
-                                    data-lon="-75.8820"
-                                    data-nombre="Jornada de vacunación"
-                                >
-                                    <i class="fa-solid fa-location-dot"></i>
-                                    Ver ubicación
-                                </button>
-
-                                <button
-                                    type="button"
-                                    class="boton_participar boton_participar_tarjeta"
-                                    data-id="jornada-3"
-                                    data-nombre="Jornada de vacunación"
-                                    aria-pressed="false"
-                                >
-                                    Quiero participar
-                                </button>
-
-                                <button
-                                    type="button"
-                                    class="boton_me_gusta"
-                                    data-id="jornada-3"
-                                    data-nombre="Jornada de vacunación"
-                                    aria-pressed="false"
-                                    aria-label="Guardar en mis intereses"
-                                >
-                                    <i class="fa-regular fa-heart"></i>
-                                </button>
-
-                            </div>
-
-                        </div>
-
-                    </article>
-
-
-                    <!-- JORNADA 4 -->
-                    <article class="tarjeta_jornada" data-categoria="solidaridad">
-
-                        <div class="jornada_icono icono_coral">
-                            <i class="fa-solid fa-people-carry-box"></i>
-                        </div>
-
-                        <div class="jornada_contenido">
-
-                            <span class="jornada_categoria">
-                                Solidaridad
-                            </span>
-
-                            <h3>Campaña de apoyo comunitario</h3>
-
-                            <p>
-                                Ejemplo de iniciativa para fortalecer
-                                la solidaridad y cooperación entre vecinos.
-                            </p>
-
-                            <div class="jornada_datos">
-
-                                <div>
-                                    <i class="fa-regular fa-calendar"></i>
-
-                                    <span>
-                                        Fecha:
-                                        <strong>Ejemplo</strong>
-                                    </span>
-                                </div>
-
-                                <div>
-                                    <i class="fa-solid fa-location-dot"></i>
-
-                                    <span>
-                                        Lugar:
-                                        <strong>Por confirmar</strong>
-                                    </span>
-                                </div>
-
-                            </div>
-                             <!-- AVATARES DE ASISTENTES -->
-                            <div class="jornada_asistentes">
-
-                                <div class="avatares_grupo">
-                                    <span class="avatar_mini" style="background:#4A90D9;">A</span>
-                                    <span class="avatar_mini" style="background:#5A4FCF;">M</span>
-                                    <span class="avatar_mini" style="background:#F4C900; color:#1A365D;">J</span>
-                                </div>
-
-                                <span class="texto_asistentes">+12 personas van</span>
-
-                            </div>
-
-                            <div class="fila_acciones_tarjeta">
-
-                                <button
-                                    type="button"
-                                    class="boton_ver_ubicacion"
-                                    data-lat="8.7465"
-                                    data-lon="-75.8835"
-                                    data-nombre="Campaña de apoyo comunitario"
-                                >
-                                    <i class="fa-solid fa-location-dot"></i>
-                                    Ver ubicación
-                                </button>
-
-                                <button
-                                    type="button"
-                                    class="boton_participar boton_participar_tarjeta"
-                                    data-id="jornada-4"
-                                    data-nombre="Campaña de apoyo comunitario"
-                                    aria-pressed="false"
-                                >
-                                    Quiero participar
-                                </button>
-
-                                <button
-                                    type="button"
-                                    class="boton_me_gusta"
-                                    data-id="jornada-4"
-                                    data-nombre="Campaña de apoyo comunitario"
-                                    aria-pressed="false"
-                                    aria-label="Guardar en mis intereses"
-                                >
-                                    <i class="fa-regular fa-heart"></i>
-                                </button>
-
-                            </div>
-
-                        </div>
-
-                    </article>
-
+                <div class="jornadas_grid" id="jornadas-grid" aria-live="polite">
+                    <p class="jornadas_vacio" id="jornadas-vacio">Cargando jornadas...</p>
                 </div>
 
             </section>
@@ -642,7 +220,7 @@
                 <div class="titulo_lateral">
                     <span class="subtitulo_seccion">COMUNIDAD SIGRE</span>
                     <h2>Galería de actividades</h2>
-                    <p>Imágenes de muestra; puedes reemplazarlas por fotos de jornadas realizadas.</p>
+                    <p>Imágenes de muestra de jornadas realizadas.</p>
                 </div>
 
                 <div class="galeria_evidencias">
@@ -705,9 +283,9 @@
                 <h3>Información de las jornadas</h3>
 
                 <p>
-                    Las fechas, lugares y detalles mostrados en esta sección
-                    son ejemplos de interfaz y deberán ser confirmados
-                    antes de publicar actividades reales.
+                    Las jornadas las publican las entidades desde SIGRE. Al tocar
+                    "Quiero participar" quedas inscrito y las demás personas verán
+                    tu nombre corto (por ejemplo, "Ana M.") en la lista de asistentes.
                 </p>
 
             </div>
@@ -744,6 +322,23 @@
     </nav>
 
 
+    <!-- VENTANA DE PARTICIPANTES -->
+    <div class="ventana_mapa_fondo" id="ventana-participantes" hidden>
+        <section class="ventana_participantes" role="dialog" aria-modal="true" aria-labelledby="participantes-titulo">
+            <div class="ventana_mapa_cabecera">
+                <div>
+                    <h3 id="participantes-titulo">Quiénes van</h3>
+                    <p class="participantes_subtitulo" id="participantes-subtitulo"></p>
+                </div>
+                <button type="button" class="boton_cerrar_ventana" id="boton-cerrar-participantes" aria-label="Cerrar lista de participantes">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <p class="participantes_estado" id="participantes-estado" role="status"></p>
+            <ul class="lista_participantes" id="lista-participantes"></ul>
+        </section>
+    </div>
+
     <!-- VENTANA DEL MAPA -->
     <div class="ventana_mapa_fondo" id="ventana-mapa-fondo" hidden>
         <section class="ventana_mapa" role="dialog" aria-modal="true" aria-labelledby="mapa-titulo">
@@ -758,16 +353,10 @@
                         Oscuro
                     </button>
 
-                    <a
-                        id="enlace-street-view"
-                        class="boton_street_view"
-                        href="#"
-                        target="_blank"
-                        rel="noopener"
-                    >
+                    <button type="button" id="boton-street-view" class="boton_street_view" aria-pressed="false">
                         <i class="fa-brands fa-google"></i>
                         Street View
-                    </a>
+                    </button>
 
                     <button type="button" class="boton_cerrar_ventana" id="boton-cerrar-mapa" aria-label="Cerrar mapa">
                         <i class="fa-solid fa-xmark"></i>
@@ -778,6 +367,7 @@
 
             <div class="mapa_contenedor" id="mapa-contenedor">
                 <div id="mapa-jornada-leaflet" class="mapa_jornada_leaflet"></div>
+                <iframe id="street-view-frame" title="Google Street View de la ubicación" allowfullscreen loading="lazy" referrerpolicy="strict-origin-when-cross-origin" hidden></iframe>
                 <div class="mapa_oscuro_overlay"></div>
             </div>
 
@@ -787,7 +377,11 @@
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
+    <script src="js/auth.js"></script>
+    <script src="js/cuenta_sigre.js"></script>
+    <script src="js/notificaciones.js"></script>
     <script src="js/jornadas.js"></script>
+    <script src="js/jornadas_api.js"></script>
 
 </body>
 

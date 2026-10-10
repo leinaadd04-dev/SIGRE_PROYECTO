@@ -69,7 +69,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // Calcular fuerza (0 a 4)
             let fuerza = 0;
-            if (valor.length >= 8) fuerza++;
+            if (valor.length >= 12) fuerza++;
             if (/[A-Z]/.test(valor)) fuerza++;
             if (/[0-9]/.test(valor)) fuerza++;
             if (/[!@#$%^&*(),.?":{}|<>]/.test(valor)) fuerza++;
@@ -89,17 +89,36 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     /* ============================================================
+       CONEXIÓN CON LA API FLASK
+       La cuenta vive en PostgreSQL. En el navegador solo se guardan
+       el token de sesión y los datos que muestra el dashboard
+       (nombre, email y rol); nunca la contraseña.
+       ============================================================ */
+    const API_SIGRE = `http://${window.location.hostname}:5000`;
+    const CLAVE_TOKEN_SIGRE = 'sigre_token';
+    const MENSAJE_SIN_SERVIDOR = 'No se pudo conectar con el servidor de SIGRE. Verifica que Flask esté en ejecución.';
+
+    async function leerJsonSeguro(respuesta) {
+        try {
+            return await respuesta.json();
+        } catch (error) {
+            return {};
+        }
+    }
+
+    /* ============================================================
        4. FORMULARIO DE LOGIN
        ============================================================ */
     const formLogin = document.getElementById('form_login');
     if (formLogin) {
-        formLogin.addEventListener('submit', (e) => {
+        formLogin.addEventListener('submit', async (e) => {
             e.preventDefault();
 
             const email = document.getElementById('email').value.trim();
             const password = document.getElementById('password').value;
             const errorMsg = document.getElementById('error-msg');
             const exitoMsg = document.getElementById('exito-msg');
+            const botonLogin = formLogin.querySelector('button[type="submit"]');
 
             errorMsg.style.display = 'none';
             exitoMsg.style.display = 'none';
@@ -111,45 +130,150 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
 
-            if (password.length < 8) {
-                errorMsg.textContent = 'La contraseña debe tener al menos 8 caracteres.';
+            botonLogin.disabled = true;
+
+            try {
+                const respuesta = await fetch(`${API_SIGRE}/api/auth/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
+                const datos = await leerJsonSeguro(respuesta);
+
+                if (!respuesta.ok) {
+                    throw new Error(datos.error || 'No se pudo iniciar sesión. Inténtalo de nuevo.');
+                }
+
+                localStorage.setItem(CLAVE_TOKEN_SIGRE, datos.access_token);
+
+                const respuestaCuenta = await fetch(`${API_SIGRE}/api/mi-cuenta`, {
+                    headers: { Authorization: `Bearer ${datos.access_token}` }
+                });
+                const cuenta = await leerJsonSeguro(respuestaCuenta);
+
+                if (!respuestaCuenta.ok) {
+                    throw new Error(cuenta.error || 'No se pudieron cargar los datos de tu cuenta.');
+                }
+
+                // Datos que usa el dashboard para el saludo
+                localStorage.setItem('sigre_usuario', JSON.stringify({
+                    nombre: cuenta.nombre || cuenta.email.split('@')[0],
+                    email: cuenta.email,
+                    rol: cuenta.rol
+                }));
+
+                // Login exitoso
+                exitoMsg.textContent = `¡Bienvenido, ${cuenta.nombre || cuenta.email}! Redirigiendo...`;
+                exitoMsg.style.display = 'block';
+
+                setTimeout(() => {
+                    redirigirSegunRol(cuenta.rol);
+                }, 1200);
+            } catch (error) {
+                localStorage.removeItem(CLAVE_TOKEN_SIGRE);
+                errorMsg.textContent = error instanceof TypeError ? MENSAJE_SIN_SERVIDOR : error.message;
                 errorMsg.style.display = 'block';
-                return;
+                botonLogin.disabled = false;
             }
-
-            // Buscar usuario en localStorage
-            const usuarioGuardado = localStorage.getItem('sigre_usuario');
-
-            if (!usuarioGuardado) {
-                errorMsg.textContent = 'No hay ninguna cuenta registrada. Regístrate primero.';
-                errorMsg.style.display = 'block';
-                return;
-            }
-
-            const usuario = JSON.parse(usuarioGuardado);
-
-            // Verificar credenciales
-            if (usuario.email !== email) {
-                errorMsg.textContent = 'Correo o contraseña incorrectos.';
-                errorMsg.style.display = 'block';
-                return;
-            }
-
-            // Verificar contraseña (simulado)
-            if (usuario.password && usuario.password !== password) {
-                errorMsg.textContent = 'Correo o contraseña incorrectos.';
-                errorMsg.style.display = 'block';
-                return;
-            }
-
-            // Login exitoso
-            exitoMsg.textContent = `¡Bienvenido, ${usuario.nombre}! Redirigiendo...`;
-            exitoMsg.style.display = 'block';
-
-            setTimeout(() => {
-                redirigirSegunRol(usuario.rol);
-            }, 1500);
         });
+    }
+
+    /* ============================================================
+       INICIAR SESIÓN CON GOOGLE (Google Identity Services)
+       La credencial se verifica siempre en Flask antes de crear el JWT SIGRE.
+       ============================================================ */
+    const googleButton = document.getElementById('google-signin-button');
+    const googleMessage = document.getElementById('google-login-message');
+
+    if (googleButton && googleMessage) {
+        const mostrarMensajeGoogle = (texto, error = false) => {
+            googleMessage.textContent = texto;
+            googleMessage.hidden = false;
+            googleMessage.classList.toggle('error', error);
+        };
+
+        const finalizarLoginGoogle = async (respuestaGoogle) => {
+            const errorMsg = document.getElementById('error-msg');
+            const exitoMsg = document.getElementById('exito-msg');
+            try {
+                const respuesta = await fetch(`${API_SIGRE}/api/auth/google`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ credential: respuestaGoogle.credential })
+                });
+                const datos = await leerJsonSeguro(respuesta);
+                if (!respuesta.ok) throw new Error(datos.error || 'No se pudo iniciar sesión con Google.');
+
+                localStorage.setItem(CLAVE_TOKEN_SIGRE, datos.access_token);
+                const respuestaCuenta = await fetch(`${API_SIGRE}/api/mi-cuenta`, {
+                    headers: { Authorization: `Bearer ${datos.access_token}` }
+                });
+                const cuenta = await leerJsonSeguro(respuestaCuenta);
+                if (!respuestaCuenta.ok) throw new Error(cuenta.error || 'No se pudieron cargar los datos de tu cuenta.');
+
+                localStorage.setItem('sigre_usuario', JSON.stringify({
+                    nombre: cuenta.nombre || cuenta.email.split('@')[0],
+                    email: cuenta.email,
+                    rol: cuenta.rol
+                }));
+                googleMessage.hidden = true;
+                if (exitoMsg) {
+                    exitoMsg.textContent = `¡Bienvenido, ${cuenta.nombre || cuenta.email}! Redirigiendo...`;
+                    exitoMsg.style.display = 'block';
+                }
+                setTimeout(() => redirigirSegunRol(cuenta.rol), 700);
+            } catch (error) {
+                localStorage.removeItem(CLAVE_TOKEN_SIGRE);
+                if (errorMsg) {
+                    errorMsg.textContent = error instanceof TypeError ? MENSAJE_SIN_SERVIDOR : error.message;
+                    errorMsg.style.display = 'block';
+                }
+                mostrarMensajeGoogle(error instanceof TypeError ? MENSAJE_SIN_SERVIDOR : error.message, true);
+            }
+        };
+
+        fetch(`${API_SIGRE}/api/auth/google/config`)
+            .then(async respuesta => {
+                const datos = await leerJsonSeguro(respuesta);
+                if (!respuesta.ok) throw new Error(datos.error || MENSAJE_SIN_SERVIDOR);
+                if (!datos.client_id) {
+                    googleButton.hidden = true;
+                    mostrarMensajeGoogle('Para habilitar Google, configura GOOGLE_CLIENT_ID en backend/.env.');
+                    return;
+                }
+
+                const scriptGoogle = document.createElement('script');
+                scriptGoogle.src = 'https://accounts.google.com/gsi/client';
+                scriptGoogle.async = true;
+                scriptGoogle.defer = true;
+                scriptGoogle.onload = () => {
+                    if (!window.google?.accounts?.id) {
+                        mostrarMensajeGoogle('No se pudo cargar el acceso de Google.', true);
+                        return;
+                    }
+                    window.google.accounts.id.initialize({
+                        client_id: datos.client_id,
+                        callback: finalizarLoginGoogle,
+                        auto_select: false,
+                        cancel_on_tap_outside: true
+                    });
+                    window.google.accounts.id.renderButton(googleButton, {
+                        type: 'standard',
+                        theme: 'outline',
+                        size: 'large',
+                        text: 'continue_with',
+                        shape: 'pill',
+                        width: Math.min(360, googleButton.clientWidth || 320),
+                        locale: 'es'
+                    });
+                };
+                scriptGoogle.onerror = () => mostrarMensajeGoogle('No se pudo cargar Google. Revisa tu conexión.', true);
+                document.head.appendChild(scriptGoogle);
+            })
+            .catch(error => {
+                googleButton.hidden = true;
+                mostrarMensajeGoogle(error instanceof TypeError ? MENSAJE_SIN_SERVIDOR : error.message, true);
+            });
     }
 
     /* ============================================================
@@ -157,7 +281,7 @@ document.addEventListener('DOMContentLoaded', () => {
        ============================================================ */
     const formRegistro = document.getElementById('form-registro');
     if (formRegistro) {
-        formRegistro.addEventListener('submit', (e) => {
+        formRegistro.addEventListener('submit', async (e) => {
             e.preventDefault();
 
             // Leer campos
@@ -169,6 +293,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const terminos = document.getElementById('terminos').checked;
             const errorMsg = document.getElementById('error-msg');
             const exitoMsg = document.getElementById('exito-msg');
+            const botonRegistro = formRegistro.querySelector('button[type="submit"]');
 
             // Capturar rol
             const rolSeleccionado = document.querySelector('input[name="rol"]:checked');
@@ -190,8 +315,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
 
-            if (password.length < 8) {
-                errorMsg.textContent = 'La contraseña debe tener al menos 8 caracteres.';
+            // El servidor exige entre 12 y 128 caracteres
+            if (password.length < 12 || password.length > 128) {
+                errorMsg.textContent = 'La contraseña debe tener entre 12 y 128 caracteres.';
                 errorMsg.style.display = 'block';
                 return;
             }
@@ -226,35 +352,47 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }
 
-            // Guardar usuario en localStorage
-            const nuevoUsuario = {
-                nombre,
-                email,
-                telefono,
-                password,
-                rol
-            };
+            botonRegistro.disabled = true;
 
-            localStorage.setItem('sigre_usuario', JSON.stringify(nuevoUsuario));
+            try {
+                const respuesta = await fetch(`${API_SIGRE}/api/auth/registro`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ nombre, email, telefono, password })
+                });
+                const datos = await leerJsonSeguro(respuesta);
 
-            // Mostrar éxito
-            exitoMsg.textContent = `¡Cuenta creada como ${rol}! Redirigiendo al login...`;
-            exitoMsg.style.display = 'block';
+                if (!respuesta.ok) {
+                    throw new Error(datos.error || 'No se pudo crear la cuenta. Inténtalo de nuevo.');
+                }
 
-            setTimeout(() => {
-                window.location.href = 'login.html';
-            }, 2000);
+                // El servidor crea las cuentas como ciudadano; los otros roles los asigna un administrador.
+                exitoMsg.textContent = rol === 'ciudadano'
+                    ? '¡Cuenta creada! Redirigiendo al inicio de sesión...'
+                    : '¡Cuenta creada como ciudadano! El rol de voluntario o autoridad lo asigna un administrador de SIGRE. Redirigiendo...';
+                exitoMsg.style.display = 'block';
+
+                setTimeout(() => {
+                    window.location.href = 'login.html';
+                }, 2500);
+            } catch (error) {
+                errorMsg.textContent = error instanceof TypeError ? MENSAJE_SIN_SERVIDOR : error.message;
+                errorMsg.style.display = 'block';
+                botonRegistro.disabled = false;
+            }
         });
     }
 
     /* ============================================================
        6. CERRAR SESIÓN (para el dashboard)
+       Solo cierra la sesión; la cuenta sigue en el servidor.
        ============================================================ */
     const btnCerrarSesion = document.getElementById('cerrar-sesion');
     if (btnCerrarSesion) {
         btnCerrarSesion.addEventListener('click', (e) => {
             e.preventDefault();
             localStorage.removeItem('sigre_usuario');
+            localStorage.removeItem(CLAVE_TOKEN_SIGRE);
             window.location.href = 'index.html';
         });
     }
@@ -269,9 +407,7 @@ function redirigirSegunRol(rol) {
         case 'autoridad':
             window.location.href = 'dashboard_admin.html';
             break;
-        case 'voluntario':
-            window.location.href = 'dashboard_voluntario.html';
-            break;
+        // Los voluntarios usan por ahora el mismo inicio que la ciudadanía.
         case 'ciudadano':
         default:
             window.location.href = 'dashboard.html';

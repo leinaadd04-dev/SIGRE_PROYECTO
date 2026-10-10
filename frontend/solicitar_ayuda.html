@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Solicitar ayuda - SIGRE</title>
+
+    <link rel="stylesheet" href="css/estiloso.css">
+    <link rel="stylesheet" href="css/notificaciones.css">
+    <link rel="stylesheet" href="css/estilos_solicitar_ayuda.css">
+    <link rel="stylesheet" href="css/cuenta_sigre.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+</head>
+<body class="dashboard_body pagina_ayuda">
+
+    <header class="cabecera_dashboard">
+        <div class="cabecera_izquierda">
+            <a href="dashboard.html" class="contenedor_logo">
+                <img src="imagenes/logo.png" alt="SIGRE" class="logo_dashboard">
+            </a>
+
+            <div class="saludo_usuario">
+                <p class="texto_bienvenida">Módulo de</p>
+                <h1 class="nombre_usuario">Solicitar ayuda</h1>
+            </div>
+        </div>
+
+        <nav class="navegacion_escritorio" aria-label="Navegación principal">
+            <a href="dashboard.html" class="enlace_escritorio">
+                <i class="fa-solid fa-house"></i>
+                <span>Inicio</span>
+            </a>
+
+            <a href="rutas.html" class="enlace_escritorio">
+                <i class="fa-solid fa-map"></i>
+                <span>Mapa</span>
+            </a>
+
+            <a href="alertas.html" class="enlace_escritorio">
+                <i class="fa-solid fa-bell"></i>
+                <span>Alertas</span>
+            </a>
+
+            <a href="perfil.html" class="enlace_escritorio">
+                <i class="fa-solid fa-user"></i>
+                <span>Mi Perfil</span>
+            </a>
+
+            <a href="#" id="cerrar-sesion" class="enlace_escritorio">
+                <i class="fa-solid fa-right-from-bracket"></i>
+                <span>Cerrar sesión</span>
+            </a>
+        </nav>
+
+        <div class="cabecera_derecha">
+            <button class="boton_campana" type="button" aria-label="Notificaciones">
+                <i class="fa-solid fa-bell"></i>
+                <span class="contador_notificaciones">0</span>
+            </button>
+        </div>
+    </header>
+
+    <section class="encabezado_ayuda">
+        <div>
+            <h2>Ayuda para tu comunidad</h2>
+            <p>Pide apoyo para tu barrio, un grupo de familias o tu hogar, o gestiona una visita del equipo a una vivienda. Puedes seguir el estado de cada solicitud aquí.</p>
+        </div>
+
+        <img src="imagenes/modulo3.png" alt="" aria-hidden="true">
+    </section>
+
+    <main class="ayuda_contenido">
+
+        <div class="paneles_ayuda" id="paneles-ayuda">
+
+            <!-- Formulario de solicitud o visita -->
+            <section class="tarjeta_ayuda seccion_formulario_ayuda" aria-labelledby="titulo-formulario">
+                <div class="selector_modo" role="group" aria-label="Tipo de solicitud">
+                    <button type="button" class="boton_modo activo" data-modo="ayuda" aria-pressed="true">
+                        <i class="fa-solid fa-hand-holding-heart"></i>
+                        <span>Solicitar ayuda</span>
+                    </button>
+                    <button type="button" class="boton_modo" data-modo="visita" aria-pressed="false">
+                        <i class="fa-solid fa-house-circle-check"></i>
+                        <span>Gestionar visita</span>
+                    </button>
+                </div>
+
+                <h2 id="titulo-formulario">
+                    <i class="fa-solid fa-hand-holding-heart" id="icono-titulo"></i>
+                    <span id="texto-titulo">Nueva solicitud de ayuda</span>
+                </h2>
+                <p class="texto_ayuda" id="texto-intro">
+                    Pide apoyo pensando en todas las personas afectadas: tu barrio, tus vecinos o tu hogar.
+                    Los campos marcados con * son obligatorios.
+                </p>
+
+                <form id="formulario-ayuda" novalidate>
+                    <input type="hidden" name="tipo" id="tipo-solicitud" value="ayuda">
+
+                    <fieldset class="grupo_opciones" id="grupo-alcance">
+                        <legend>¿A quiénes beneficia? *</legend>
+                        <div class="opciones_alcance">
+                            <label class="opcion_chip opcion_alcance acento_verde">
+                                <input type="radio" name="alcance" value="comunidad" required>
+                                <span>
+                                    <i class="fa-solid fa-people-roof"></i>
+                                    <strong>Comunidad o barrio</strong>
+                                    <small>Todo un sector</small>
+                                </span>
+                            </label>
+                            <label class="opcion_chip opcion_alcance acento_naranja">
+                                <input type="radio" name="alcance" value="familias">
+                                <span>
+                                    <i class="fa-solid fa-people-group"></i>
+                                    <strong>Grupo de familias</strong>
+                                    <small>Vecinos o varias familias</small>
+                                </span>
+                            </label>
+                            <label class="opcion_chip opcion_alcance acento_morado">
+                                <input type="radio" name="alcance" value="hogar">
+                                <span>
+                                    <i class="fa-solid fa-house-user"></i>
+                                    <strong>Mi hogar</strong>
+                                    <small>Solo mi familia</small>
+                                </span>
+                            </label>
+                        </div>
+                    </fieldset>
+
+                    <div id="bloque-comunidad" hidden>
+                        <label for="comunidad-ayuda">Barrio, comunidad u organización beneficiada *</label>
+                        <input
+                            id="comunidad-ayuda"
+                            name="nombre_comunidad"
+                            type="text"
+                            minlength="3"
+                            maxlength="120"
+                            placeholder="Ej. Barrio Cantaclaro o JAC Villa Paz"
+                            disabled
+                        >
+                    </div>
+
+                    <fieldset class="grupo_opciones" id="grupo-categoria" data-modo-solo="ayuda">
+                        <legend>Categoría de ayuda *</legend>
+                        <div class="opciones_categoria">
+                            <label class="opcion_chip acento_naranja">
+                                <input type="radio" name="categoria" value="alimentos" required>
+                                <span><i class="fa-solid fa-bowl-food"></i> Alimentos</span>
+                            </label>
+                            <label class="opcion_chip acento_rojo">
+                                <input type="radio" name="categoria" value="atencion_medica">
+                                <span><i class="fa-solid fa-kit-medical"></i> Atención médica</span>
+                            </label>
+                            <label class="opcion_chip acento_morado">
+                                <input type="radio" name="categoria" value="alojamiento">
+                                <span><i class="fa-solid fa-house-chimney"></i> Alojamiento</span>
+                            </label>
+                            <label class="opcion_chip acento_azul">
+                                <input type="radio" name="categoria" value="transporte">
+                                <span><i class="fa-solid fa-truck"></i> Transporte</span>
+                            </label>
+                            <label class="opcion_chip acento_rosa">
+                                <input type="radio" name="categoria" value="ropa">
+                                <span><i class="fa-solid fa-shirt"></i> Ropa</span>
+                            </label>
+                            <label class="opcion_chip acento_gris">
+                                <input type="radio" name="categoria" value="otra">
+                                <span><i class="fa-solid fa-ellipsis"></i> Otra</span>
+                            </label>
+                        </div>
+                    </fieldset>
+
+                    <fieldset class="grupo_opciones" id="grupo-motivo" data-modo-solo="visita" hidden>
+                        <legend>Motivo de la visita *</legend>
+                        <div class="opciones_motivo">
+                            <label class="opcion_chip acento_naranja">
+                                <input type="radio" name="motivo_visita" value="evaluar_danos" required disabled>
+                                <span><i class="fa-solid fa-house-crack"></i> Evaluar daños</span>
+                            </label>
+                            <label class="opcion_chip acento_verde">
+                                <input type="radio" name="motivo_visita" value="condiciones_vivienda" disabled>
+                                <span><i class="fa-solid fa-house-circle-exclamation"></i> Revisar condiciones de la vivienda</span>
+                            </label>
+                            <label class="opcion_chip acento_rojo">
+                                <input type="radio" name="motivo_visita" value="riesgo_estructural" disabled>
+                                <span><i class="fa-solid fa-triangle-exclamation"></i> Riesgo estructural (grietas, hundimientos)</span>
+                            </label>
+                            <label class="opcion_chip acento_morado">
+                                <input type="radio" name="motivo_visita" value="encuesta_social" disabled>
+                                <span><i class="fa-solid fa-clipboard-list"></i> Encuesta o caracterización del hogar</span>
+                            </label>
+                            <label class="opcion_chip acento_gris">
+                                <input type="radio" name="motivo_visita" value="otra" disabled>
+                                <span><i class="fa-solid fa-ellipsis"></i> Otro motivo</span>
+                            </label>
+                        </div>
+                    </fieldset>
+
+                    <div class="fila_doble" data-modo-solo="visita" hidden>
+                        <div>
+                            <label for="fecha-visita">Fecha preferida *</label>
+                            <input id="fecha-visita" name="fecha_visita_preferida" type="date" required disabled>
+                        </div>
+                        <div>
+                            <label for="franja-visita">Franja horaria *</label>
+                            <select id="franja-visita" name="franja_horaria" required disabled>
+                                <option value="">Selecciona una franja</option>
+                                <option value="manana">Mañana (8 a. m. – 12 m.)</option>
+                                <option value="tarde">Tarde (2 p. m. – 5 p. m.)</option>
+                                <option value="cualquiera">Cualquier horario</option>
+                            </select>
+                        </div>
+                    </div>
+                    <p class="texto_ayuda nota_visita" data-modo-solo="visita" hidden>
+                        <i class="fa-solid fa-circle-info"></i>
+                        La fecha es una preferencia. El equipo te llamará para confirmarla; debe haber una persona mayor de edad en la vivienda.
+                    </p>
+
+                    <fieldset class="grupo_opciones">
+                        <legend>Nivel de urgencia *</legend>
+                        <div class="opciones_urgencia">
+                            <label class="opcion_chip urgencia_baja">
+                                <input type="radio" name="urgencia" value="baja" required>
+                                <span>Baja</span>
+                            </label>
+                            <label class="opcion_chip urgencia_media">
+                                <input type="radio" name="urgencia" value="media">
+                                <span>Media</span>
+                            </label>
+                            <label class="opcion_chip urgencia_alta">
+                                <input type="radio" name="urgencia" value="alta">
+                                <span>Alta</span>
+                            </label>
+                            <label class="opcion_chip urgencia_critica">
+                                <input type="radio" name="urgencia" value="critica">
+                                <span>Crítica</span>
+                            </label>
+                        </div>
+                    </fieldset>
+
+                    <label for="descripcion-ayuda" id="etiqueta-descripcion">¿Qué necesitan? *</label>
+                    <textarea
+                        id="descripcion-ayuda"
+                        name="descripcion"
+                        rows="4"
+                        minlength="10"
+                        maxlength="1200"
+                        placeholder="Ej. Unas 15 familias del sector quedaron sin agua potable tras la inundación; necesitamos agua y alimentos no perecederos."
+                        required
+                    ></textarea>
+                    <small class="contador_caracteres" id="contador-descripcion">0 / 1200</small>
+
+                    <label for="personas-ayuda" id="etiqueta-personas">Personas beneficiadas (aproximado) *</label>
+                    <input
+                        id="personas-ayuda"
+                        name="personas_afectadas"
+                        type="number"
+                        inputmode="numeric"
+                        min="1"
+                        max="10000"
+                        step="1"
+                        value="1"
+                        required
+                    >
+
+                    <label for="direccion-ayuda" id="etiqueta-direccion">Dirección o sector *</label>
+                    <input
+                        id="direccion-ayuda"
+                        name="direccion"
+                        type="text"
+                        minlength="5"
+                        maxlength="200"
+                        autocomplete="street-address"
+                        placeholder="Ej. Barrio La Granja, calle 20 #5-30"
+                        required
+                    >
+
+                    <div class="bloque_mapa">
+                        <div class="encabezado_mapa">
+                            <span>Ubicación en el mapa (opcional)</span>
+                            <div class="acciones_mapa">
+                                <button type="button" class="boton_secundario" id="boton-mi-ubicacion">
+                                    <i class="fa-solid fa-location-crosshairs"></i>
+                                    Usar mi ubicación
+                                </button>
+                                <button type="button" class="boton_secundario" id="boton-quitar-ubicacion" hidden>
+                                    <i class="fa-solid fa-xmark"></i>
+                                    Quitar
+                                </button>
+                            </div>
+                        </div>
+                        <div id="mapa-ayuda" class="mapa_ayuda" aria-label="Mapa para marcar la ubicación"></div>
+                        <p class="texto_ayuda" id="texto-ubicacion">Toca el mapa para marcar dónde se necesita la ayuda.</p>
+                        <input type="hidden" name="latitud" id="latitud-ayuda">
+                        <input type="hidden" name="longitud" id="longitud-ayuda">
+                    </div>
+
+                    <div class="fila_doble">
+                        <div>
+                            <label for="nombre-ayuda">Nombre de contacto *</label>
+                            <input
+                                id="nombre-ayuda"
+                                name="nombre_contacto"
+                                type="text"
+                                minlength="2"
+                                maxlength="120"
+                                autocomplete="name"
+                                required
+                            >
+                        </div>
+                        <div>
+                            <label for="telefono-ayuda">Teléfono de contacto *</label>
+                            <input
+                                id="telefono-ayuda"
+                                name="telefono_contacto"
+                                type="tel"
+                                inputmode="tel"
+                                autocomplete="tel"
+                                maxlength="20"
+                                placeholder="Ej. +57 300 123 4567"
+                                required
+                            >
+                        </div>
+                    </div>
+
+                    <label for="input-adjunto">Foto o documento (opcional)</label>
+                    <div class="zona_adjunto" id="zona-adjunto">
+                        <input
+                            type="file"
+                            id="input-adjunto"
+                            accept="image/jpeg,image/png,image/webp,application/pdf"
+                        >
+                        <div class="contenido_zona_adjunto" id="contenido-adjunto">
+                            <i class="fa-solid fa-paperclip"></i>
+                            <span>JPG, PNG, WEBP o PDF · máximo 5 MB</span>
+                        </div>
+                        <div class="adjunto_seleccionado" id="adjunto-seleccionado" hidden>
+                            <i class="fa-solid fa-file" id="icono-adjunto"></i>
+                            <span id="nombre-adjunto"></span>
+                            <button type="button" class="boton_quitar_adjunto" id="boton-quitar-adjunto" aria-label="Quitar archivo">
+                                <i class="fa-solid fa-xmark"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <label class="consentimiento">
+                        <input type="checkbox" id="autoriza-compartir" name="autoriza_compartir" value="true" required>
+                        <span id="texto-consentimiento">
+                            Autorizo que esta información y mis datos de contacto se compartan con el
+                            equipo responsable de atender la solicitud.
+                        </span>
+                    </label>
+
+                    <button type="submit" class="boton_ayuda boton_enviar" id="boton-enviar">
+                        <i class="fa-solid fa-paper-plane"></i>
+                        <span id="texto-boton-enviar">Enviar solicitud</span>
+                    </button>
+
+                    <p class="mensaje_ayuda" id="mensaje-formulario" role="status" aria-live="polite"></p>
+                </form>
+            </section>
+
+            <div class="columna_derecha_ayuda">
+                <!-- Perfil con avatar (visible con la cuenta confirmada) -->
+                <section class="tarjeta_ayuda tarjeta_perfil" id="tarjeta-perfil" hidden>
+                    <span class="cuenta_avatar cuenta_avatar_grande" id="avatar-perfil"><i class="fa-solid fa-user"></i></span>
+                    <div class="perfil_datos">
+                        <p class="texto_ayuda">Cuenta confirmada</p>
+                        <strong id="perfil-email"></strong>
+                    </div>
+                    <button type="button" class="boton_secundario" id="boton-cambiar-avatar">
+                        <i class="fa-solid fa-pen"></i>
+                        Cambiar avatar
+                    </button>
+                </section>
+
+                <!-- Confirmación de la cuenta contra la API (token JWT) -->
+                <section class="tarjeta_ayuda seccion_sesion" id="seccion-sesion" hidden>
+                    <h2>
+                        <i class="fa-solid fa-lock"></i>
+                        Confirma tu cuenta SIGRE
+                    </h2>
+                    <p class="texto_ayuda" id="texto-sesion">
+                        Puedes llenar el formulario ya. Para enviarlo y ver tus solicitudes, confirma tu cuenta del servidor de SIGRE.
+                    </p>
+
+                    <form id="formulario-sesion" class="formulario_sesion" novalidate>
+                        <div>
+                            <label for="sesion-email">Correo electrónico</label>
+                            <input id="sesion-email" type="email" autocomplete="email" maxlength="254" required>
+                        </div>
+                        <div>
+                            <label for="sesion-password">Contraseña</label>
+                            <input id="sesion-password" type="password" autocomplete="current-password" maxlength="128" required>
+                        </div>
+                        <button type="submit" class="boton_ayuda" id="boton-sesion">
+                            <i class="fa-solid fa-right-to-bracket"></i>
+                            Confirmar cuenta
+                        </button>
+                    </form>
+
+                    <p class="mensaje_ayuda" id="mensaje-sesion" role="status" aria-live="polite"></p>
+                </section>
+
+                <!-- Solicitudes propias -->
+                <section class="tarjeta_ayuda seccion_mis_solicitudes" id="seccion-mis-solicitudes" hidden aria-labelledby="titulo-mis-solicitudes">
+                    <div class="titulo_mis_solicitudes">
+                        <div>
+                            <h2 id="titulo-mis-solicitudes">Mis solicitudes</h2>
+                            <p class="texto_ayuda">Solo tú puedes ver esta lista.</p>
+                        </div>
+                        <button type="button" class="boton_secundario boton_icono" id="boton-actualizar" aria-label="Actualizar lista">
+                            <i class="fa-solid fa-rotate-right"></i>
+                        </button>
+                    </div>
+
+                    <p class="estado_carga" id="estado-solicitudes" role="status" aria-live="polite">
+                        Cargando tus solicitudes...
+                    </p>
+
+                    <ul class="lista_solicitudes" id="lista-solicitudes"></ul>
+                </section>
+            </div>
+        </div>
+    </main>
+
+    <nav class="navegacion_inferior" aria-label="Navegación móvil">
+        <a href="dashboard.html" class="item_navegacion">
+            <i class="fa-solid fa-house"></i>
+            <span>Inicio</span>
+        </a>
+
+        <a href="rutas.html" class="item_navegacion">
+            <i class="fa-solid fa-map"></i>
+            <span>Mapa</span>
+        </a>
+
+        <button class="boton_sos" type="button" aria-label="SOS">SOS</button>
+
+        <a href="alertas.html" class="item_navegacion">
+            <i class="fa-solid fa-bell"></i>
+            <span>Alertas</span>
+        </a>
+
+        <a href="perfil.html" class="item_navegacion">
+            <i class="fa-solid fa-user"></i>
+            <span>Perfil</span>
+        </a>
+    </nav>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/cuenta_sigre.js"></script>
+    <script src="js/notificaciones.js"></script>
+    <script src="js/solicitar_ayuda.js"></script>
+</body>
+</html>

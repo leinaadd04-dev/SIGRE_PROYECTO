@@ -6,7 +6,9 @@
     <title>Personas desaparecidas - SIGRE</title>
 
     <link rel="stylesheet" href="css/estiloso.css">
+    <link rel="stylesheet" href="css/notificaciones.css">
     <link rel="stylesheet" href="css/estilos_desaparecidos.css">
+    <link rel="stylesheet" href="css/cuenta_sigre.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 </head>
 <body class="dashboard_body pagina_desaparecidos">
@@ -358,9 +360,23 @@
                 <span class="etiqueta_estado" id="ventana-estado"></span>
                 <h2 id="ventana-nombre"></h2>
 
+                <div class="acciones_reporte_modal">
+                    <button type="button" id="boton-abrir-comentarios" class="boton_comentar" aria-expanded="false" aria-controls="panel-comentarios">
+                        <i class="fa-solid fa-comment-dots" aria-hidden="true"></i> Comentar
+                    </button>
+                    <a id="boton-descargar-cartel" class="boton_descargar_cartel" href="#" download>
+                        <i class="fa-solid fa-download" aria-hidden="true"></i> Descargar cartel
+                    </a>
+                </div>
+
                 <p class="ventana_dato">
                     <i class="fa-solid fa-cake-candles"></i>
                     <span id="ventana-edad"></span>
+                </p>
+
+                <p class="ventana_dato">
+                    <i class="fa-solid fa-venus-mars"></i>
+                    <span id="ventana-genero"></span>
                 </p>
 
                 <p class="ventana_dato">
@@ -379,6 +395,43 @@
                 </p>
 
                 <p class="ventana_descripcion" id="ventana-descripcion"></p>
+
+                <section class="seccion_comentarios" id="panel-comentarios" aria-labelledby="titulo-comentarios" hidden>
+                    <div class="encabezado_comentarios">
+                        <h3 id="titulo-comentarios">¿Viste a esta persona o animal?</h3>
+                        <button type="button" id="boton-cerrar-comentarios" class="boton_cerrar_comentarios" aria-label="Cerrar comentarios">
+                            <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+                        </button>
+                    </div>
+                    <p class="aviso_veracidad">Comenta solo si la información es verídica. Tu teléfono será privado y solo lo verá quien publicó el reporte.</p>
+                    <p id="estado-comentarios" class="estado_comentarios" role="status" aria-live="polite"></p>
+                    <div id="lista-comentarios" class="lista_comentarios"></div>
+                    <form id="formulario-comentario" class="formulario_comentario" hidden>
+                        <label for="texto-comentario">¿Qué información tienes?</label>
+                        <textarea id="texto-comentario" name="comentario" minlength="5" maxlength="800" rows="4" required></textarea>
+
+                        <label for="telefono-testigo">Tu teléfono de contacto (obligatorio)</label>
+                        <input id="telefono-testigo" name="telefono_testigo" type="tel" inputmode="tel" autocomplete="tel" pattern="\+?[0-9 ()-]{7,20}" maxlength="20" required>
+
+                        <label class="confirmacion_veracidad" for="confirmar-veracidad">
+                            <input id="confirmar-veracidad" name="veracidad_confirmada" type="checkbox" required>
+                            Confirmo que mi comentario es verídico.
+                        </label>
+                        <label class="confirmacion_veracidad" for="autorizar-telefono">
+                            <input id="autorizar-telefono" name="autoriza_compartir_telefono" type="checkbox" required>
+                            Autorizo compartir mi teléfono únicamente con quien publicó este reporte para que pueda contactarme.
+                        </label>
+
+                        <button type="submit" id="boton-enviar-comentario">
+                            <i class="fa-solid fa-paper-plane"></i> Enviar comentario
+                        </button>
+                    </form>
+                    <p id="aviso-iniciar-sesion-comentario" class="aviso_iniciar_sesion" hidden>
+                        Para dejar un comentario, <a href="login.html">inicia sesión en SIGRE</a>.
+                    </p>
+                </section>
+
+                <small class="nota_cartel">El cartel incluye la foto y los datos públicos del reporte.</small>
             </div>
         </section>
     </div>
@@ -408,6 +461,8 @@
     </nav>
 
     <script src="js/auth.js"></script>
+    <script src="js/cuenta_sigre.js"></script>
+    <script src="js/notificaciones.js"></script>
     <script src="js/desaparecidos.js"></script>
 </body>
 </html>

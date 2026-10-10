@@ -1,0 +1,1020 @@
+/* SIGRE · Panel de administración */
+
+.pagina_admin [hidden] {
+    display: none !important;
+}
+
+.admin_contenido {
+    width: min(1240px, 100%);
+    margin: 0 auto;
+    padding: 26px 28px 60px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+/* Encabezado */
+
+.admin_encabezado {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 20px;
+    padding: 26px 30px;
+    border-radius: 20px;
+    background: linear-gradient(120deg, #1b4965, #2c7da0);
+    color: #ffffff;
+    overflow: hidden;
+}
+
+.admin_etiqueta {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 12px;
+    border-radius: 20px;
+    background: rgba(255, 255, 255, 0.16);
+    font-size: 0.85rem;
+    font-weight: 700;
+}
+
+.admin_encabezado h2 {
+    margin: 12px 0 6px;
+    font-size: 1.7rem;
+}
+
+.admin_encabezado p {
+    color: #e5f2f7;
+}
+
+.admin_encabezado_icono {
+    font-size: 4.5rem;
+    opacity: 0.25;
+}
+
+/* Tarjetas y acceso */
+
+.admin_tarjeta {
+    padding: 22px;
+    border: 1px solid #e2e8f0;
+    border-radius: 16px;
+    background: #ffffff;
+    box-shadow: 0 6px 20px rgba(27, 73, 101, 0.07);
+}
+
+.admin_acceso {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    padding: 40px 22px;
+    color: #475467;
+    text-align: center;
+}
+
+.admin_acceso > i {
+    color: #2c7da0;
+    font-size: 2rem;
+}
+
+/* Pestañas */
+
+.admin_pestanas {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 18px;
+    padding: 6px;
+    overflow-x: auto;
+    border-radius: 14px;
+    background: #e9eef2;
+}
+
+.admin_pestana {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+    padding: 11px 16px;
+    border: 0;
+    border-radius: 10px;
+    background: transparent;
+    color: #1b4965;
+    font: inherit;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.admin_pestana.activa {
+    background: #ffffff;
+    color: #2c7da0;
+    box-shadow: 0 2px 8px rgba(27, 73, 101, 0.14);
+}
+
+.admin_pestana:focus-visible,
+.admin_boton:focus-visible,
+.admin_boton_secundario:focus-visible,
+.admin_estadistica:focus-visible {
+    outline: 2px solid #2c7da0;
+    outline-offset: 2px;
+}
+
+/* Resumen */
+
+.admin_estadisticas {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 14px;
+}
+
+.admin_estadistica {
+    --tono: #2c7da0;
+    --tono-suave: #e5f2f7;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+    padding: 18px;
+    border: 1px solid #e2e8f0;
+    border-left: 5px solid var(--tono);
+    border-radius: 16px;
+    background: #ffffff;
+    color: #2b2d42;
+    font: inherit;
+    text-align: left;
+    box-shadow: 0 6px 20px rgba(27, 73, 101, 0.07);
+}
+
+button.admin_estadistica {
+    cursor: pointer;
+    transition: transform 0.15s ease;
+}
+
+button.admin_estadistica:hover {
+    transform: translateY(-2px);
+}
+
+.admin_estadistica.morado { --tono: #5A4FCF; --tono-suave: #ece9fb; }
+.admin_estadistica.rojo { --tono: #d62839; --tono-suave: #fde8e8; }
+.admin_estadistica.verde { --tono: #1f7a6f; --tono-suave: #e3f4f1; }
+.admin_estadistica.naranja { --tono: #d9682b; --tono-suave: #fdeee3; }
+
+.admin_estadistica_icono {
+    display: grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    margin-bottom: 6px;
+    border-radius: 12px;
+    background: var(--tono-suave);
+    color: var(--tono);
+    font-size: 1.2rem;
+}
+
+.admin_estadistica strong {
+    color: #1b4965;
+    font-size: 1.9rem;
+    line-height: 1.1;
+}
+
+.admin_estadistica_titulo {
+    font-weight: 700;
+}
+
+.admin_estadistica small {
+    color: #667085;
+    font-size: 0.8rem;
+}
+
+/* Títulos de sección, buscador y botones */
+
+.admin_titulo_seccion {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin-bottom: 14px;
+}
+
+.admin_titulo_seccion h3,
+.admin_formulario_centro h3 {
+    color: #1b4965;
+    font-size: 1.2rem;
+}
+
+.admin_titulo_seccion p {
+    margin-top: 4px;
+    color: #667085;
+    font-size: 0.9rem;
+}
+
+.admin_buscador {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: min(320px, 100%);
+    padding: 0 12px;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    color: #8d99ae;
+}
+
+.admin_buscador input {
+    flex: 1;
+    min-width: 0;
+    min-height: 42px;
+    border: 0;
+    outline: none;
+    font: inherit;
+}
+
+.admin_filtros {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.admin_filtros select,
+.admin_select_rol {
+    min-height: 40px;
+    padding: 0 10px;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    background: #ffffff;
+    color: #2b2d42;
+    font: inherit;
+}
+
+.admin_boton,
+.admin_boton_secundario {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    border-radius: 10px;
+    font: inherit;
+    font-weight: 700;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.admin_boton {
+    padding: 11px 18px;
+    border: 0;
+    background: #5A4FCF;
+    color: #ffffff;
+}
+
+.admin_boton:disabled {
+    opacity: 0.65;
+    cursor: wait;
+}
+
+.admin_boton_secundario {
+    padding: 8px 12px;
+    border: 1px solid #e2e8f0;
+    background: #ffffff;
+    color: #1b4965;
+    font-size: 0.86rem;
+}
+
+.admin_boton_secundario:hover {
+    border-color: #2c7da0;
+}
+
+.admin_boton_secundario.peligro {
+    color: #c53030;
+}
+
+.admin_mensaje {
+    margin-bottom: 10px;
+    font-size: 0.9rem;
+}
+
+.admin_mensaje:empty {
+    display: none;
+}
+
+.admin_mensaje.error {
+    padding: 10px 12px;
+    border-radius: 9px;
+    background: #fde8e8;
+    color: #c53030;
+}
+
+.admin_mensaje.exito {
+    padding: 10px 12px;
+    border-radius: 9px;
+    background: #e8f5e9;
+    color: #2e7d32;
+}
+
+.admin_vacio {
+    padding: 18px 4px;
+    color: #667085;
+    text-align: center;
+}
+
+.admin_chip {
+    display: inline-flex;
+    align-items: center;
+    padding: 3px 9px;
+    border-radius: 20px;
+    background: #eef3f6;
+    color: #1b4965;
+    font-size: 0.75rem;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.admin_chip.abierto { background: #e8f5e9; color: #2e7d32; }
+.admin_chip.cerrado { background: #eef0f3; color: #667085; }
+.admin_chip.activo { background: #fde8e8; color: #c53030; }
+
+/* Tabla de usuarios */
+
+.admin_tabla_contenedor {
+    overflow-x: auto;
+}
+
+.admin_tabla {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.92rem;
+}
+
+.admin_tabla th {
+    padding: 10px 12px;
+    border-bottom: 2px solid #e2e8f0;
+    color: #667085;
+    font-size: 0.8rem;
+    text-align: left;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.admin_tabla td {
+    padding: 12px;
+    border-bottom: 1px solid #eef0f3;
+    color: #2b2d42;
+    vertical-align: middle;
+}
+
+.admin_tabla tbody tr:hover {
+    background: #f8fafc;
+}
+
+.admin_select_rol.rol_autoridad { border-color: #5A4FCF; color: #5A4FCF; font-weight: 700; }
+.admin_select_rol.rol_voluntario { border-color: #1f7a6f; color: #1f7a6f; font-weight: 700; }
+
+/* Centros y desaparecidos */
+
+.admin_lista_centros,
+.admin_lista_desaparecidos {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.admin_centro,
+.admin_reporte {
+    display: flex;
+    gap: 16px;
+    align-items: flex-start;
+    padding: 16px;
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+}
+
+.admin_centro.cerrado,
+.admin_reporte.encontrado {
+    background: #f8fafc;
+}
+
+.admin_centro_icono {
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+    width: 60px;
+    height: 60px;
+    border-radius: 16px;
+    background: #e5f2f7;
+    color: #2c7da0;
+    font-size: 1.6rem;
+}
+
+.admin_centro_icono.verde { color: #236c45; background: #e4f4ea; }
+.admin_centro_icono.amarillo { color: #805e00; background: #fff2c7; }
+.admin_centro_icono.rojo { color: #a42d37; background: #fde6e8; }
+.admin_centro_icono.completo { color: #624098; background: #eee6fb; }
+
+.admin_centro_datos,
+.admin_reporte_datos {
+    flex: 1;
+    min-width: 0;
+}
+
+.admin_centro_cabecera {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.admin_centro_cabecera h4 {
+    color: #1b4965;
+    font-size: 1rem;
+}
+
+.admin_centro_tipo,
+.admin_reporte_datos p {
+    margin-top: 4px;
+    color: #475467;
+    font-size: 0.88rem;
+    overflow-wrap: anywhere;
+}
+
+.admin_reporte_datos p i {
+    width: 16px;
+    color: #2c7da0;
+}
+
+.admin_cupos {
+    margin-top: 8px;
+    font-size: 0.85rem;
+    color: #475467;
+}
+
+.admin_barra {
+    height: 8px;
+    margin-top: 5px;
+    overflow: hidden;
+    border-radius: 99px;
+    background: #edf0f3;
+}
+
+.admin_barra span {
+    display: block;
+    height: 100%;
+    border-radius: inherit;
+    background: #2e9b62;
+}
+
+.admin_barra.amarillo span { background: #e4a900; }
+.admin_barra.rojo span { background: #df4650; }
+.admin_barra.completo span { background: #7652b8; }
+
+.admin_centro_necesidades {
+    margin-top: 8px;
+    padding: 6px 10px;
+    border-radius: 8px;
+    background: #fff7ec;
+    color: #8a4b12;
+    font-size: 0.85rem;
+}
+
+.admin_centro_meta {
+    margin-top: 6px;
+    color: #8d99ae !important;
+    font-size: 0.8rem !important;
+}
+
+.admin_centro_acciones {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    flex-shrink: 0;
+}
+
+.admin_reporte img {
+    flex-shrink: 0;
+    width: 90px;
+    height: 90px;
+    border-radius: 12px;
+    object-fit: cover;
+    background: #eaf1f4;
+}
+
+/* Formulario de centro */
+
+.admin_formulario_centro {
+    margin-top: 16px;
+    border: 2px solid #5A4FCF;
+}
+
+.admin_formulario_centro h3 {
+    margin-bottom: 14px;
+}
+
+.admin_campos {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 12px 14px;
+}
+
+.admin_campo {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    color: #2b2d42;
+    font-size: 0.88rem;
+    font-weight: 600;
+}
+
+.admin_campo_ancho {
+    grid-column: 1 / -1;
+}
+
+.admin_campo input,
+.admin_campo select,
+.admin_campo textarea {
+    width: 100%;
+    min-height: 42px;
+    padding: 9px 12px;
+    border: 1px solid #e2e8f0;
+    border-radius: 9px;
+    font: inherit;
+    font-weight: 400;
+}
+
+.admin_campo textarea {
+    resize: vertical;
+}
+
+.admin_mapa_campo {
+    margin-top: 14px;
+}
+
+.admin_mapa_cabecera {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-bottom: 8px;
+    font-size: 0.88rem;
+    font-weight: 600;
+}
+
+.admin_mapa {
+    height: 280px;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    z-index: 0;
+}
+
+.admin_acciones_formulario {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 14px;
+}
+
+/* Tableta */
+
+@media (max-width: 1000px) {
+    .admin_estadisticas {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .admin_campos {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+
+/* Celular */
+
+@media (max-width: 700px) {
+    .admin_contenido {
+        padding: 16px 13px 40px;
+    }
+
+    .admin_encabezado {
+        padding: 20px;
+    }
+
+    .admin_encabezado h2 {
+        font-size: 1.35rem;
+    }
+
+    /* Más específico que .fa-solid (Font Awesome se carga después) */
+    .admin_encabezado .admin_encabezado_icono {
+        display: none;
+    }
+
+    .admin_tarjeta {
+        padding: 16px;
+    }
+
+    .admin_campos {
+        grid-template-columns: 1fr;
+    }
+
+    .admin_centro,
+    .admin_reporte {
+        flex-wrap: wrap;
+    }
+
+    .admin_centro_acciones {
+        flex-direction: row;
+        width: 100%;
+    }
+
+    .admin_centro_acciones button {
+        flex: 1;
+    }
+
+    .admin_reporte img {
+        width: 72px;
+        height: 72px;
+    }
+
+    /* La tabla de usuarios se vuelve una lista de tarjetas */
+    .admin_tabla thead {
+        display: none;
+    }
+
+    .admin_tabla,
+    .admin_tabla tbody,
+    .admin_tabla tr,
+    .admin_tabla td {
+        display: block;
+        width: 100%;
+    }
+
+    .admin_tabla tr {
+        margin-bottom: 10px;
+        padding: 10px 12px;
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
+    }
+
+    .admin_tabla td {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 10px;
+        padding: 6px 0;
+        border: 0;
+        overflow-wrap: anywhere;
+    }
+
+    .admin_tabla td::before {
+        content: attr(data-titulo);
+        flex-shrink: 0;
+        color: #8d99ae;
+        font-size: 0.78rem;
+        font-weight: 700;
+    }
+
+    .admin_tabla td.admin_vacio::before {
+        content: none;
+    }
+}
+
+@media (max-width: 420px) {
+    .admin_estadisticas {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Buscar el lugar del centro en el mapa */
+
+.admin_buscar_lugar {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 8px;
+}
+
+.admin_buscador_lugar {
+    flex: 1 1 320px;
+    width: auto;
+}
+
+.admin_buscador_lugar i {
+    color: #2c7da0;
+}
+
+.admin_sugerencias {
+    position: relative;
+    z-index: 600;
+    max-height: 240px;
+    overflow-y: auto;
+    margin: 0 0 8px;
+    padding: 6px;
+    list-style: none;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    background: #ffffff;
+    box-shadow: 0 10px 24px rgba(27, 73, 101, 0.14);
+}
+
+.admin_sugerencias button {
+    display: flex;
+    gap: 8px;
+    width: 100%;
+    padding: 10px;
+    border: 0;
+    border-radius: 9px;
+    background: none;
+    color: #2b2d42;
+    font: inherit;
+    font-size: 0.88rem;
+    text-align: left;
+    cursor: pointer;
+}
+
+.admin_sugerencias button:hover,
+.admin_sugerencias button:focus-visible {
+    background: #eef3f6;
+}
+
+.admin_sugerencias button i {
+    margin-top: 3px;
+    color: #2c7da0;
+}
+
+.admin_sugerencia_aviso {
+    padding: 10px;
+    color: #667085;
+    font-size: 0.88rem;
+}
+
+@media (max-width: 700px) {
+    .admin_buscar_lugar .admin_boton_secundario {
+        flex: 1;
+    }
+}
+
+/* =====================================================
+   Parte 2: solicitudes (cartas), emergencias, jornadas y directorio
+   ===================================================== */
+
+.admin_boton_peligro { background: #d62839; }
+
+.admin_formulario_simple {
+    margin-bottom: 16px;
+    padding: 16px;
+    border: 2px solid #5A4FCF;
+    border-radius: 14px;
+    background: #fbfaff;
+}
+
+.admin_formulario_simple h4 {
+    margin-bottom: 12px;
+    color: #1b4965;
+}
+
+.admin_ubicacion_simple {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-top: 12px;
+    color: #667085;
+    font-size: 0.85rem;
+}
+
+.admin_ubicacion_simple + .admin_sugerencias { margin-top: 8px; }
+
+.admin_centro_icono.nivel_bajo { color: #2e7d32; background: #e8f5e9; }
+.admin_centro_icono.nivel_medio { color: #8a6500; background: #fff6d6; }
+.admin_centro_icono.nivel_alto { color: #c2571d; background: #fdeee3; }
+.admin_centro_icono.nivel_critico { color: #c53030; background: #fde8e8; }
+.admin_centro_icono.grupo_emergencias { color: #c53030; background: #fde8e8; }
+.admin_centro_icono.grupo_estado { color: #2c7da0; background: #e5f2f7; }
+.admin_centro_icono.grupo_salud { color: #1f7a6f; background: #e3f4f1; }
+.admin_centro_icono.grupo_comunidad { color: #5A4FCF; background: #ece9fb; }
+
+/* Bandeja de solicitudes */
+
+.admin_lista_solicitudes {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.admin_sobre {
+    --tono: #8d99ae;
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    width: 100%;
+    padding: 14px 16px;
+    border: 1px solid #e2e8f0;
+    border-left: 5px solid var(--tono);
+    border-radius: 14px;
+    background: #ffffff;
+    color: #2b2d42;
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.admin_sobre:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 8px 18px rgba(27, 73, 101, 0.1);
+}
+
+.admin_sobre:focus-visible { outline: 2px solid #2c7da0; outline-offset: 2px; }
+
+.admin_sobre.urgencia_media { --tono: #e4a900; }
+.admin_sobre.urgencia_alta { --tono: #d9682b; }
+.admin_sobre.urgencia_critica { --tono: #d62839; }
+
+.admin_sobre_icono {
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    background: #eef3f6;
+    color: #1b4965;
+    font-size: 1.15rem;
+}
+
+.admin_sobre_texto {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+
+.admin_sobre_texto strong { color: #1b4965; }
+.admin_sobre_texto span { color: #475467; font-size: 0.86rem; }
+.admin_sobre_texto small { color: #8d99ae; font-size: 0.8rem; overflow-wrap: anywhere; }
+
+.admin_sobre_meta {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 5px;
+    flex-shrink: 0;
+}
+
+.admin_sobre_meta small { color: #8d99ae; font-size: 0.75rem; }
+
+.urgencia_chip_media { background: #fff6d6 !important; color: #8a6500 !important; }
+.urgencia_chip_alta { background: #fdeee3 !important; color: #a0521a !important; }
+.urgencia_chip_critica { background: #fde8e8 !important; color: #c53030 !important; }
+
+/* Ventana con la carta */
+
+body.admin_modal_abierto { overflow: hidden; }
+
+.admin_carta_fondo {
+    position: fixed;
+    inset: 0;
+    z-index: 3000;
+    display: grid;
+    place-items: center;
+    padding: 16px;
+    background: rgba(15, 28, 38, 0.7);
+}
+
+.admin_carta_ventana {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    width: min(820px, 100%);
+    max-height: 94vh;
+    padding: 16px;
+    border-radius: 16px;
+    background: #e9eef2;
+}
+
+.admin_carta_barra {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.admin_carta_estado { min-width: 200px; }
+.admin_carta_estado select { background: #ffffff; }
+
+.admin_carta_acciones {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.admin_carta {
+    overflow-y: auto;
+    padding: 40px 48px;
+    border-radius: 6px;
+    background: #ffffff;
+    color: #222;
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: 0.98rem;
+    line-height: 1.6;
+    box-shadow: 0 4px 18px rgba(0, 0, 0, 0.12);
+}
+
+.admin_carta p { margin-bottom: 12px; }
+
+.admin_carta_cabecera {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 26px;
+    padding-bottom: 12px;
+    border-bottom: 3px solid #1b4965;
+    font-family: "Segoe UI", system-ui, sans-serif;
+}
+
+.admin_carta_cabecera div,
+.admin_carta_radicado {
+    display: flex;
+    flex-direction: column;
+}
+
+.admin_carta_cabecera strong { color: #1b4965; font-size: 1.2rem; }
+.admin_carta_cabecera span { color: #667085; font-size: 0.78rem; }
+.admin_carta_radicado { text-align: right; }
+.admin_carta_radicado strong { font-size: 0.9rem; }
+
+.admin_carta blockquote {
+    margin: 0 0 16px;
+    padding: 10px 16px;
+    border-left: 4px solid #2c7da0;
+    background: #f6f9fb;
+    font-style: italic;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+}
+
+.admin_carta_datos {
+    width: 100%;
+    margin-bottom: 16px;
+    border-collapse: collapse;
+    font-family: "Segoe UI", system-ui, sans-serif;
+    font-size: 0.88rem;
+}
+
+.admin_carta_datos th,
+.admin_carta_datos td {
+    padding: 6px 8px;
+    border-bottom: 1px solid #eef0f3;
+    text-align: left;
+    vertical-align: top;
+    overflow-wrap: anywhere;
+}
+
+.admin_carta_datos th { width: 170px; color: #475467; }
+.admin_carta_datos a { color: #2c7da0; }
+.admin_carta_nota { color: #667085; font-size: 0.85rem; }
+.admin_carta_firma { margin-top: 28px; }
+
+@media (max-width: 700px) {
+    .admin_sobre { flex-wrap: wrap; }
+    .admin_sobre_meta { flex-direction: row; flex-wrap: wrap; align-items: center; width: 100%; }
+    .admin_carta { padding: 22px 18px; font-size: 0.92rem; }
+    .admin_carta_cabecera { flex-direction: column; }
+    .admin_carta_radicado { text-align: left; }
+    .admin_carta_datos th { width: 110px; }
+    .admin_carta_ventana { padding: 10px; }
+}
+
+/* Participantes de una jornada (sección Jornadas) */
+.admin_participantes {
+    margin-top: 10px;
+}
+
+.admin_participantes[hidden] {
+    display: none;
+}
+
+.admin_lista_participantes {
+    margin: 0;
+    padding: 0 0 0 22px;
+    display: grid;
+    gap: 8px;
+    font-size: 0.85rem;
+}
+
+.admin_lista_participantes li {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 4px 12px;
+    padding: 8px 10px;
+    border-radius: 10px;
+    background: #f4f7fb;
+}
+
+.admin_lista_participantes a {
+    color: #2c7da0;
+    text-decoration: none;
+    overflow-wrap: anywhere;
+}
+
+.admin_lista_participantes span {
+    color: #667085;
+    font-size: 0.78rem;
+}

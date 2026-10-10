@@ -1,0 +1,141 @@
+.centros_body { padding-bottom: 84px; }
+.centros_contenido { width: min(1180px, 92%); margin: 32px auto 56px; }
+.centros_hero { min-height: 210px; padding: 32px 42px; border-radius: 20px; background: linear-gradient(115deg, #1b4965, #2c7da0); color: #fff; display: flex; align-items: center; justify-content: space-between; overflow: hidden; box-shadow: 0 10px 28px #1b496522; }
+.centros_hero_texto { max-width: 690px; }.centros_etiqueta { display: inline-flex; gap: 8px; align-items: center; padding: 7px 12px; background: #ffffff20; border-radius: 20px; font-size: .88rem; font-weight: 700; }
+.centros_hero h2 { margin: 16px 0 8px; font-size: clamp(1.7rem, 3vw, 2.35rem); }.centros_hero p { color: #e5f2f7; line-height: 1.55; }.centros_hero img { width: 180px; height: 155px; object-fit: contain; }
+.centros_aviso { display: flex; gap: 12px; align-items: flex-start; margin: 20px 0; padding: 15px 18px; color: #694d05; background: #fff7d6; border: 1px solid #f2dc83; border-radius: 12px; line-height: 1.5; }.centros_aviso i { margin-top: 3px; color: #c68a00; }
+.centros_resumen { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 20px; }.resumen_item { display: flex; align-items: center; gap: 14px; padding: 20px; background: #fff; border: 1px solid var(--border-color); border-radius: var(--radius); box-shadow: var(--shadow); }.resumen_icono { width: 48px; height: 48px; display: grid; place-items: center; border-radius: 14px; font-size: 1.2rem; }.resumen_icono.azul { color: #1b4965; background: #e7f2f7; }.resumen_icono.verde { color: #34845b; background: #e9f5ed; }.resumen_icono.amarillo { color: #a57400; background: #fff4d1; }.resumen_item div { display: grid; gap: 4px; }.resumen_item strong { color: var(--primary-color); font-size: 1.25rem; }.resumen_item div span { color: var(--text-muted); font-size: .9rem; }
+.centros_panel { padding: 24px; background: #fff; border: 1px solid var(--border-color); border-radius: var(--radius); box-shadow: var(--shadow); }.centros_panel_titulo { display: flex; justify-content: space-between; align-items: center; gap: 16px; }.centros_panel_titulo h2 { color: var(--primary-color); font-size: 1.35rem; }.centros_panel_titulo p { margin-top: 5px; color: var(--text-muted); }.centros_contador { min-width: 42px; height: 42px; display: grid; place-items: center; border-radius: 50%; color: #fff; background: var(--primary-light); font-weight: 700; }
+.centros_filtros { display: grid; grid-template-columns: 1fr 210px 210px; gap: 12px; margin: 20px 0; }.busqueda_centros { display: flex; align-items: center; gap: 10px; padding: 0 14px; border: 1px solid var(--border-color); border-radius: 10px; color: var(--text-muted); }.busqueda_centros input { width: 100%; min-width: 0; height: 44px; border: 0; outline: 0; color: var(--text-main); font: inherit; }.centros_filtros select { min-width: 0; height: 46px; padding: 0 12px; border: 1px solid var(--border-color); border-radius: 10px; background: #fff; color: var(--text-main); font: inherit; }
+.centros_lista { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }.centro_card { padding: 18px; border: 1px solid var(--border-color); border-radius: 14px; background: #fff; }.centro_card_cabecera { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }.centro_card h3 { color: var(--primary-color); font-size: 1.05rem; }.centro_tipo { margin-top: 5px; color: var(--text-muted); font-size: .9rem; }.centro_estado { flex: 0 0 auto; padding: 6px 9px; border-radius: 20px; color: #725900; background: #fff2c2; font-size: .75rem; font-weight: 700; }.centro_detalle { display: flex; gap: 9px; margin-top: 16px; color: #586779; line-height: 1.4; }.centro_detalle i { width: 16px; margin-top: 3px; color: var(--primary-light); }.centro_card_footer { margin-top: 16px; padding-top: 12px; border-top: 1px solid var(--border-color); color: #8a6a17; font-size: .83rem; }.centros_sin_resultados { padding: 28px 8px; text-align: center; color: var(--text-muted); }.centros_nota { display: flex; gap: 9px; margin-top: 16px; color: #687789; font-size: .9rem; line-height: 1.5; }.centros_nota i { color: #d18d00; margin-top: 3px; }
+.centros_mapa_panel { overflow: hidden; margin: 4px 0 20px; border: 1px solid var(--border-color); border-radius: 14px; }.mapa_panel_titulo { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 15px 17px; }.mapa_panel_titulo h3 { color: var(--primary-color); font-size: 1rem; }.mapa_panel_titulo p { margin-top: 4px; color: var(--text-muted); font-size: .88rem; }.mapa_panel_titulo > span { flex: 0 0 auto; color: var(--primary-light); font-size: .85rem; }.mapa_panel_titulo > span i { margin-right: 4px; }#mapa-centros { width: 100%; height: 340px; background: #e8eff2; z-index: 0; }
+.centro_estado.verde { color: #236c45; background: #e4f4ea; }.centro_estado.amarillo { color: #805e00; background: #fff2c7; }.centro_estado.rojo { color: #a42d37; background: #fde6e8; }.centro_estado.completo { color: #624098; background: #eee6fb; }
+.marcador-centro { display: grid; place-items: center; width: 32px; height: 32px; border: 3px solid #fff; border-radius: 50% 50% 50% 0; transform: rotate(-45deg); box-shadow: 0 2px 8px #0004; color: #fff; font-size: 12px; }.marcador-centro i { transform: rotate(45deg); }.marcador-centro.verde { background: #2e9b62; }.marcador-centro.amarillo { background: #e4a900; }.marcador-centro.rojo { background: #df4650; }.marcador-centro.completo { background: #7652b8; }
+.cupo_encabezado { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; margin-top: 17px; color: #526274; font-size: .88rem; }.cupo_encabezado strong { color: var(--text-main); font-size: .95rem; }.barra_cupo { height: 10px; margin-top: 8px; overflow: hidden; border-radius: 99px; background: #edf0f3; }.barra_cupo > span { display: block; height: 100%; border-radius: inherit; transition: width .35s ease; }.barra_cupo.verde > span { background: #39a96b; }.barra_cupo.amarillo > span { background: #f0bd36; }.barra_cupo.rojo > span { background: #e34b55; }.barra_cupo.completo > span { background: #8058c7; }.cupo_leyenda { display: flex; flex-wrap: wrap; gap: 12px 18px; margin: -5px 0 18px; color: #667487; font-size: .82rem; }.cupo_leyenda span { display: inline-flex; align-items: center; gap: 6px; }.cupo_punto { width: 9px; height: 9px; border-radius: 50%; }.cupo_punto.verde { background: #39a96b; }.cupo_punto.amarillo { background: #f0bd36; }.cupo_punto.rojo { background: #e34b55; }.cupo_punto.completo { background: #8058c7; }
+@media (max-width: 760px) { .centros_contenido { width: 94%; margin-top: 18px; }.centros_hero { min-height: 190px; padding: 24px; }.centros_hero img { width: 110px; height: 120px; }.centros_resumen { grid-template-columns: 1fr; gap: 10px; }.resumen_item { padding: 14px 16px; }.centros_filtros { grid-template-columns: 1fr; }.centros_lista { grid-template-columns: 1fr; }.centros_panel { padding: 18px; }#mapa-centros { height: 300px; } }
+@media (max-width: 420px) { .centros_hero { padding: 20px; }.centros_hero img { width: 80px; height: 96px; }.centros_hero p { font-size: .92rem; }.centros_aviso { font-size: .9rem; } }
+
+/* Tarjeta con ícono grande a la izquierda y botón "Ver ubicación" */
+
+.centro_card {
+    display: flex;
+    gap: 16px;
+    align-items: flex-start;
+}
+
+.centro_card_contenido {
+    flex: 1;
+    min-width: 0;
+}
+
+.centro_icono_grande {
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+    width: 72px;
+    height: 72px;
+    border-radius: 18px;
+    font-size: 2rem;
+}
+
+.centro_icono_grande.verde { color: #236c45; background: #e4f4ea; }
+.centro_icono_grande.amarillo { color: #805e00; background: #fff2c7; }
+.centro_icono_grande.rojo { color: #a42d37; background: #fde6e8; }
+.centro_icono_grande.completo { color: #624098; background: #eee6fb; }
+
+.centro_card_footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.boton_ver_ubicacion {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    flex-shrink: 0;
+    padding: 9px 14px;
+    border: 0;
+    border-radius: 10px;
+    background: var(--primary-color, #1b4965);
+    color: #ffffff;
+    font: inherit;
+    font-size: .85rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background .2s ease, transform .2s ease;
+}
+
+.boton_ver_ubicacion:hover {
+    background: var(--primary-light, #2c7da0);
+    transform: translateY(-1px);
+}
+
+.boton_ver_ubicacion:focus-visible {
+    outline: 2px solid var(--primary-light, #2c7da0);
+    outline-offset: 2px;
+}
+
+@media (max-width: 600px) {
+    .centro_card {
+        gap: 12px;
+    }
+
+    .centro_icono_grande {
+        width: 54px;
+        height: 54px;
+        border-radius: 14px;
+        font-size: 1.5rem;
+    }
+
+    .boton_ver_ubicacion {
+        width: 100%;
+        justify-content: center;
+    }
+
+    /* La etiqueta de ocupación baja debajo del nombre para no apretarlo */
+    .centro_card_cabecera {
+        flex-direction: column;
+        gap: 8px;
+    }
+}
+
+/* Estados de los centros reales: cerrado y sin cupos informados */
+
+.centro_estado.cerrado,
+.centro_icono_grande.cerrado { color: #667085; background: #eef0f3; }
+.centro_estado.sin_cupos,
+.centro_icono_grande.sin_cupos { color: #1b4965; background: #e5f2f7; }
+.marcador-centro.cerrado { background: #8d99ae; }
+.marcador-centro.sin_cupos { background: #2c7da0; }
+
+.centro_card.centro_cerrado {
+    background: #f8fafc;
+}
+
+.centro_card.centro_cerrado h3 {
+    color: #667085;
+}
+
+.centro_necesidades {
+    padding: 8px 10px;
+    border-radius: 9px;
+    background: #fff7ec;
+    color: #8a4b12;
+}
+
+.centro_necesidades i {
+    color: #d9682b !important;
+}
+
+.centro_detalle a {
+    color: var(--primary-light, #2c7da0);
+    font-weight: 600;
+}
+
+.centro_card_footer > span {
+    color: #8d99ae;
+}
+

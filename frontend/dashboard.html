@@ -8,6 +8,10 @@
 
     <!-- CSS PRINCIPAL -->
     <link rel="stylesheet" href="css/estiloso.css">
+    <link rel="stylesheet" href="css/notificaciones.css">
+    <link rel="stylesheet" href="css/cuenta_sigre.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+    <link rel="stylesheet" href="css/dashboard_resumen.css">
 
     <!-- FONT AWESOME -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
@@ -96,13 +100,28 @@
                         </p>
                     </div>
 
-                    <button class="boton_mas_info" type="button">
-                        Más Info
-                    </button>
+                    <div class="acciones_emergencia">
+                        <button class="boton_mas_info" type="button">
+                            Más Info
+                        </button>
+                        <button class="boton_sos_tarjeta" id="boton-sos-tarjeta" type="button" aria-label="Enviar alerta SOS">
+                            <i class="fa-solid fa-tower-broadcast"></i>
+                            SOS
+                        </button>
+                    </div>
                 </div>
 
                 <div class="personaje_lateral">
                     <img src="imagenes/userdashboard.png" alt="Asistente SIGRE">
+
+                    <!-- CLIMA EN MONTERÍA (lo llena cargarClimaReal) -->
+                    <div class="clima_tarjeta" id="weather-widget" title="Clima actual en Montería, Córdoba">
+                        <i class="fa-solid fa-cloud-sun" aria-hidden="true"></i>
+                        <div>
+                            <strong class="weather-temp" id="weather-temp">--°C</strong>
+                            <span class="weather-desc" id="weather-desc">Conectando...</span>
+                        </div>
+                    </div>
                 </div>
             </section>
 
@@ -139,7 +158,7 @@
                                 <i class="fa-solid fa-kit-medical"></i>
                             </div>
                             <div class="modulo_texto">
-                                <h3>Centros de acopio y albegues</h3>
+                                <h3>Centros de acopio y albergues</h3>
                                 <p>Inventario y estado de productos</p>
                             </div>
                         </div>
@@ -212,14 +231,7 @@
     <i class="fa-solid fa-chevron-right campanas_flecha"></i>
 </a>
 
-                    <p>
-                        Eventos, campañas y actividades para la comunidad
-                    </p>
-                </div>
-
-                <i class="fa-solid fa-chevron-right campanas_flecha"></i>
-
-            </a>
+        </div>
 
 
         <!-- =====================================================
@@ -228,57 +240,90 @@
         <aside class="dashboard_columna_lateral">
             <div class="dashboard-container"></div>
 
+            <!-- RESUMEN: USUARIOS REGISTRADOS Y DIRECTORIO -->
+            <section class="resumen_comunidad" aria-label="Resumen de la comunidad">
+                <article class="resumen_tarjeta resumen_usuarios">
+                    <span class="resumen_icono"><i class="fa-solid fa-users"></i></span>
+                    <div class="resumen_texto">
+                        <strong id="total-usuarios" aria-live="polite">…</strong>
+                        <span id="texto-usuarios">Usuarios registrados</span>
+                    </div>
+                </article>
 
-        <!-- 🌤️ WIDGET DEL CLIMA AUTOMÁTICO -->
-        <div class="weather-widget" id="weather-widget">
-            <div class="weather-info">
-                <span class="weather-city">Montería, Córdoba</span>
-                <span id="weather-desc" class="weather-desc">Conectando con el clima...</span>
-            </div>
-            <div class="weather-temp" id="weather-temp">--°C</div>
-        </div>
+                <button type="button" class="resumen_tarjeta resumen_directorio" id="boton-directorio" aria-haspopup="dialog">
+                    <span class="resumen_icono"><i class="fa-solid fa-address-book"></i></span>
+                    <div class="resumen_texto">
+                        <strong>Directorio</strong>
+                        <span>Entidades y líneas</span>
+                    </div>
+                    <i class="fa-solid fa-chevron-right resumen_flecha"></i>
+                </button>
+            </section>
+
+
 
        <!-- TUS GUARDADOS -->
             <section class="seccion_guardados">
                 <div class="titulo_seccion_guardados">
                     <h2 class="titulo_guardados">Tus guardados</h2>
-                    <a href="#" class="enlace_ver_todos">Ver todos</a>
+                    <a href="rutas.html" class="enlace_ver_todos">Ver todos</a>
                 </div>
 
                 <div class="guardados_contenedor">
-                    <!-- MAPA -->
-                    <div class="guardados_mapa" id="mapa-guardados" style="overflow: hidden; padding: 0;">
-                        <!-- Reemplazamos la imagen estática por el iframe del mapa interactivo -->
-                       <iframe src="/mapa_rutas.html" allow="geolocation" style="width: 100%; height: 100%; border: none;"></iframe>
+                    <!-- MAPA DE TUS RUTAS GUARDADAS -->
+                    <div class="guardados_mapa" style="overflow: hidden; padding: 0;">
+                        <div id="mapa-guardados" class="mapa_guardados" aria-label="Mapa de tus rutas guardadas"></div>
+                        <p class="mapa_guardados_aviso" id="aviso-mapa-guardados" hidden></p>
                     </div>
 
-                    <!-- LISTA DE RECIENTES -->
+                    <!-- LISTA DE RUTAS GUARDADAS -->
                     <div class="guardados_lista_contenedor">
                         <div class="lista_cabecera">
-                            <h3>Recientes</h3>
-                            <a href="#" class="enlace_ver_todos">Ver todos</a>
+                            <h3>Rutas guardadas</h3>
+                            <a href="rutas.html" class="enlace_ver_todos">Nueva ruta</a>
                         </div>
-                        <div class="guardados_lista" id="lista-recientes">
-                            <!-- Contenido dinámico -->
+                        <div class="guardados_lista" id="lista-rutas-dashboard">
+                            <p class="guardados_vacio">Cargando tus rutas...</p>
                         </div>
                     </div>
                 </div>
             </section>
 
-            </div>
-
-            <!-- ACCESO RÁPIDO SOS PARA ESCRITORIO -->
-            <div class="sos_escritorio">
-                <button class="boton_sos escritorio" id="boton-sos-escritorio" type="button">
-                    <i class="fa-solid fa-light-emergency"></i>
-                    <span>SOS</span>
-                    <small>Emergencia</small>
-                </button>
-            </div>
 
         </aside>
 
     </main>
+
+
+    <!-- =========================================================
+         DIRECTORIO DE ENTIDADES
+    ========================================================== -->
+    <div class="directorio_fondo" id="ventana-directorio" hidden>
+        <section class="directorio_ventana" role="dialog" aria-modal="true" aria-labelledby="titulo-directorio">
+            <div class="directorio_cabecera">
+                <div>
+                    <h2 id="titulo-directorio"><i class="fa-solid fa-address-book"></i> Directorio de entidades</h2>
+                    <p>En una emergencia marca primero el <strong>123</strong>.</p>
+                </div>
+                <button type="button" class="directorio_cerrar" id="cerrar-directorio" aria-label="Cerrar directorio">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <label class="directorio_busqueda">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input type="search" id="buscar-directorio" placeholder="Buscar entidad o servicio" aria-label="Buscar entidad o servicio">
+            </label>
+
+            <div class="directorio_lista" id="lista-directorio"></div>
+            <p class="directorio_vacio" id="directorio-vacio" hidden>No hay entidades que coincidan con la búsqueda.</p>
+
+            <p class="directorio_nota">
+                <i class="fa-solid fa-circle-info"></i>
+                Líneas nacionales revisadas en octubre de 2026. De las clínicas solo mostramos la dirección: confirma teléfono y servicios antes de ir.
+            </p>
+        </section>
+    </div>
 
 
     <!-- =========================================================
@@ -311,7 +356,11 @@
          SCRIPTS
     ========================================================== -->
     <script src="js/auth.js"></script>
+    <script src="js/cuenta_sigre.js"></script>
+    <script src="js/notificaciones.js"></script>
     <script src="js/dashboard.js"></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="js/dashboard_resumen.js"></script>
     <script>
     async function cargarClimaReal() {
         try {

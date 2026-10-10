@@ -18,3 +18,6 @@ cache/
 # Archivos de Windows
 desktop.ini
 Thumbs.db
+
+# Red peatonal descargada de OpenStreetMap (se genera sola)
+backend/datos_rutas/

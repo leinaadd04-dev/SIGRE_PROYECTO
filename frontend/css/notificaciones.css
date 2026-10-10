@@ -1,0 +1,240 @@
+/* SIGRE · Panel de notificaciones de la campana (js/notificaciones.js) */
+
+.sigre_notif_contenedor {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.cabecera_derecha .contador_notificaciones {
+    min-width: 18px;
+    height: 18px;
+    padding: 0 5px;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+}
+
+.boton_campana.sonando i {
+    animation: sigre-campana 0.9s ease-in-out;
+    transform-origin: 50% 0;
+}
+
+@keyframes sigre-campana {
+    0%, 100% { transform: rotate(0); }
+    20% { transform: rotate(16deg); }
+    40% { transform: rotate(-14deg); }
+    60% { transform: rotate(9deg); }
+    80% { transform: rotate(-5deg); }
+}
+
+.sigre_notif_panel {
+    position: absolute;
+    top: calc(100% + 12px);
+    right: 0;
+    width: min(380px, calc(100vw - 32px));
+    max-height: min(520px, calc(100vh - 110px));
+    display: flex;
+    flex-direction: column;
+    background: #ffffff;
+    color: #1f2a37;
+    border-radius: 16px;
+    box-shadow: 0 18px 40px rgba(15, 30, 60, 0.22);
+    border: 1px solid #e3e8f0;
+    overflow: hidden;
+    z-index: 1100;
+    text-align: left;
+}
+
+.sigre_notif_panel[hidden] {
+    display: none;
+}
+
+.sigre_notif_encabezado {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 14px 16px;
+    border-bottom: 1px solid #eef1f6;
+}
+
+.sigre_notif_encabezado h2 {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 800;
+    color: #1b2f55;
+}
+
+.sigre_notif_todas {
+    border: none;
+    background: none;
+    color: #436097;
+    font-size: 0.8rem;
+    font-weight: 700;
+    cursor: pointer;
+    padding: 4px 6px;
+    border-radius: 6px;
+}
+
+.sigre_notif_todas:hover {
+    background: #eef3fb;
+}
+
+.sigre_notif_estado {
+    margin: 0;
+    padding: 28px 16px;
+    text-align: center;
+    color: #64748b;
+    font-size: 0.9rem;
+}
+
+.sigre_notif_lista {
+    list-style: none;
+    margin: 0;
+    padding: 6px;
+    overflow-y: auto;
+}
+
+.sigre_notif_boton {
+    width: 100%;
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 12px 10px;
+    border: none;
+    border-radius: 12px;
+    background: #f4f7fd;
+    text-align: left;
+    cursor: pointer;
+    font: inherit;
+    color: inherit;
+    margin-bottom: 4px;
+}
+
+.sigre_notif_item.leida .sigre_notif_boton {
+    background: transparent;
+}
+
+.sigre_notif_boton:hover,
+.sigre_notif_boton:focus-visible {
+    background: #e8eef9;
+}
+
+.sigre_notif_icono {
+    flex: 0 0 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.95rem;
+    background: #e5ecf8;
+    color: #436097;
+}
+
+.tipo_emergencia .sigre_notif_icono { background: #fde5e5; color: #c53030; }
+.tipo_jornada .sigre_notif_icono { background: #e2f5ea; color: #2f855a; }
+.tipo_desaparecido .sigre_notif_icono { background: #fff1db; color: #c05621; }
+.tipo_solicitud .sigre_notif_icono { background: #ece7fb; color: #6b46c1; }
+.tipo_comentario .sigre_notif_icono { background: #e0f2fe; color: #0369a1; }
+.tipo_centro .sigre_notif_icono { background: #e6f6f4; color: #0f766e; }
+
+.sigre_notif_texto {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+
+.sigre_notif_texto strong {
+    font-size: 0.88rem;
+    line-height: 1.3;
+    color: #1b2f55;
+}
+
+.sigre_notif_item.leida .sigre_notif_texto strong {
+    font-weight: 600;
+}
+
+.sigre_notif_mensaje {
+    font-size: 0.8rem;
+    line-height: 1.35;
+    color: #4a5568;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    overflow-wrap: anywhere;
+}
+
+.sigre_notif_texto time {
+    font-size: 0.72rem;
+    color: #8a96a8;
+}
+
+.sigre_notif_punto {
+    flex: 0 0 9px;
+    height: 9px;
+    margin-top: 6px;
+    border-radius: 50%;
+    background: #e53e3e;
+}
+
+/* Avisos emergentes cuando llega algo nuevo */
+.sigre_notif_avisos {
+    position: fixed;
+    top: 86px;
+    right: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    z-index: 1200;
+    width: min(360px, calc(100vw - 32px));
+    pointer-events: none;
+}
+
+.sigre_notif_aviso {
+    pointer-events: auto;
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 12px 14px;
+    border: 1px solid #e3e8f0;
+    border-left: 4px solid #436097;
+    border-radius: 12px;
+    background: #ffffff;
+    box-shadow: 0 12px 30px rgba(15, 30, 60, 0.2);
+    text-align: left;
+    font: inherit;
+    color: inherit;
+    cursor: pointer;
+    animation: sigre-aviso-entra 0.3s ease-out;
+    transition: opacity 0.5s, transform 0.5s;
+}
+
+.sigre_notif_aviso.tipo_emergencia { border-left-color: #c53030; }
+.sigre_notif_aviso.saliendo { opacity: 0; transform: translateX(24px); }
+
+@keyframes sigre-aviso-entra {
+    from { opacity: 0; transform: translateX(24px); }
+    to { opacity: 1; transform: none; }
+}
+
+@media (max-width: 600px) {
+    .sigre_notif_panel {
+        position: fixed;
+        top: 76px;
+        right: 16px;
+        left: 16px;
+        width: auto;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .boton_campana.sonando i,
+    .sigre_notif_aviso {
+        animation: none;
+    }
+}

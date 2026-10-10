@@ -2,7 +2,6 @@
 
 document.addEventListener('DOMContentLoaded', function () {
     const chips = document.querySelectorAll('.chip_filtro');
-    const tarjetas = document.querySelectorAll('.tarjeta_jornada');
 
     chips.forEach(function (chip) {
         chip.addEventListener('click', function () {
@@ -12,7 +11,8 @@ document.addEventListener('DOMContentLoaded', function () {
             chip.classList.add('activo');
 
             const categoriaElegida = chip.dataset.filtro;
-            tarjetas.forEach(function (tarjeta) {
+            // Consulta en cada clic: incluye las jornadas cargadas desde la API.
+            document.querySelectorAll('.tarjeta_jornada').forEach(function (tarjeta) {
                 const coincide = categoriaElegida === 'todas' ||
                     tarjeta.dataset.categoria === categoriaElegida;
 
@@ -33,11 +33,10 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     });
 
-    // Intereses y participaciones se guardan en este navegador.
+    // Los intereses (corazón) se guardan en este navegador. La participación
+    // se guarda en el servidor y la maneja js/jornadas_api.js.
     const CLAVE_INTERESES = 'sigre_jornadas_intereses';
-    const CLAVE_PARTICIPADAS = 'sigre_jornadas_participadas';
     const listaIntereses = document.getElementById('lista-intereses');
-    const listaParticipadas = document.getElementById('lista-participadas');
 
     function leerLista(clave) {
         try {
@@ -48,13 +47,14 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
-    let intereses = leerLista(CLAVE_INTERESES);
-    let participadas = leerLista(CLAVE_PARTICIPADAS);
+    // Solo jornadas reales de SIGRE (las de ejemplo usaban ids "jornada-N").
+    let intereses = leerLista(CLAVE_INTERESES).filter(function (item) {
+        return item && String(item.id).indexOf('sigre-') === 0;
+    });
 
     function guardarListas() {
         try {
             localStorage.setItem(CLAVE_INTERESES, JSON.stringify(intereses));
-            localStorage.setItem(CLAVE_PARTICIPADAS, JSON.stringify(participadas));
         } catch (error) {
             console.warn('No se pudieron guardar las jornadas en este navegador.', error);
         }
@@ -107,12 +107,6 @@ document.addEventListener('DOMContentLoaded', function () {
             'Toca el corazón de una jornada para guardarla aquí.',
             'intereses'
         );
-        dibujarLista(
-            listaParticipadas,
-            participadas,
-            'Aún no has marcado una jornada para participar.',
-            'participadas'
-        );
 
         document.querySelectorAll('.boton_me_gusta').forEach(function (boton) {
             const guardada = intereses.some(function (item) {
@@ -128,36 +122,13 @@ document.addEventListener('DOMContentLoaded', function () {
                 : '<i class="fa-regular fa-heart" aria-hidden="true"></i>';
             boton.classList.toggle('seleccionado', guardada);
         });
-
-        document.querySelectorAll('.boton_participar').forEach(function (boton) {
-            const anotada = participadas.some(function (item) {
-                return item.id === boton.dataset.id;
-            });
-            boton.setAttribute('aria-pressed', String(anotada));
-            boton.classList.toggle('seleccionado', anotada);
-            boton.textContent = anotada ? 'Cancelar participación' : 'Quiero participar';
-        });
     }
 
     actualizarPaneles();
+    // Las tarjetas llegan después desde la API: marca sus corazones.
+    document.addEventListener('sigre:jornadas-pintadas', actualizarPaneles);
 
     document.addEventListener('click', function (evento) {
-        const quitar = evento.target.closest('.quitar_item_jornada');
-        if (quitar) {
-            const lista = quitar.dataset.tipoLista === 'intereses' ? intereses : participadas;
-            const actualizada = lista.filter(function (item) {
-                return item.id !== quitar.dataset.id;
-            });
-            if (quitar.dataset.tipoLista === 'intereses') {
-                intereses = actualizada;
-            } else {
-                participadas = actualizada;
-            }
-            guardarListas();
-            actualizarPaneles();
-            return;
-        }
-
         const botonInteres = evento.target.closest('.boton_me_gusta');
         if (botonInteres) {
             const id = botonInteres.dataset.id;
@@ -170,16 +141,6 @@ document.addEventListener('DOMContentLoaded', function () {
             return;
         }
 
-        const botonParticipar = evento.target.closest('.boton_participar');
-        if (botonParticipar) {
-            const id = botonParticipar.dataset.id;
-            const existe = participadas.some(function (item) { return item.id === id; });
-            participadas = existe
-                ? participadas.filter(function (item) { return item.id !== id; })
-                : participadas.concat({ id: id, nombre: botonParticipar.dataset.nombre });
-            guardarListas();
-            actualizarPaneles();
-        }
     });
 
     // Mapa de las jornadas
@@ -187,12 +148,18 @@ document.addEventListener('DOMContentLoaded', function () {
     const ventanaMapaFondo = document.getElementById('ventana-mapa-fondo');
     const mapaTitulo = document.getElementById('mapa-titulo');
     const botonCerrarMapa = document.getElementById('boton-cerrar-mapa');
-    const enlaceStreetView = document.getElementById('enlace-street-view');
+    const botonStreetView = document.getElementById('boton-street-view');
+    const streetViewFrame = document.getElementById('street-view-frame');
     const botonModoOscuro = document.getElementById('boton-mapa-oscuro');
     const contenedorMapa = document.getElementById('mapa-contenedor');
 
     let mapaLeaflet = null;
     let marcadorLeaflet = null;
+    let ubicacionActual = null;
+
+    // Google Maps Embed API needs your own API key.
+    // Paste it here after enabling Maps Embed API in Google Cloud.
+    const GOOGLE_MAPS_EMBED_API_KEY = '';
 
     function abrirVentanaMapa(lat, lon, nombre) {
         if (!Number.isFinite(lat) || !Number.isFinite(lon)) {
@@ -205,10 +172,8 @@ document.addEventListener('DOMContentLoaded', function () {
         }
 
         mapaTitulo.textContent = 'Ubicación: ' + nombre;
-        if (enlaceStreetView) {
-            enlaceStreetView.href =
-                'https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=' + lat + ',' + lon;
-        }
+        ubicacionActual = { lat: lat, lon: lon };
+        mostrarStreetView(false);
         ventanaMapaFondo.hidden = false;
 
         if (mapaLeaflet === null) {
@@ -251,14 +216,51 @@ document.addEventListener('DOMContentLoaded', function () {
         }, 150);
     }
 
-    botonesUbicacion.forEach(function (boton) {
-        boton.addEventListener('click', function () {
-            abrirVentanaMapa(
-                Number.parseFloat(boton.dataset.lat),
-                Number.parseFloat(boton.dataset.lon),
-                boton.dataset.nombre || 'Jornada comunitaria'
-            );
+    function mostrarStreetView(activo) {
+        if (!streetViewFrame || !botonStreetView) return;
+        if (activo && !GOOGLE_MAPS_EMBED_API_KEY) {
+            alert('Para mostrar Street View dentro de esta ventana, primero configura tu clave de Google Maps Embed API en jornadas.js.');
+            return;
+        }
+        if (activo && ubicacionActual) {
+            const { lat, lon } = ubicacionActual;
+            const parametros = new URLSearchParams({
+                key: GOOGLE_MAPS_EMBED_API_KEY,
+                location: `${lat},${lon}`,
+                heading: '90',
+                pitch: '0',
+                fov: '80'
+            });
+            streetViewFrame.src = `https://www.google.com/maps/embed/v1/streetview?${parametros.toString()}`;
+        } else {
+            streetViewFrame.removeAttribute('src');
+        }
+        streetViewFrame.hidden = !activo;
+        document.getElementById('mapa-jornada-leaflet').hidden = activo;
+        botonStreetView.setAttribute('aria-pressed', String(activo));
+        botonStreetView.innerHTML = activo
+            ? '<i class="fa-solid fa-map"></i> Mapa'
+            : '<i class="fa-brands fa-google"></i> Street View';
+        if (!activo && mapaLeaflet) {
+            window.setTimeout(function () { mapaLeaflet.invalidateSize(); }, 100);
+        }
+    }
+
+    if (botonStreetView) {
+        botonStreetView.addEventListener('click', function () {
+            mostrarStreetView(botonStreetView.getAttribute('aria-pressed') !== 'true');
         });
+    }
+
+    // Delegado en el documento: también sirve para las jornadas cargadas desde la API.
+    document.addEventListener('click', function (evento) {
+        const boton = evento.target.closest('.boton_ver_ubicacion');
+        if (!boton) return;
+        abrirVentanaMapa(
+            Number.parseFloat(boton.dataset.lat),
+            Number.parseFloat(boton.dataset.lon),
+            boton.dataset.nombre || 'Jornada comunitaria'
+        );
     });
 
     if (botonModoOscuro && contenedorMapa) {
@@ -272,6 +274,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function cerrarVentanaMapa() {
+        mostrarStreetView(false);
         ventanaMapaFondo.hidden = true;
     }
 

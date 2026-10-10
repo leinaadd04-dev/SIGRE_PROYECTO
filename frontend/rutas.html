@@ -4,147 +4,288 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SIGRE - Rutas de Evacuación</title>
+    <link rel="stylesheet" href="css/estiloso.css">
+    <link rel="stylesheet" href="css/notificaciones.css">
     <link rel="stylesheet" href="css/estilos_rutas.css">
+    <link rel="stylesheet" href="css/cuenta_sigre.css">
     <link rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 </head>
 <body class="dashboard_body">
 
-    <!-- Cabecera idéntica para mantener la coherencia -->
+    <!-- Cabecera igual a la de los demás módulos -->
     <header class="cabecera_dashboard">
+        <div class="cabecera_izquierda">
+            <a href="dashboard.html" class="contenedor_logo">
+                <img src="imagenes/logo.png" alt="SIGRE" class="logo_dashboard">
+            </a>
 
-    <div class="cabecera_izquierda">
-        <a href="dashboard.html" class="logo_dashboard">
-            <img src="imagenes/logo.png" alt="Logo SIGRE">
-            <span class="texto_escritorio">SIGRE</span>
+            <div class="saludo_usuario">
+                <p class="texto_bienvenida">Módulo de</p>
+                <h1 class="nombre_usuario">Rutas de evacuación</h1>
+            </div>
+        </div>
 
-            <span class="texto_movil">
-                <small>¡Bienvenido,</small>
-                <strong>Fabian Muñoz</strong>
-            </span>
-        </a>
-    </div>
+        <nav class="navegacion_escritorio" aria-label="Navegación principal">
+            <a href="dashboard.html" class="enlace_escritorio">
+                <i class="fa-solid fa-house"></i>
+                <span>Inicio</span>
+            </a>
 
-    <nav class="navegacion_escritorio">
-        <a href="dashboard.html" class="enlace_escritorio">
-            <i class="fa-solid fa-house"></i>
-            Inicio
-        </a>
-        <a href="rutas.html" class="enlace_escritorio activo">
-            <i class="fa-solid fa-route"></i>
-            Rutas
-        </a>
-        <a href="jornadas.html" class="enlace_escritorio">
-            <i class="fa-solid fa-calendar-check"></i>
-            Jornadas
-        </a>
-    </nav>
+            <a href="rutas.html" class="enlace_escritorio activo">
+                <i class="fa-solid fa-map"></i>
+                <span>Mapa</span>
+            </a>
 
-    <a href="dashboard.html" class="boton_volver">
-        <i class="fa-solid fa-arrow-left"></i>
-        Volver
-    </a>
-    <button class="boton_notificaciones" type="button">
-    <i class="fa-solid fa-bell"></i>
-    <span>1</span>
-</button>
-</header>
+            <a href="alertas.html" class="enlace_escritorio">
+                <i class="fa-solid fa-bell"></i>
+                <span>Alertas</span>
+            </a>
+
+            <a href="perfil.html" class="enlace_escritorio">
+                <i class="fa-solid fa-user"></i>
+                <span>Mi Perfil</span>
+            </a>
+
+            <a href="#" id="cerrar-sesion" class="enlace_escritorio">
+                <i class="fa-solid fa-right-from-bracket"></i>
+                <span>Cerrar sesión</span>
+            </a>
+        </nav>
+
+        <div class="cabecera_derecha">
+            <button class="boton_campana" type="button" aria-label="Notificaciones">
+                <i class="fa-solid fa-bell"></i>
+                <span class="contador_notificaciones">0</span>
+            </button>
+        </div>
+    </header>
 
     <!-- Contenido Principal -->
     <main class="dashboard_contenido">
+
         <!-- BUSCADOR DE RUTA -->
-<section class="panel_busqueda_ruta">
+        <section class="panel_busqueda_ruta">
+            <div class="encabezado_ruta">
+                <div class="encabezado_ruta_texto">
+                    <span class="etiqueta_ruta">
+                        <i class="fa-solid fa-route"></i>
+                        Rutas de evacuación
+                    </span>
 
-    <div class="encabezado_ruta">
-        <div>
-            <span class="etiqueta_ruta">
-                <i class="fa-solid fa-route"></i>
-                Rutas de evacuación
-            </span>
+                    <h1>Encuentra una ruta segura</h1>
 
-            <h1>Encuentra una ruta segura</h1>
+                    <p>
+                        Elige cómo te mueves, de dónde sales y a dónde vas. SIGRE calcula la ruta por las
+                        calles de Montería y la compara con una ruta que evita las zonas de riesgo.
+                    </p>
 
-            <p>
-                Indica el punto de partida y el destino para calcular
-                una ruta de evacuación.
-            </p>
-        </div>
-    </div>
+                    <!-- MEDIO DE TRANSPORTE -->
+                    <div class="selector_modo_ruta" role="radiogroup" aria-label="Medio de transporte">
+                        <label class="opcion_modo_ruta">
+                            <input type="radio" name="modo_ruta" value="pie" checked>
+                            <span><i class="fa-solid fa-person-walking"></i><strong>A pie</strong><small>Calles y senderos</small></span>
+                        </label>
+                        <label class="opcion_modo_ruta">
+                            <input type="radio" name="modo_ruta" value="carro">
+                            <span><i class="fa-solid fa-car-side"></i><strong>Carro</strong><small>Vías para vehículos</small></span>
+                        </label>
+                        <label class="opcion_modo_ruta">
+                            <input type="radio" name="modo_ruta" value="moto">
+                            <span><i class="fa-solid fa-motorcycle"></i><strong>Moto</strong><small>Vías para vehículos</small></span>
+                        </label>
+                    </div>
+                    <p class="nota_modo_ruta" id="nota-modo-ruta" hidden>
+                        <i class="fa-solid fa-circle-info"></i>
+                        Carro y moto usan las mismas vías y respetan el sentido de las calles. El tiempo es un
+                        estimado con los límites de velocidad de OpenStreetMap, sin contar el tráfico.
+                    </p>
+                </div>
 
+                <div class="encabezado_ruta_lateral">
+                    <span class="estado_red" id="estado-red" role="status" aria-live="polite">
+                        <i class="fa-solid fa-spinner fa-spin"></i>
+                        Conectando con SIGRE...
+                    </span>
+                    <div class="contenedor_imagen_rutas">
+                        <img
+                            src="imagenes/user_avion.png"
+                            alt=""
+                            aria-hidden="true"
+                            class="imagen_rutas"
+                        >
+                    </div>
+                </div>
+            </div>
 
-    <div class="campos_ruta">
+            <div class="campos_ruta">
+                <!-- PUNTO A -->
+                <div class="campo_ruta">
+                    <label for="punto_origen">
+                        <span class="marca_punto marca_origen">A</span>
+                        Punto de partida
+                    </label>
 
-        <!-- PUNTO A -->
-        <div class="campo_ruta">
+                    <div class="buscador_punto">
+                        <input
+                            type="search"
+                            id="punto_origen"
+                            placeholder="Escribe una dirección o lugar"
+                            autocomplete="off"
+                            maxlength="120"
+                            aria-controls="sugerencias-origen"
+                        >
+                        <ul class="sugerencias_punto" id="sugerencias-origen" role="listbox" hidden></ul>
+                    </div>
 
-            <label for="punto_origen">
-                <i class="fa-solid fa-location-dot"></i>
-                Punto de partida
-            </label>
+                    <div class="acciones_punto">
+                        <button type="button" class="boton_punto" id="boton-mi-ubicacion">
+                            <i class="fa-solid fa-location-crosshairs"></i>
+                            Usar mi ubicación
+                        </button>
+                        <button type="button" class="boton_punto" data-elegir="origen">
+                            <i class="fa-solid fa-hand-pointer"></i>
+                            Elegir en el mapa
+                        </button>
+                    </div>
+                </div>
 
-            <input
-                type="text"
-                id="punto_origen"
-                placeholder="Ej. Calle 30 # 4-20"
-                autocomplete="off"
-            >
+                <!-- PUNTO B -->
+                <div class="campo_ruta">
+                    <label for="punto_destino">
+                        <span class="marca_punto marca_destino">B</span>
+                        Punto de destino
+                    </label>
 
-        </div>
+                    <div class="buscador_punto">
+                        <input
+                            type="search"
+                            id="punto_destino"
+                            placeholder="Ej. Parque Simón Bolívar"
+                            autocomplete="off"
+                            maxlength="120"
+                            aria-controls="sugerencias-destino"
+                        >
+                        <ul class="sugerencias_punto" id="sugerencias-destino" role="listbox" hidden></ul>
+                    </div>
 
+                    <div class="acciones_punto">
+                        <button type="button" class="boton_punto" data-elegir="destino">
+                            <i class="fa-solid fa-hand-pointer"></i>
+                            Elegir en el mapa
+                        </button>
+                        <button type="button" class="boton_punto" id="boton-intercambiar" aria-label="Intercambiar partida y destino">
+                            <i class="fa-solid fa-right-left"></i>
+                            Intercambiar
+                        </button>
+                    </div>
+                </div>
+            </div>
 
-        <!-- PUNTO B -->
-        <div class="campo_ruta">
+            <div class="opciones_ruta">
+                <label class="opcion_demo">
+                    <input type="checkbox" id="incluir-demo" checked>
+                    <span>Incluir la <strong>zona de demostración</strong> en el cálculo (no es un riesgo real)</span>
+                </label>
 
-            <label for="punto_destino">
-                <i class="fa-solid fa-location-dot"></i>
-                Punto de destino
-            </label>
+                <button type="button" id="calcular_ruta" class="boton_calcular_ruta">
+                    <i class="fa-solid fa-route"></i>
+                    Calcular ruta
+                </button>
+            </div>
 
-            <input
-                type="text"
-                id="punto_destino"
-                placeholder="Ej. Parque de la ciudad"
-                autocomplete="off"
-            >
+            <!-- MENSAJE DE ESTADO -->
+            <div id="mensaje_ruta" class="mensaje_ruta" role="status" aria-live="polite"></div>
+        </section>
 
-        </div>
-
-
-        <!-- BOTÓN -->
-        <button type="button" id="calcular_ruta" class="boton_calcular_ruta">
-
-            <i class="fa-solid fa-route"></i>
-
-            Calcular ruta
-
-        </button>
-
-    </div>
-
-
-    <!-- MENSAJE DE ESTADO -->
-    <div id="mensaje_ruta" class="mensaje_ruta"></div>
-
-</section>
+        <!-- MAPA -->
         <section class="seccion_guardados">
             <div class="titulo_seccion_guardados">
-                <h2 class="titulo_guardados">Simulación y Resultados del Modelo</h2>
-            </div>
-            
-            <!-- Mapa interactivo exportado de tu notebook -->
-            <div class="guardados_mapa">
-                <iframe src="/mapa_rutas.html"></iframe>
+                <h2 class="titulo_guardados">Mapa de rutas</h2>
+                <div class="leyenda_rutas" aria-label="Leyenda del mapa">
+                    <span><i class="linea_leyenda linea_segura"></i> Ruta más segura (verde)</span>
+                    <span><i class="linea_leyenda linea_corta"></i> Ruta más corta (naranja)</span>
+                    <span><i class="zona_leyenda zona_real"></i> Zona de riesgo (aprox.)</span>
+                    <span><i class="zona_leyenda zona_demo"></i> Zona de demostración</span>
+                </div>
             </div>
 
-            <!-- Contenedor para mostrar métricas o datos procesados de tu notebook -->
-            <div class="resultados_logica">
-                <h3>Métricas de Evacuación</h3>
-                <p>
-                    Datos procesados desde el análisis de rutas óptimas y zonas de influencia.
-                </p>
+            <div class="guardados_mapa">
+                <div id="mapa-rutas" class="mapa_rutas" aria-label="Mapa de Montería para elegir puntos y ver rutas"></div>
             </div>
+
+            <p class="nota_rutas">
+                <i class="fa-solid fa-triangle-exclamation"></i>
+                Las zonas son aproximaciones académicas basadas en el listado de barrios en riesgo de la Alcaldía;
+                no son cartografía oficial. En una emergencia sigue las indicaciones de las autoridades y marca el 123.
+            </p>
+        </section>
+
+        <!-- RESULTADOS -->
+        <section class="resultados_logica resultados_rutas" id="resultados-rutas" hidden>
+            <h3>Métricas de evacuación</h3>
+            <p id="resumen-rutas"></p>
+
+            <div class="tarjetas_rutas" id="tarjetas-rutas"></div>
+
+            <div class="acciones_resultado">
+                <div class="guardar_ruta">
+                    <label for="nombre-ruta">Nombre para guardar</label>
+                    <div class="guardar_fila">
+                        <input type="text" id="nombre-ruta" maxlength="80" placeholder="Ej. De la casa al punto de encuentro">
+                        <button type="button" class="boton_calcular_ruta" id="boton-guardar-ruta">
+                            <i class="fa-solid fa-bookmark"></i>
+                            Guardar
+                        </button>
+                    </div>
+                </div>
+                <button type="button" class="boton_compartir_ruta" id="boton-compartir-ruta">
+                    <i class="fa-brands fa-whatsapp"></i>
+                    Compartir
+                </button>
+            </div>
+            <p class="mensaje_ruta" id="mensaje-guardar" role="status" aria-live="polite"></p>
+        </section>
+
+        <!-- RUTAS GUARDADAS -->
+        <section class="seccion_guardados seccion_rutas_guardadas">
+            <div class="titulo_seccion_guardados">
+                <h2 class="titulo_guardados">Mis rutas guardadas</h2>
+            </div>
+            <p class="estado_guardadas" id="estado-guardadas">Cargando tus rutas...</p>
+            <ul class="lista_rutas_guardadas" id="lista-rutas-guardadas"></ul>
         </section>
     </main>
 
+    <nav class="navegacion_inferior" aria-label="Navegación móvil">
+        <a href="dashboard.html" class="item_navegacion">
+            <i class="fa-solid fa-house"></i>
+            <span>Inicio</span>
+        </a>
+
+        <a href="rutas.html" class="item_navegacion activo">
+            <i class="fa-solid fa-map"></i>
+            <span>Mapa</span>
+        </a>
+
+        <button class="boton_sos" type="button" aria-label="SOS">SOS</button>
+
+        <a href="alertas.html" class="item_navegacion">
+            <i class="fa-solid fa-bell"></i>
+            <span>Alertas</span>
+        </a>
+
+        <a href="perfil.html" class="item_navegacion">
+            <i class="fa-solid fa-user"></i>
+            <span>Perfil</span>
+        </a>
+    </nav>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/cuenta_sigre.js"></script>
+    <script src="js/notificaciones.js"></script>
+    <script src="js/rutas.js"></script>
 </body>
 </html>

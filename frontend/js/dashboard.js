@@ -1,7 +1,7 @@
 /* ============================================================
    SIGRE - Dashboard del Ciudadano
-   Maneja: nombre del usuario, emergencia activa, notificaciones
-   y la lista de recientes. Todo se carga desde localStorage y
+   Maneja: nombre del usuario, emergencia activa y la lista de
+   recientes. Todo se carga desde localStorage y
    desde un objeto de datos simulado.
    ============================================================ */
 
@@ -10,15 +10,6 @@
    Cuando tengamos backend Flask, esto vendrá de la API.
    ============================================================ */
 const DATOS_SIGRE = {
-    notificaciones: 1,
-
-    emergenciaActiva: {
-        activa: true,
-        titulo: 'Emergencia Activa',
-        descripcion: 'Inundación en Sector Centro',
-        ubicacion: 'Montería, Córdoba'
-    },
-
     recientes: [
         {
             icono: 'fa-solid fa-cloud-rain',
@@ -70,48 +61,52 @@ document.addEventListener('DOMContentLoaded', () => {
     /* ============================================================
        2. RENDERIZAR EMERGENCIA ACTIVA
        ============================================================ */
-    const emergencia = DATOS_SIGRE.emergenciaActiva;
-
+    // La publica una cuenta de autoridad desde el panel (GET /api/emergencias/activa).
     const tarjetaEmergencia = document.getElementById('tarjeta-emergencia');
+    const tituloEmergencia = tarjetaEmergencia ? tarjetaEmergencia.querySelector('h2') : null;
     const emergenciaDescripcion = document.querySelector('.emergencia_descripcion');
     const emergenciaUbicacion = document.querySelector('.emergencia_ubicacion');
+    const NIVELES = { bajo: 'riesgo bajo', medio: 'riesgo medio', alto: 'riesgo alto', critico: 'riesgo crítico' };
 
-    if (emergencia.activa) {
-
-        if (emergenciaDescripcion) {
-            emergenciaDescripcion.textContent = emergencia.descripcion;
-        }
-
+    function pintarEmergencia(titulo, descripcion, ubicacion) {
+        if (tituloEmergencia) tituloEmergencia.textContent = titulo;
+        if (emergenciaDescripcion) emergenciaDescripcion.textContent = descripcion;
         if (emergenciaUbicacion) {
-            emergenciaUbicacion.innerHTML = `
-                <i class="fa-solid fa-location-dot"></i> ${emergencia.ubicacion}
-            `;
+            emergenciaUbicacion.replaceChildren();
+            if (ubicacion) {
+                const icono = document.createElement('i');
+                icono.className = 'fa-solid fa-location-dot';
+                emergenciaUbicacion.append(icono, ' ' + ubicacion);
+            }
         }
-
-    } else {
-
-        // Si no hay emergencia activa, ocultar la tarjeta
-        if (tarjetaEmergencia) {
-            tarjetaEmergencia.style.display = 'none';
-        }
-
     }
+
+    fetch(`http://${window.location.hostname}:5000/api/emergencias/activa`)
+        .then(function (respuesta) {
+            if (!respuesta.ok) throw new Error();
+            return respuesta.json();
+        })
+        .then(function (emergencia) {
+            if (!emergencia.activa) {
+                pintarEmergencia('Sin emergencias activas', 'No hay alertas publicadas por las autoridades en este momento.', '');
+                if (tarjetaEmergencia) tarjetaEmergencia.classList.add('sin_emergencia');
+                return;
+            }
+            const lugar = [emergencia.sector, emergencia.municipio, emergencia.departamento].filter(Boolean).join(', ');
+            pintarEmergencia(
+                `Emergencia activa · ${NIVELES[emergencia.nivel_riesgo] || ''}`,
+                `${emergencia.tipo}: ${emergencia.descripcion}`,
+                lugar
+            );
+        })
+        .catch(function () {
+            pintarEmergencia('Emergencia activa', 'No se pudo consultar el estado de emergencias. En caso de peligro marca el 123.', '');
+        });
 
     /* ============================================================
        3. NOTIFICACIONES
+       La campana la maneja js/notificaciones.js con datos reales de la API.
        ============================================================ */
-    const contadorNotificaciones = document.querySelector('.contador_notificaciones');
-
-    if (contadorNotificaciones) {
-        const cantidad = DATOS_SIGRE.notificaciones;
-
-        if (cantidad > 0) {
-            contadorNotificaciones.textContent = cantidad;
-            contadorNotificaciones.style.display = 'flex';
-        } else {
-            contadorNotificaciones.style.display = 'none';
-        }
-    }
 
     /* ============================================================
        4. LISTA DE RECIENTES

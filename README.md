@@ -16,8 +16,37 @@ Prototipo académico para registrar y consultar emergencias y explorar rutas en 
 - `GET /api/salud`: comprueba la conexión con PostgreSQL.
 - `POST /api/auth/registro`: registra una cuenta ciudadana.
 - `POST /api/auth/login`: inicia sesión y devuelve un token.
+- `POST /api/auth/google`: verifica una credencial de Google y crea o inicia la cuenta ciudadana.
+- `GET /api/auth/google/config`: entrega al frontend el Client ID público de Google configurado en el backend.
+- `GET /api/desaparecidos/<id>/comentarios` y `POST /api/desaparecidos/<id>/comentarios`: muestran o guardan comentarios de testigos; para publicar uno se requiere iniciar sesión y confirmar veracidad y autorización para compartir el teléfono con quien publicó el reporte.
+- `GET /api/notificaciones/comentarios/mias`: lista avisos privados de comentarios para la cuenta autenticada.
+- `POST /api/notificaciones/comentarios/<id>/leida`: marca como leída una notificación propia.
 - `GET /api/mi-cuenta`: devuelve los datos de la cuenta autenticada.
 - `GET /api/emergencias`: consulta emergencias con autenticación.
+- `POST /api/solicitudes-ayuda`: crea una solicitud de ayuda (comunitaria, para un grupo de familias o un hogar) o una solicitud de visita a vivienda de la cuenta autenticada (requiere `backend/migracion_solicitudes_ayuda.sql`).
+- `GET /api/solicitudes-ayuda/mias`: lista solo las solicitudes de la cuenta autenticada.
+- `GET /api/solicitudes-ayuda/<id>/adjunto`: descarga el adjunto de una solicitud propia.
+- `GET /api/mi-cuenta/avatar` y `GET /api/mi-cuenta/avatar/foto`: consultan el avatar de la cuenta autenticada (requiere `backend/migracion_avatares.sql`).
+- `POST /api/mi-cuenta/avatar`: guarda un animalito de la galería, una foto propia o quita el avatar.
+- `GET /api/estadisticas/usuarios`: total de usuarios registrados para el dashboard, sin datos personales (requiere `backend/migracion_estadisticas.sql`).
+- `GET /api/rutas/estado`, `GET /api/rutas/zonas` y `POST /api/rutas/calcular`: preparan la red peatonal de Montería (OpenStreetMap) y calculan la ruta más corta y la más segura (código en `backend/rutas.py`).
+- `GET /api/rutas/buscar?q=`: busca direcciones dentro de Montería con Nominatim.
+- `GET /api/rutas/guardadas`, `POST /api/rutas/guardadas` y `POST /api/rutas/guardadas/<id>/eliminar`: rutas guardadas de la cuenta autenticada (requiere `backend/migracion_rutas.sql`).
+- `GET /api/centros`: centros de acopio y albergues registrados por las entidades (público).
+- `GET /api/admin/resumen`, `GET /api/admin/usuarios`, `POST /api/admin/usuarios/<id>/rol`: panel de administración (solo rol `autoridad`; requiere `backend/migracion_administracion.sql`).
+- `POST /api/admin/centros`, `POST /api/admin/centros/<id>` y `POST /api/admin/centros/<id>/eliminar`: crear, editar y eliminar centros.
+- `POST /api/admin/desaparecidos/<id>/estado` y `POST /api/admin/desaparecidos/<id>/eliminar`: marcar un reporte como encontrado o retirarlo.
+- `GET /api/admin/solicitudes`, `POST /api/admin/solicitudes/<id>/estado`, `GET /api/admin/solicitudes/<id>/carta` (PDF) y `/adjunto`: solicitudes de ayuda en el panel (requiere `backend/migracion_administracion_contenidos.sql`).
+- `GET /api/notificaciones`, `POST /api/notificaciones/<id>/leida` y `POST /api/notificaciones/leidas`: campana de notificaciones de la cuenta autenticada; las notificaciones las crean disparadores en la base (requiere `backend/migracion_notificaciones.sql`, después de las demás).
+- `POST /api/jornadas/<id>/participar`, `GET /api/jornadas/<id>/participantes` y `GET /api/jornadas/estadisticas`: inscripción en jornadas, lista de quienes van (con correo y teléfono solo para autoridades) y gráfica por categoría (requiere `backend/migracion_participacion_jornadas.sql`).
+- `GET /api/directorio` (público) y `POST /api/admin/directorio[/<id>[/eliminar]]`: directorio de entidades.
+- `GET /api/jornadas` (público) y `POST /api/admin/jornadas`, `/<id>/estado`, `/<id>/eliminar`: jornadas comunitarias.
+- `GET /api/emergencias/activa` (público), `GET/POST /api/admin/emergencias` y `POST /api/admin/emergencias/<id>/finalizar`: emergencias.
+- `GET /api/desaparecidos/<id>/cartel`: descarga un cartel PDF tamaño A4, listo para guardar o imprimir, con la foto y los datos del reporte.
+- `POST /api/desaparecidos`: crea un reporte nuevo asociado a la cuenta que inició sesión.
+- `GET /api/desaparecidos/<id>/comentarios` y `POST /api/desaparecidos/<id>/comentarios`: muestran o guardan comentarios de testigos; para publicar uno se requiere iniciar sesión y confirmar veracidad y autorización para compartir el teléfono con quien publicó el reporte.
+- `GET /api/notificaciones/comentarios/mias`: lista avisos privados de comentarios para la cuenta autenticada.
+- `POST /api/notificaciones/comentarios/<id>/leida`: marca como leída una notificación propia.
 
 ## Requisitos
 
@@ -37,7 +66,13 @@ py -m venv venv
 Instala las dependencias del backend:
 
 ```powershell
-python -m pip install Flask "psycopg[binary]" python-dotenv Flask-JWT-Extended
+python -m pip install Flask "psycopg[binary]" python-dotenv Flask-JWT-Extended google-auth reportlab Pillow
+```
+
+Para el módulo de rutas también se necesitan las librerías del notebook:
+
+```powershell
+python -m pip install osmnx networkx shapely scikit-learn requests
 ```
 
 Crea `backend/.env` con la configuración local de tu computadora:
@@ -49,6 +84,28 @@ DB_NAME=sigre
 DB_USER=sigre_app
 DB_PASSWORD=tu_clave_local
 JWT_SECRET_KEY=tu_clave_secreta_local
+GOOGLE_CLIENT_ID=tu_client_id_de_aplicacion_web.apps.googleusercontent.com
+```
+
+Opcionalmente puedes agregar `JWT_HORAS_SESION=8` para cambiar cuántas horas dura la sesión (8 por defecto).
+
+Para habilitar el botón de Google, crea un cliente OAuth de tipo **Aplicación web** en Google Cloud Console. Registra como orígenes JavaScript autorizados las direcciones de desarrollo, por ejemplo `http://127.0.0.1:5500` y `http://localhost:5500`, y copia el Client ID en `GOOGLE_CLIENT_ID`. No se necesita un secreto OAuth en el frontend. Google no acepta IP sin dominio como origen autorizado; para iniciar sesión desde un celular por Wi-Fi necesitarás servir SIGRE desde un nombre de dominio con HTTPS. Consulta la [configuración oficial de Google Identity Services](https://developers.google.com/identity/gsi/web/guides/get-google-api-clientid).
+
+Después de crear la base, aplica las migraciones del backend:
+
+```powershell
+psql -U postgres -d sigre -f backend\migracion_usuarios_perfil.sql
+psql -U postgres -d sigre -f backend\migracion_desaparecidos.sql
+psql -U postgres -d sigre -f backend\migracion_comentarios_desaparecidos.sql
+psql -U postgres -d sigre -f backend\migracion_comentarios_desaparecidos.sql
+psql -U postgres -d sigre -f backend\migracion_solicitudes_ayuda.sql
+psql -U postgres -d sigre -f backend\migracion_avatares.sql
+psql -U postgres -d sigre -f backend\migracion_estadisticas.sql
+psql -U postgres -d sigre -f backend\migracion_rutas.sql
+psql -U postgres -d sigre -f backend\migracion_administracion.sql
+psql -U postgres -d sigre -f backend\migracion_administracion_contenidos.sql
+psql -U postgres -d sigre -f backend\migracion_notificaciones.sql
+psql -U postgres -d sigre -f backend\migracion_participacion_jornadas.sql
 ```
 
 Cada integrante debe usar sus propias claves locales. **No subas `backend/.env` a GitHub ni compartas sus contraseñas.**
@@ -60,6 +117,16 @@ python backend\app.py
 ```
 
 La aplicación se ejecuta localmente en `http://127.0.0.1:5000`.
+
+## Cuenta de administrador o entidad
+
+Por seguridad, nadie puede darse el rol de administrador desde la página. El primer administrador se crea con PostgreSQL (cambia el correo por el de una cuenta ya registrada):
+
+```powershell
+psql -U postgres -d sigre -c "UPDATE usuarios SET rol = 'autoridad' WHERE email = 'correo@ejemplo.com';"
+```
+
+Después, esa persona cierra sesión y vuelve a entrar: el login la lleva a `dashboard_admin.html`. Desde el panel puede asignar los roles de las demás cuentas.
 
 ## Notebook de rutas
 

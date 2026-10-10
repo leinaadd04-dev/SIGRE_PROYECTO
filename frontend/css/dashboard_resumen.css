@@ -1,0 +1,557 @@
+/* SIGRE · Resumen del dashboard: usuarios registrados y directorio */
+
+.resumen_comunidad {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+}
+
+.resumen_tarjeta {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+    min-width: 0;
+    padding: 18px;
+    border: 1px solid var(--border-color, #e2e8f0);
+    border-radius: var(--radius, 16px);
+    background: var(--card-bg, #ffffff);
+    box-shadow: var(--shadow, 0 4px 20px rgba(0, 0, 0, 0.05));
+    color: var(--text-main, #2b2d42);
+    font: inherit;
+    text-align: left;
+}
+
+.resumen_icono {
+    display: grid;
+    place-items: center;
+    width: 46px;
+    height: 46px;
+    border-radius: 14px;
+    font-size: 1.25rem;
+}
+
+.resumen_usuarios .resumen_icono {
+    background: #ece9fb;
+    color: #5A4FCF;
+}
+
+.resumen_directorio .resumen_icono {
+    background: #fde8e8;
+    color: #d62839;
+}
+
+.resumen_texto {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.resumen_texto strong {
+    color: var(--primary-color, #1b4965);
+    font-size: 1.6rem;
+    line-height: 1.1;
+}
+
+.resumen_directorio .resumen_texto strong {
+    font-size: 1.15rem;
+}
+
+.resumen_texto span {
+    color: #667085;
+    font-size: 0.85rem;
+}
+
+.resumen_directorio {
+    cursor: pointer;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.resumen_directorio:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 24px rgba(27, 73, 101, 0.14);
+}
+
+.resumen_directorio:focus-visible {
+    outline: 2px solid #2c7da0;
+    outline-offset: 2px;
+}
+
+.resumen_flecha {
+    position: absolute;
+    top: 18px;
+    right: 16px;
+    color: #8d99ae;
+}
+
+/* Ventana del directorio */
+
+.directorio_fondo {
+    position: fixed;
+    inset: 0;
+    z-index: 2500;
+    display: grid;
+    place-items: center;
+    padding: 18px;
+    background: rgba(15, 28, 38, 0.68);
+}
+
+.directorio_fondo[hidden],
+.directorio_fondo [hidden] {
+    display: none !important;
+}
+
+body.directorio_abierto {
+    overflow: hidden;
+}
+
+.directorio_ventana {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    width: min(640px, 100%);
+    max-height: min(90vh, 820px);
+    padding: 22px;
+    border-radius: 16px;
+    background: #ffffff;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
+}
+
+.directorio_cabecera {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.directorio_cabecera h2 {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    color: #1b4965;
+    font-size: 1.25rem;
+}
+
+.directorio_cabecera h2 i {
+    color: #d62839;
+}
+
+.directorio_cabecera p {
+    margin-top: 4px;
+    color: #667085;
+    font-size: 0.9rem;
+}
+
+.directorio_cerrar {
+    flex-shrink: 0;
+    width: 38px;
+    height: 38px;
+    border: 0;
+    border-radius: 50%;
+    background: #f4f7f6;
+    color: #1b4965;
+    font-size: 1.1rem;
+    cursor: pointer;
+}
+
+.directorio_busqueda {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 0 14px;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    color: #8d99ae;
+}
+
+.directorio_busqueda input {
+    flex: 1;
+    min-width: 0;
+    min-height: 44px;
+    border: 0;
+    outline: none;
+    background: transparent;
+    color: #2b2d42;
+    font: inherit;
+}
+
+.directorio_busqueda:focus-within {
+    border-color: #2c7da0;
+    box-shadow: 0 0 0 3px #e5f2f7;
+}
+
+.directorio_lista {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    overflow-y: auto;
+    padding-right: 4px;
+}
+
+.directorio_rojo { --tono: #d62839; --tono-suave: #fde8e8; }
+.directorio_azul { --tono: #2c7da0; --tono-suave: #e5f2f7; }
+.directorio_verde { --tono: #1f7a6f; --tono-suave: #e3f4f1; }
+
+.directorio_grupo_titulo {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+    color: var(--tono);
+    font-size: 0.95rem;
+}
+
+.directorio_item {
+    display: flex;
+    gap: 12px;
+    padding: 12px;
+    border: 1px solid #e2e8f0;
+    border-left: 4px solid var(--tono);
+    border-radius: 12px;
+}
+
+.directorio_item + .directorio_item {
+    margin-top: 8px;
+}
+
+.directorio_item_icono {
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: var(--tono-suave);
+    color: var(--tono);
+}
+
+.directorio_item_datos {
+    flex: 1;
+    min-width: 0;
+}
+
+.directorio_item_datos strong {
+    color: #2b2d42;
+}
+
+.directorio_item_datos p {
+    margin-top: 2px;
+    color: #667085;
+    font-size: 0.86rem;
+}
+
+.directorio_acciones {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 10px;
+}
+
+.directorio_llamar,
+.directorio_secundario {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 7px 12px;
+    border-radius: 9px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    text-decoration: none;
+}
+
+.directorio_llamar {
+    background: var(--tono);
+    color: #ffffff;
+}
+
+.directorio_secundario {
+    border: 1px solid #e2e8f0;
+    color: #1b4965;
+}
+
+.directorio_llamar:focus-visible,
+.directorio_secundario:focus-visible,
+.directorio_cerrar:focus-visible {
+    outline: 2px solid #2c7da0;
+    outline-offset: 2px;
+}
+
+.directorio_vacio {
+    color: #667085;
+    text-align: center;
+}
+
+.directorio_nota {
+    display: flex;
+    gap: 8px;
+    padding: 10px 12px;
+    border-radius: 9px;
+    background: #fff6d6;
+    color: #7a5a00;
+    font-size: 0.82rem;
+}
+
+.directorio_nota i {
+    margin-top: 2px;
+}
+
+@media (max-width: 480px) {
+    .resumen_tarjeta {
+        padding: 14px;
+    }
+
+    .resumen_texto strong {
+        font-size: 1.35rem;
+    }
+
+    .directorio_fondo {
+        padding: 10px;
+    }
+
+    .directorio_ventana {
+        padding: 16px;
+        max-height: 94vh;
+    }
+}
+
+/* Tus guardados: mapa y lista de rutas guardadas */
+
+.mapa_guardados {
+    width: 100%;
+    height: 100%;
+    z-index: 0;
+}
+
+.mapa_guardados_aviso {
+    position: absolute;
+    left: 50%;
+    bottom: 12px;
+    z-index: 500;
+    transform: translateX(-50%);
+    max-width: calc(100% - 24px);
+    margin: 0;
+    padding: 6px 12px;
+    border-radius: 20px;
+    background: rgba(255, 255, 255, 0.95);
+    color: #1b4965;
+    font-size: 0.82rem;
+    font-weight: 600;
+    text-align: center;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.mapa_guardados_aviso[hidden] {
+    display: none;
+}
+
+.guardado_ruta {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 8px;
+    border-radius: 10px;
+    color: inherit;
+    text-decoration: none;
+}
+
+.guardado_ruta:hover {
+    background: #eef3f6;
+}
+
+.guardado_ruta .guardado_icono {
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    background: #e5f2f7;
+    color: #2c7da0;
+}
+
+.guardado_ruta .guardado_titulo {
+    color: #1b4965;
+    font-weight: 600;
+}
+
+.guardado_ruta .guardado_tiempo {
+    color: #667085;
+    font-size: 0.82rem;
+}
+
+.guardados_vacio {
+    color: #667085;
+    font-size: 0.88rem;
+}
+
+/* SOS compacto dentro de la tarjeta de emergencia activa (solo escritorio:
+   en celular ya está el SOS de la barra inferior) */
+
+.acciones_emergencia {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-left: auto;
+}
+
+.acciones_emergencia .boton_mas_info {
+    margin-left: 0;
+}
+
+.boton_sos_tarjeta {
+    display: none;
+    align-items: center;
+    gap: 7px;
+    padding: 10px 18px;
+    border: 2px solid rgba(255, 255, 255, 0.85);
+    border-radius: 8px;
+    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+    color: #ffffff;
+    font-weight: 800;
+    letter-spacing: 0.5px;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(217, 119, 6, 0.4);
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.boton_sos_tarjeta:hover {
+    transform: scale(1.05);
+    box-shadow: 0 6px 16px rgba(217, 119, 6, 0.55);
+}
+
+.boton_sos_tarjeta:focus-visible {
+    outline: 2px solid #ffffff;
+    outline-offset: 2px;
+}
+
+@media (min-width: 992px) {
+    .boton_sos_tarjeta {
+        display: inline-flex;
+    }
+}
+
+/* Clima compacto debajo de la foto de la tarjeta de emergencia */
+
+.seccion_emergencia .personaje_lateral {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+}
+
+.clima_tarjeta {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 12px;
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.15);
+    color: #ffffff;
+    white-space: nowrap;
+}
+
+.clima_tarjeta > i {
+    color: #ffd166;
+    font-size: 1.1rem;
+}
+
+.clima_tarjeta div {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.15;
+}
+
+.clima_tarjeta .weather-temp {
+    font-size: 1.05rem;
+    font-weight: 800;
+}
+
+.clima_tarjeta .weather-desc {
+    font-size: 0.72rem;
+    opacity: 0.9;
+}
+
+/* Tableta y celular: la foto se oculta y el clima baja a su propia línea */
+@media (max-width: 991px) {
+    .seccion_emergencia {
+        flex-wrap: wrap;
+        align-items: center;
+        column-gap: 16px;
+        row-gap: 14px;
+    }
+
+    /* Los elementos de la tarjeta se ordenan directamente en la sección:
+       fila 1 = ícono + texto; fila 2 = clima (izquierda) + Más Info (derecha). */
+    .seccion_emergencia .tarjeta_emergencia {
+        display: contents;
+    }
+
+    .seccion_emergencia .icono_emergencia {
+        order: 1;
+        flex-shrink: 0;
+    }
+
+    .seccion_emergencia .texto_emergencia {
+        order: 2;
+        flex: 1 1 calc(100% - 80px);
+        min-width: 0;
+    }
+
+    .seccion_emergencia .personaje_lateral {
+        order: 3;
+        width: auto;
+        align-items: flex-start;
+    }
+
+    .seccion_emergencia .acciones_emergencia {
+        order: 4;
+        margin-left: auto;
+    }
+
+    .boton_mas_info {
+        white-space: nowrap;
+    }
+}
+
+@media (max-width: 600px) {
+    .clima_tarjeta {
+        padding: 5px 9px;
+    }
+
+    .clima_tarjeta .weather-desc {
+        font-size: 0.68rem;
+    }
+}
+
+/* Flechas de las tarjetas de módulos: todas en la esquina superior derecha
+   de su tarjeta (antes dependían del ancho de cada imagen). */
+
+.cuadricula_modulos .modulo_imagen_derecha {
+    position: static;
+}
+
+.cuadricula_modulos .modulo_flecha_flotante {
+    /* Font Awesome (cargado después) pone display: inline-block y descentraba la flecha */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+    top: 12px;
+    right: 12px;
+    width: 30px;
+    height: 30px;
+    background: #ffffff;
+    color: var(--primary-color, #1b4965);
+    font-size: 0.8rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.cuadricula_modulos .tarjeta_modulo:hover .modulo_flecha_flotante {
+    background: var(--primary-color, #1b4965);
+    color: #ffffff;
+    transform: translateX(2px);
+}
+

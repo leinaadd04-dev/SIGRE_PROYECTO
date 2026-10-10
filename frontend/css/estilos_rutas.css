@@ -28,44 +28,6 @@ body.dashboard_body {
     flex-direction: column;
 }
 
-/* Cabecera idéntica al dashboard principal (100% ancho) */
-.cabecera_dashboard {
-    background-color: #436097;
-    padding: 15px 30px;
-    width: 100%;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    border-bottom: 1px solid var(--border-color);
-    position: sticky;
-    top: 0;
-    z-index: 1000;
-}
-
-.cabecera_izquierda {
-    display: flex;
-    align-items: center;
-    gap: 15px;
-}
-
-.enlace_volver {
-    color: white;
-    text-decoration: none;
-    font-weight: 600;
-    font-size: 0.95rem;
-    transition: opacity 0.2s;
-}
-
-.enlace_volver:hover {
-    opacity: 0.8;
-}
-
-.saludo_usuario .nombre_usuario {
-    font-size: 1.15rem;
-    font-weight: 700;
-    color: white;
-}
-
 /* Contenido Principal de Rutas */
 .dashboard_contenido {
     max-width: 1400px;
@@ -147,83 +109,6 @@ body.dashboard_body {
     .dashboard_contenido {
         padding: 35px;
     }
-}
-
-/* ================================
-   HEADER SIGRE
-   ================================ */
-
-.cabecera_dashboard {
-    background-color: #436097;
-    padding: 14px 3%;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 30px;
-    border-bottom: 1px solid #dfe5ec;
-    position: sticky;
-    top: 0;
-    z-index: 1000;
-}
-
-.cabecera_izquierda {
-    display: flex;
-    align-items: center;
-}
-
-.logo_dashboard {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    text-decoration: none;
-    color: white;
-    font-size: 28px;
-    font-weight: 700;
-}
-
-.logo_dashboard img {
-    width: 54px;
-    height: 54px;
-    object-fit: contain;
-}
-
-.navegacion_escritorio {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
-
-.enlace_escritorio {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 12px 18px;
-    border-radius: 14px;
-    color: white;
-    text-decoration: none;
-    font-weight: 600;
-    transition: background-color 0.2s ease;
-}
-
-.enlace_escritorio:hover,
-.enlace_escritorio.activo {
-    background-color: rgba(255, 255, 255, 0.18);
-}
-
-.boton_volver {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 12px 18px;
-    background-color: #1B4965;
-    color: white;
-    border-radius: 12px;
-    text-decoration: none;
-    font-weight: 600;
-}
-
-.boton_volver:hover {
-    background-color: #163d54;
 }
 
 /* ========================================
@@ -377,66 +262,7 @@ body.dashboard_body {
 /* =====================================================
    AJUSTE RESPONSIVE PARA CELULARES
    ===================================================== */
-   .boton_notificaciones {
-    display: none;
-}
-
 @media (max-width: 700px) {
-
-        .boton_notificaciones {
-        display: flex;
-        position: relative;
-        align-items: center;
-        justify-content: center;
-        width: 48px;
-        height: 48px;
-        border: none;
-        border-radius: 50%;
-        background-color: #ffffff;
-        color: #1B4965;
-        font-size: 20px;
-    }
-
-    .boton_notificaciones span {
-        position: absolute;
-        top: 0;
-        right: 0;
-        width: 20px;
-        height: 20px;
-        border-radius: 50%;
-        background-color: #E63946;
-        color: #ffffff;
-        font-size: 11px;
-        font-weight: 700;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }
-
-        /* HEADER MOVIL */
-    .cabecera_dashboard {
-        height: 76px;
-        padding: 10px 18px;
-        box-sizing: border-box;
-        justify-content: space-between;
-    }
-
-    .logo_dashboard span {
-        display: none;
-    }
-
-    .logo_dashboard img {
-        width: 48px;
-        height: 48px;
-    }
-
-    .navegacion_escritorio {
-        display: none;
-    }
-
-    .boton_volver {
-        display: none;
-    }
 
     html,
     body {
@@ -506,3 +332,755 @@ body.dashboard_body {
         max-width: 100%;
     }
 }
+
+/* La cabecera y la barra inferior vienen de estiloso.css.
+   Espacio para que la barra inferior no tape el contenido en celular y tableta. */
+@media (max-width: 991px) {
+    .dashboard_contenido {
+        padding-bottom: 100px;
+    }
+}
+
+/* =====================================================
+   RUTAS INTERACTIVAS (js/rutas.js)
+   ===================================================== */
+
+.panel_busqueda_ruta [hidden],
+.resultados_rutas[hidden],
+.seccion_rutas_guardadas [hidden] {
+    display: none !important;
+}
+
+.encabezado_ruta {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 18px;
+    flex-wrap: wrap;
+}
+
+.encabezado_ruta > div {
+    flex: 1 1 420px;
+}
+
+.estado_red {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    max-width: 340px;
+    padding: 8px 12px;
+    border-radius: 12px;
+    background: #eef3f6;
+    color: #1B4965;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.estado_red.listo { background: #e8f5e9; color: #2e7d32; }
+.estado_red.cargando { background: #fff6d6; color: #7a5a00; }
+.estado_red.error { background: #fde8e8; color: #c53030; }
+
+.campos_ruta {
+    grid-template-columns: 1fr 1fr;
+    align-items: start;
+}
+
+.marca_punto {
+    display: inline-grid;
+    place-items: center;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    color: #ffffff;
+    font-size: 12px;
+    font-weight: 800;
+}
+
+.marca_origen { background: #2e7d32; }
+.marca_destino { background: #d62839; }
+
+.buscador_punto {
+    position: relative;
+}
+
+.sugerencias_punto {
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0;
+    right: 0;
+    z-index: 1200;
+    max-height: 260px;
+    overflow-y: auto;
+    margin: 0;
+    padding: 6px;
+    list-style: none;
+    border: 1px solid #e1e7ec;
+    border-radius: 12px;
+    background: #ffffff;
+    box-shadow: 0 12px 30px rgba(27, 73, 101, 0.16);
+}
+
+.sugerencias_punto button {
+    display: flex;
+    gap: 8px;
+    width: 100%;
+    padding: 10px;
+    border: 0;
+    border-radius: 9px;
+    background: none;
+    color: #2B2D42;
+    font: inherit;
+    font-size: 14px;
+    text-align: left;
+    cursor: pointer;
+}
+
+.sugerencias_punto button:hover,
+.sugerencias_punto button:focus-visible {
+    background: #eef3f6;
+}
+
+.sugerencias_punto button i {
+    margin-top: 3px;
+    color: #2C7DA0;
+}
+
+.sugerencia_aviso {
+    padding: 10px;
+    color: #60758a;
+    font-size: 14px;
+}
+
+.acciones_punto {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.boton_punto {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 12px;
+    border: 1px solid #cfd9e2;
+    border-radius: 10px;
+    background: #ffffff;
+    color: #1B4965;
+    font: inherit;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.boton_punto:hover {
+    border-color: #2C7DA0;
+    background: #f4f9fb;
+}
+
+.boton_punto:disabled {
+    opacity: 0.6;
+    cursor: wait;
+}
+
+.boton_punto.boton_peligro {
+    color: #c53030;
+}
+
+.opciones_ruta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin-top: 20px;
+}
+
+.opcion_demo {
+    display: flex;
+    align-items: flex-start;
+    gap: 9px;
+    max-width: 560px;
+    color: #60758a;
+    font-size: 14px;
+    cursor: pointer;
+}
+
+.opcion_demo input {
+    width: 18px;
+    height: 18px;
+    margin-top: 1px;
+    accent-color: #d9682b;
+}
+
+.mensaje_ruta.error { color: #c53030; font-weight: 600; }
+.mensaje_ruta.exito { color: #2e7d32; font-weight: 600; }
+
+/* Mapa */
+
+.mapa_rutas {
+    width: 100%;
+    height: 100%;
+    z-index: 0;
+}
+
+.mapa_rutas.eligiendo {
+    cursor: crosshair;
+    outline: 3px solid #2C7DA0;
+    outline-offset: -3px;
+}
+
+.marcador_ruta span {
+    display: grid;
+    place-items: center;
+    width: 34px;
+    height: 34px;
+    border: 3px solid #ffffff;
+    border-radius: 50%;
+    color: #ffffff;
+    font-weight: 800;
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.3);
+}
+
+.marcador_origen span { background: #2e7d32; }
+.marcador_destino span { background: #d62839; }
+
+.titulo_seccion_guardados {
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.titulo_guardados {
+    white-space: nowrap;
+}
+
+.leyenda_rutas {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 14px;
+    color: #60758a;
+    font-size: 13px;
+}
+
+.leyenda_rutas span {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.linea_leyenda {
+    display: inline-block;
+    width: 22px;
+    height: 0;
+    border-top: 4px solid #2c7da0;
+}
+
+.linea_leyenda.linea_corta {
+    border-top: 4px dashed #667085;
+}
+
+.zona_leyenda {
+    display: inline-block;
+    width: 14px;
+    height: 14px;
+    border-radius: 3px;
+}
+
+.zona_leyenda.zona_real { background: rgba(230, 57, 70, 0.3); border: 2px solid #d62839; }
+.zona_leyenda.zona_demo { background: rgba(244, 162, 97, 0.25); border: 2px dashed #d9682b; }
+
+.nota_rutas {
+    display: flex;
+    gap: 8px;
+    padding: 10px 12px;
+    border-radius: 10px;
+    background: #fff6d6;
+    color: #7a5a00;
+    font-size: 13px;
+}
+
+.nota_rutas i {
+    margin-top: 2px;
+}
+
+/* Resultados */
+
+.tarjetas_rutas {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 14px;
+}
+
+.tarjeta_ruta {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 16px;
+    border: 1px solid #e1e7ec;
+    border-radius: 14px;
+    background: #ffffff;
+}
+
+.tarjeta_ruta.ruta_segura {
+    border: 2px solid #2c7da0;
+}
+
+.tarjeta_ruta h4 {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #1B4965;
+    font-size: 16px;
+}
+
+.tarjeta_ruta.ruta_corta h4 {
+    color: #475467;
+}
+
+.descripcion_ruta {
+    color: #60758a;
+    font-size: 14px;
+}
+
+.datos_ruta {
+    display: flex;
+    gap: 24px;
+}
+
+.datos_ruta span {
+    display: flex;
+    flex-direction: column;
+    color: #60758a;
+    font-size: 13px;
+}
+
+.datos_ruta strong {
+    color: #1B4965;
+    font-size: 22px;
+}
+
+.dato_riesgo {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    width: fit-content;
+    padding: 5px 10px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.dato_riesgo.bajo { background: #e8f5e9; color: #2e7d32; }
+.dato_riesgo.alto { background: #fde8e8; color: #c53030; }
+.dato_riesgo.demo { background: #fdeee3; color: #a0521a; }
+
+.acciones_resultado {
+    display: flex;
+    align-items: flex-end;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-top: 6px;
+}
+
+.guardar_ruta {
+    flex: 1 1 320px;
+}
+
+.guardar_ruta label {
+    display: block;
+    margin-bottom: 6px;
+    color: #2B2D42;
+    font-size: 14px;
+    font-weight: 700;
+}
+
+.guardar_fila {
+    display: flex;
+    gap: 10px;
+}
+
+.guardar_fila input {
+    flex: 1;
+    min-width: 0;
+    padding: 12px 14px;
+    border: 1px solid #cfd9e2;
+    border-radius: 12px;
+    font: inherit;
+}
+
+.boton_compartir_ruta {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 46px;
+    padding: 0 18px;
+    border: 0;
+    border-radius: 12px;
+    background: #1f9d55;
+    color: #ffffff;
+    font: inherit;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+/* Rutas guardadas */
+
+.estado_guardadas {
+    color: #60758a;
+    font-size: 14px;
+}
+
+.lista_rutas_guardadas {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.ruta_guardada {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    padding: 14px;
+    border: 1px solid #e1e7ec;
+    border-left: 4px solid #2c7da0;
+    border-radius: 12px;
+}
+
+.ruta_guardada_datos {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.ruta_guardada_datos strong {
+    color: #1B4965;
+    overflow-wrap: anywhere;
+}
+
+.ruta_guardada_datos span {
+    color: #60758a;
+    font-size: 13px;
+}
+
+.ruta_guardada_acciones {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+@media (max-width: 700px) {
+    .campos_ruta {
+        grid-template-columns: 1fr;
+    }
+
+    .guardados_mapa {
+        height: 360px;
+    }
+
+    .guardar_fila {
+        flex-direction: column;
+    }
+
+    .boton_compartir_ruta {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .datos_ruta strong {
+        font-size: 19px;
+    }
+}
+
+/* Medio de transporte y colores de cada ruta */
+
+.selector_modo_ruta {
+    display: inline-grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 6px;
+    margin-bottom: 14px;
+    padding: 5px;
+    border-radius: 14px;
+    background: #eef3f6;
+}
+
+.opcion_modo_ruta {
+    position: relative;
+    cursor: pointer;
+}
+
+.opcion_modo_ruta input {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.opcion_modo_ruta span {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-height: 42px;
+    padding: 0 18px;
+    border-radius: 10px;
+    color: #1B4965;
+    font-size: 14px;
+    font-weight: 700;
+    transition: background 0.15s ease, box-shadow 0.15s ease;
+}
+
+.opcion_modo_ruta input:checked + span {
+    background: #ffffff;
+    color: #2C7DA0;
+    box-shadow: 0 2px 8px rgba(27, 73, 101, 0.14);
+}
+
+.opcion_modo_ruta input:focus-visible + span {
+    outline: 2px solid #2C7DA0;
+    outline-offset: 2px;
+}
+
+.nota_modo_ruta {
+    display: flex;
+    gap: 8px;
+    margin: -4px 0 16px;
+    color: #60758a;
+    font-size: 13px;
+}
+
+.nota_modo_ruta[hidden] {
+    display: none;
+}
+
+.nota_modo_ruta i {
+    margin-top: 2px;
+    color: #2C7DA0;
+}
+
+/* Verde = ruta más segura, naranja = ruta más corta (mismos colores del mapa) */
+
+.linea_leyenda.linea_segura {
+    border-top: 5px solid #2e7d32;
+}
+
+.linea_leyenda.linea_corta {
+    border-top: 4px dashed #e76f51;
+}
+
+.tarjeta_ruta.ruta_segura {
+    border: 2px solid #2e7d32;
+    background: #f6fbf6;
+}
+
+.tarjeta_ruta.ruta_corta {
+    border: 2px solid #e76f51;
+    background: #fffaf7;
+}
+
+.tarjeta_ruta.ruta_segura h4 { color: #1f5e23; }
+.tarjeta_ruta.ruta_corta h4 { color: #a8412a; }
+
+.muestra_linea {
+    display: inline-block;
+    flex-shrink: 0;
+    width: 26px;
+    height: 0;
+}
+
+.ruta_segura .muestra_linea { border-top: 5px solid #2e7d32; }
+.ruta_corta .muestra_linea { border-top: 4px dashed #e76f51; }
+
+.ruta_guardada {
+    border-left-color: #2e7d32;
+}
+
+@media (max-width: 700px) {
+    .selector_modo_ruta {
+        display: grid;
+        width: 100%;
+    }
+
+    .opcion_modo_ruta span {
+        padding: 0 8px;
+    }
+}
+
+/* Encabezado: texto y medio de transporte a la izquierda, imagen a la derecha */
+
+.encabezado_ruta {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(320px, 460px);
+    align-items: stretch;
+    gap: 24px;
+}
+
+.encabezado_ruta_texto .selector_modo_ruta {
+    margin: 20px 0 0;
+}
+
+.encabezado_ruta_texto .nota_modo_ruta {
+    margin: 12px 0 0;
+}
+
+.encabezado_ruta_lateral {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 12px;
+}
+
+.contenedor_imagen_rutas {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    flex: 1;
+    min-height: 230px;
+    overflow: hidden;
+    border-radius: 20px;
+    background: linear-gradient(135deg, #a9d6e5 0%, #61a5c2 55%, #2c7da0 100%);
+    box-shadow: 0 10px 24px rgba(27, 73, 101, 0.18);
+}
+
+/* Círculos decorativos detrás de la ilustración */
+.contenedor_imagen_rutas::before,
+.contenedor_imagen_rutas::after {
+    content: "";
+    position: absolute;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.22);
+}
+
+.contenedor_imagen_rutas::before {
+    width: 220px;
+    height: 220px;
+    top: -70px;
+    right: -50px;
+}
+
+.contenedor_imagen_rutas::after {
+    width: 140px;
+    height: 140px;
+    bottom: -50px;
+    left: -30px;
+}
+
+.imagen_rutas {
+    position: relative;
+    z-index: 1;
+    display: block;
+    width: 108%;
+    max-width: none;
+    height: auto;
+    filter: drop-shadow(0 8px 12px rgba(15, 40, 60, 0.25));
+}
+
+@media (max-width: 900px) {
+    .encabezado_ruta {
+        grid-template-columns: 1fr;
+    }
+
+    .encabezado_ruta_lateral {
+        align-items: stretch;
+    }
+
+    .estado_red {
+        max-width: none;
+    }
+
+    .contenedor_imagen_rutas {
+        min-height: 190px;
+    }
+
+    .imagen_rutas {
+        width: min(100%, 420px);
+    }
+}
+
+/* Tarjetas grandes de medio de transporte */
+
+.encabezado_ruta_texto .selector_modo_ruta {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 12px;
+    width: 100%;
+    padding: 0;
+    background: none;
+}
+
+.encabezado_ruta_texto .opcion_modo_ruta span {
+    flex-direction: column;
+    gap: 4px;
+    min-height: 128px;
+    padding: 16px 10px;
+    border: 2px solid #e1e7ec;
+    border-radius: 16px;
+    background: #f7fafc;
+    text-align: center;
+    transition: border-color 0.15s ease, background 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.encabezado_ruta_texto .opcion_modo_ruta span i {
+    display: grid;
+    place-items: center;
+    width: 54px;
+    height: 54px;
+    margin-bottom: 6px;
+    border-radius: 50%;
+    background: #e5f2f7;
+    color: #2C7DA0;
+    font-size: 1.5rem;
+}
+
+.encabezado_ruta_texto .opcion_modo_ruta strong {
+    color: #1B4965;
+    font-size: 16px;
+}
+
+.encabezado_ruta_texto .opcion_modo_ruta small {
+    color: #60758a;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.encabezado_ruta_texto .opcion_modo_ruta:hover span {
+    border-color: #61a5c2;
+    transform: translateY(-2px);
+}
+
+.encabezado_ruta_texto .opcion_modo_ruta input:checked + span {
+    border-color: #2C7DA0;
+    background: #ffffff;
+    box-shadow: 0 8px 18px rgba(44, 125, 160, 0.18);
+}
+
+.encabezado_ruta_texto .opcion_modo_ruta input:checked + span i {
+    background: #2C7DA0;
+    color: #ffffff;
+}
+
+@media (max-width: 480px) {
+    .encabezado_ruta_texto .selector_modo_ruta {
+        gap: 8px;
+    }
+
+    .encabezado_ruta_texto .opcion_modo_ruta span {
+        min-height: 108px;
+        padding: 12px 6px;
+    }
+
+    .encabezado_ruta_texto .opcion_modo_ruta span i {
+        width: 44px;
+        height: 44px;
+        font-size: 1.2rem;
+    }
+
+    .encabezado_ruta_texto .opcion_modo_ruta small {
+        font-size: 11px;
+    }
+}
+

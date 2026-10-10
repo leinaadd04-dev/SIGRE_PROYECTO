@@ -1079,6 +1079,34 @@ body {
     flex-shrink: 0;
 }
 
+.google_signin_wrapper {
+    display: flex;
+    justify-content: center;
+    width: 100%;
+    min-height: 44px;
+}
+
+.google_signin_wrapper > div {
+    max-width: 100%;
+}
+
+.google_signin_wrapper[hidden],
+.mensaje_google[hidden] {
+    display: none !important;
+}
+
+.mensaje_google {
+    margin: 0.65rem 0 0;
+    color: #526579;
+    font-size: 0.78rem;
+    line-height: 1.45;
+    text-align: center;
+}
+
+.mensaje_google.error {
+    color: #c53030;
+}
+
 .login_cuerpo .enlace_secundario_form {
     color: #718096;
     margin-top: 1rem;

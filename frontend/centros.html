@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Centros de acopio y albergues - SIGRE</title>
+    <link rel="stylesheet" href="css/estiloso.css">
+    <link rel="stylesheet" href="css/notificaciones.css">
+    <link rel="stylesheet" href="css/estilos_centros.css">
+    <link rel="stylesheet" href="css/cuenta_sigre.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+</head>
+<body class="dashboard_body centros_body">
+    <header class="cabecera_dashboard">
+        <div class="cabecera_izquierda"><a href="dashboard.html" class="contenedor_logo"><img src="imagenes/logo.png" alt="SIGRE" class="logo_dashboard"></a><div class="saludo_usuario"><p class="texto_bienvenida">Módulo de</p><h1 class="nombre_usuario">Acopio y albergues</h1></div></div>
+        <nav class="navegacion_escritorio" aria-label="Navegación principal"><a href="dashboard.html" class="enlace_escritorio"><i class="fa-solid fa-house"></i><span>Inicio</span></a><a href="mapa.html" class="enlace_escritorio"><i class="fa-solid fa-map"></i><span>Mapa</span></a><a href="alertas.html" class="enlace_escritorio"><i class="fa-solid fa-bell"></i><span>Alertas</span></a><a href="perfil.html" class="enlace_escritorio"><i class="fa-solid fa-user"></i><span>Mi Perfil</span></a><a href="#" id="cerrar-sesion" class="enlace_escritorio"><i class="fa-solid fa-right-from-bracket"></i><span>Cerrar sesión</span></a></nav>
+        <div class="cabecera_derecha"><a class="boton_campana" href="alertas.html" aria-label="Ver alertas"><i class="fa-solid fa-bell"></i></a></div>
+    </header>
+    <main class="centros_contenido">
+        <section class="centros_hero"><div class="centros_hero_texto"><span class="centros_etiqueta"><i class="fa-solid fa-box-open"></i> Apoyo comunitario</span><h2>Centros de acopio y albergues</h2><p>Consulta puntos de recepción de donaciones y espacios de alojamiento temporal.</p></div><img src="imagenes/modulo1.png" alt="Ilustración de apoyo y suministros comunitarios"></section>
+        <div class="centros_aviso" role="note"><i class="fa-solid fa-circle-info"></i><span><strong>Información registrada por las entidades en SIGRE.</strong> Los cupos pueden cambiar rápido: antes de ir, confirma horario y disponibilidad llamando al centro.</span></div>
+        <section class="centros_resumen" aria-label="Resumen de centros"><article class="resumen_item"><span class="resumen_icono azul"><i class="fa-solid fa-boxes-stacked"></i></span><div><strong id="total-centros">0</strong><span>Puntos de apoyo</span></div></article><article class="resumen_item"><span class="resumen_icono verde"><i class="fa-solid fa-house-medical"></i></span><div><strong id="total-albergues">0</strong><span>Albergues</span></div></article><article class="resumen_item"><span class="resumen_icono amarillo"><i class="fa-solid fa-hand-holding-heart"></i></span><div><strong id="total-abiertos">0</strong><span>Abiertos ahora</span></div></article></section>
+        <section class="centros_panel"><div class="centros_panel_titulo"><div><h2>Puntos de apoyo</h2><p>Busca y filtra los centros registrados.</p></div><span class="centros_contador" id="contador-resultados">0</span></div>
+            <div class="centros_filtros"><label class="busqueda_centros"><i class="fa-solid fa-magnifying-glass"></i><input id="buscar-centro" type="search" placeholder="Buscar por nombre o sector" aria-label="Buscar por nombre o sector"></label><select id="filtro-tipo" aria-label="Filtrar por tipo"><option value="todos">Todos los tipos</option><option value="acopio">Centros de acopio</option><option value="albergue">Albergues</option></select><select id="filtro-estado" aria-label="Filtrar por nivel de ocupación"><option value="todos">Todos los niveles</option><option value="verde">Baja ocupación</option><option value="amarillo">Ocupación media</option><option value="rojo">Ocupación alta</option><option value="completo">Completo</option></select></div>
+            <section class="centros_mapa_panel" aria-label="Mapa de ubicaciones"><div class="mapa_panel_titulo"><div><h3>Ubicaciones en el mapa</h3><p>Toca un marcador para ver los datos del centro.</p></div><span><i class="fa-solid fa-location-dot"></i> Datos de SIGRE</span></div><div class="cupo_leyenda"><span><i class="cupo_punto verde"></i>Baja</span><span><i class="cupo_punto amarillo"></i>Media</span><span><i class="cupo_punto rojo"></i>Alta</span><span><i class="cupo_punto completo"></i>Completo</span></div><div id="mapa-centros" role="application" aria-label="Mapa de centros de acopio y albergues"></div></section>
+            <div class="centros_lista" id="lista-centros" aria-live="polite"></div><p class="centros_sin_resultados" id="sin-resultados" hidden>No hay centros que coincidan con esos filtros.</p>
+        </section>
+        <p class="centros_nota"><i class="fa-solid fa-triangle-exclamation"></i> Antes de dirigirte a un punto, confirma su dirección, horario, cupos y necesidades con una fuente oficial.</p>
+    </main>
+    <nav class="navegacion_inferior" aria-label="Navegación móvil"><a href="dashboard.html" class="item_navegacion"><i class="fa-solid fa-house"></i><span>Inicio</span></a><a href="mapa.html" class="item_navegacion"><i class="fa-solid fa-map"></i><span>Mapa</span></a><a href="desaparecidos.html" class="item_navegacion item_sos"><i class="fa-solid fa-triangle-exclamation"></i><span>SOS</span></a><a href="alertas.html" class="item_navegacion"><i class="fa-solid fa-bell"></i><span>Alertas</span></a><a href="perfil.html" class="item_navegacion"><i class="fa-solid fa-user"></i><span>Perfil</span></a></nav>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="js/auth.js"></script><script src="js/cuenta_sigre.js"></script><script src="js/notificaciones.js"></script><script src="js/centros.js"></script>
+</body>
+</html>

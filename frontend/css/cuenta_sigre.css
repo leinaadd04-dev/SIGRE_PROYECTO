@@ -1,0 +1,391 @@
+/* SIGRE · Cuenta en la cabecera (avatar y menú del celular)
+   Compartido por todas las páginas internas junto con js/cuenta_sigre.js */
+
+.cuenta_derecha {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.cuenta_derecha *,
+.cuenta_menu *,
+.cuenta_ventana_fondo * {
+    box-sizing: border-box;
+}
+
+.cuenta_menu [hidden],
+.cuenta_ventana_fondo [hidden],
+.cuenta_menu[hidden],
+.cuenta_ventana_fondo[hidden] {
+    display: none !important;
+}
+
+/* Avatar */
+
+.cuenta_avatar {
+    display: inline-grid;
+    place-items: center;
+    flex-shrink: 0;
+    width: 40px;
+    height: 40px;
+    overflow: hidden;
+    border-radius: 50%;
+    background: #e5f2f7;
+    color: #1b4965;
+    font-size: 1.3rem;
+    line-height: 1;
+}
+
+.cuenta_avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.cuenta_avatar_grande {
+    width: 52px;
+    height: 52px;
+    font-size: 1.7rem;
+}
+
+.cuenta_avatar_xl {
+    width: 112px;
+    height: 112px;
+    font-size: 3.6rem;
+}
+
+.cuenta_avatar_boton {
+    flex-shrink: 0;
+    padding: 0;
+    border: 2px solid #ffffff;
+    border-radius: 50%;
+    background: none;
+    cursor: pointer;
+    box-shadow: 0 2px 8px rgba(27, 73, 101, 0.18);
+    transition: transform 0.15s ease;
+}
+
+.cuenta_avatar_boton:hover {
+    transform: scale(1.06);
+}
+
+.cuenta_avatar_boton:focus-visible,
+.cuenta_menu_boton:focus-visible {
+    outline: 2px solid #ffffff;
+    outline-offset: 2px;
+}
+
+/* Botón de menú: solo cuando la navegación de escritorio está oculta */
+
+.cuenta_menu_boton {
+    display: none;
+    flex-shrink: 0;
+    width: 40px;
+    height: 40px;
+    border: 0;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.18);
+    color: #ffffff;
+    font-size: 1.15rem;
+    cursor: pointer;
+}
+
+.cuenta_nav_oculta .cuenta_menu_boton {
+    display: grid;
+    place-items: center;
+}
+
+/* Menú desplegable */
+
+.cuenta_menu {
+    position: absolute;
+    top: calc(100% + 6px);
+    right: 12px;
+    z-index: 1100;
+    width: min(320px, calc(100vw - 24px));
+    max-height: calc(100vh - 110px);
+    overflow: auto;
+    padding: 14px;
+    border-radius: 16px;
+    background: #ffffff;
+    box-shadow: 0 18px 40px rgba(15, 28, 38, 0.25);
+    font-family: inherit;
+}
+
+.cuenta_menu_perfil {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding-bottom: 12px;
+    margin-bottom: 8px;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.cuenta_menu_datos {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+.cuenta_menu_datos strong {
+    color: #1b4965;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.cuenta_menu_datos small {
+    color: #667085;
+    font-size: 0.8rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.cuenta_menu_cambiar {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
+    padding: 7px 10px;
+    border: 1px solid #e2e8f0;
+    border-radius: 9px;
+    background: #ffffff;
+    color: #5A4FCF;
+    font: inherit;
+    font-size: 0.82rem;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.cuenta_menu_enlaces {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.cuenta_menu_enlace {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 10px;
+    border-radius: 10px;
+    color: #2b2d42;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.cuenta_menu_enlace i {
+    width: 20px;
+    color: #2c7da0;
+    text-align: center;
+}
+
+.cuenta_menu_enlace:hover,
+.cuenta_menu_enlace.activo {
+    background: #eef3f6;
+    color: #1b4965;
+}
+
+.cuenta_menu_enlace:last-child i {
+    color: #d62839;
+}
+
+/* Ventana para elegir avatar */
+
+.cuenta_ventana_fondo {
+    position: fixed;
+    inset: 0;
+    z-index: 3000;
+    display: grid;
+    place-items: center;
+    padding: 18px;
+    background: rgba(15, 28, 38, 0.68);
+}
+
+.cuenta_ventana {
+    position: relative;
+    width: min(520px, 100%);
+    max-height: min(92vh, 760px);
+    overflow: auto;
+    padding: 24px 22px;
+    border-radius: 16px;
+    background: #ffffff;
+    color: #2b2d42;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
+    font-family: inherit;
+}
+
+.cuenta_ventana h2 {
+    margin: 0 0 14px;
+    color: #1b4965;
+    font-size: 1.25rem;
+}
+
+.cuenta_ventana h3 {
+    margin: 18px 0 10px;
+    color: #2b2d42;
+    font-size: 0.95rem;
+}
+
+.cuenta_ventana_cerrar {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    width: 38px;
+    height: 38px;
+    border: 0;
+    border-radius: 50%;
+    background: #f4f7f6;
+    color: #1b4965;
+    font-size: 1.1rem;
+    cursor: pointer;
+}
+
+.cuenta_vista_previa {
+    display: flex;
+    justify-content: center;
+}
+
+.cuenta_vista_previa .cuenta_avatar {
+    border: 4px solid #ffffff;
+    box-shadow: 0 6px 18px rgba(27, 73, 101, 0.18);
+}
+
+.cuenta_sin_sesion {
+    margin-top: 16px;
+    text-align: center;
+}
+
+.cuenta_sin_sesion p {
+    margin: 0 0 14px;
+    color: #667085;
+}
+
+.cuenta_galeria {
+    display: grid;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    gap: 8px;
+}
+
+.cuenta_animal {
+    display: grid;
+    place-items: center;
+    aspect-ratio: 1;
+    padding: 0;
+    border: 2px solid transparent;
+    border-radius: 50%;
+    background: var(--fondo-animal, #e5f2f7);
+    font-size: 1.7rem;
+    line-height: 1;
+    cursor: pointer;
+    transition: transform 0.15s ease, border-color 0.15s ease;
+}
+
+.cuenta_animal:hover {
+    transform: scale(1.08);
+}
+
+.cuenta_animal[aria-checked="true"] {
+    border-color: #5A4FCF;
+    box-shadow: 0 0 0 3px #ece9fb;
+}
+
+.cuenta_animal:focus-visible,
+.cuenta_ventana_cerrar:focus-visible,
+.cuenta_boton_principal:focus-visible,
+.cuenta_boton_secundario:focus-visible {
+    outline: 2px solid #2c7da0;
+    outline-offset: 2px;
+}
+
+.cuenta_ayuda {
+    margin: 8px 0 0;
+    color: #667085;
+    font-size: 0.85rem;
+}
+
+.cuenta_mensaje {
+    margin: 10px 0 0;
+}
+
+.cuenta_mensaje:empty {
+    display: none;
+}
+
+.cuenta_mensaje.error {
+    padding: 10px 12px;
+    border-radius: 9px;
+    background: #fde8e8;
+    color: #c53030;
+}
+
+.cuenta_acciones {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    margin-top: 18px;
+}
+
+.cuenta_boton_principal,
+.cuenta_boton_secundario {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    border-radius: 10px;
+    font: inherit;
+    font-weight: 700;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.cuenta_boton_principal {
+    padding: 12px 18px;
+    border: 0;
+    background: #5A4FCF;
+    color: #ffffff;
+}
+
+.cuenta_boton_secundario {
+    padding: 9px 13px;
+    border: 1px solid #e2e8f0;
+    background: #ffffff;
+    color: #1b4965;
+    font-size: 0.9rem;
+}
+
+.cuenta_boton_principal:disabled,
+.cuenta_boton_secundario:disabled {
+    opacity: 0.65;
+    cursor: wait;
+}
+
+/* Celular */
+
+@media (max-width: 480px) {
+    .cuenta_galeria {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+
+    .cuenta_acciones {
+        flex-direction: column-reverse;
+    }
+
+    .cuenta_acciones button {
+        width: 100%;
+    }
+}
+
+/* En pantallas muy angostas, "Alertas" sigue en el menú y en la barra inferior */
+@media (max-width: 400px) {
+    .cuenta_nav_oculta .boton_campana,
+    .cuenta_nav_oculta .boton_notificaciones {
+        display: none !important;
+    }
+
+    .cuenta_derecha {
+        gap: 8px;
+    }
+}

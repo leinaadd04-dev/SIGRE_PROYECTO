@@ -19,10 +19,19 @@
     const typeInput = document.getElementById("tipo-reporte");
     const message = document.getElementById("mensaje-formulario");
     const modal = document.getElementById("ventana-caso-fondo");
+    const posterLink = document.getElementById("boton-descargar-cartel");
+    const commentsPanel = document.getElementById("panel-comentarios");
+    const openCommentsButton = document.getElementById("boton-abrir-comentarios");
+    const closeCommentsButton = document.getElementById("boton-cerrar-comentarios");
+    const commentList = document.getElementById("lista-comentarios");
+    const commentForm = document.getElementById("formulario-comentario");
+    const commentStatus = document.getElementById("estado-comentarios");
+    const loginCommentNotice = document.getElementById("aviso-iniciar-sesion-comentario");
     let photoFile = null;
     let selectedType = "persona";
     let searchTimer;
     let loadedReports = [];
+    let currentReport = null;
 
     function htmlSafe(value) {
         return String(value == null ? "" : value).replace(/[&<>"']/g, function (char) {
@@ -35,6 +44,15 @@
 
     function fullPhotoUrl(path) {
         return path.indexOf("http") === 0 ? path : API_BASE + path;
+    }
+
+    function getToken() {
+        return localStorage.getItem("sigre_token");
+    }
+
+    function headersAutenticados() {
+        const token = getToken();
+        return token ? { Authorization: "Bearer " + token } : {};
     }
 
     function renderReports(reports) {
@@ -187,11 +205,14 @@ return '<article class="tarjeta_reporte" data-reporte-id="' +
     });
 
     function openReport(report) {
+        currentReport = report;
         document.getElementById("ventana-foto").src = fullPhotoUrl(report.foto_url);
         document.getElementById("ventana-foto").alt = "Foto de " + report.nombre;
         document.getElementById("ventana-nombre").textContent = report.nombre;
         document.getElementById("ventana-edad").textContent = report.edad || "Edad no especificada";
+        document.getElementById("ventana-genero").textContent = report.genero || "Género no especificado";
         document.getElementById("ventana-ubicacion").textContent = report.sector || "Sector no especificado";
+        posterLink.href = API_BASE + "/api/desaparecidos/" + encodeURIComponent(report.id) + "/cartel";
         const telefono = document.getElementById("ventana-telefono");
 
         if (report.telefono_contacto) {
@@ -208,9 +229,69 @@ return '<article class="tarjeta_reporte" data-reporte-id="' +
         const state = document.getElementById("ventana-estado");
         state.textContent = report.estado === "encontrado" ? "Encontrado" : "Activo";
         state.classList.toggle("encontrado", report.estado === "encontrado");
+        commentForm.hidden = !getToken();
+        loginCommentNotice.hidden = Boolean(getToken());
+        commentsPanel.hidden = true;
+        openCommentsButton.setAttribute("aria-expanded", "false");
+        openCommentsButton.innerHTML = '<i class="fa-solid fa-comment-dots" aria-hidden="true"></i> Comentar';
+        commentStatus.textContent = report.notificaciones_disponibles === false
+            ? "Este reporte es anterior al registro de autores. El comentario se guardará, pero no se podrá notificar a quien lo publicó."
+            : "";
         modal.hidden = false;
+        commentList.innerHTML = "";
         document.getElementById("boton-cerrar-ventana").focus();
     }
+
+    async function loadComments(report) {
+        commentList.innerHTML = "<p>Cargando comentarios...</p>";
+        try {
+            const response = await fetch(ENDPOINT + "/" + encodeURIComponent(report.id) + "/comentarios");
+            const data = await response.json();
+            if (!response.ok) throw new Error(data.error || "No se pudieron cargar los comentarios.");
+            commentList.innerHTML = data.length
+                ? data.map(function (item) {
+                    const fecha = new Date(item.creado_en).toLocaleString("es-CO");
+                    return '<article class="comentario_testigo"><strong>' + htmlSafe(item.nombre_testigo) +
+                        '</strong><p>' + htmlSafe(item.comentario) + '</p><time>' + htmlSafe(fecha) + '</time></article>';
+                }).join("")
+                : '<p class="sin_comentarios">Todavía no hay comentarios. Si tienes información verídica, compártela.</p>';
+        } catch (error) {
+            commentList.innerHTML = '<p class="error_comentarios">' + htmlSafe(error.message) + '</p>';
+        }
+    }
+
+    commentForm.addEventListener("submit", async function (event) {
+        event.preventDefault();
+        if (!currentReport || !getToken()) {
+            loginCommentNotice.hidden = false;
+            commentForm.hidden = true;
+            return;
+        }
+        const submitButton = document.getElementById("boton-enviar-comentario");
+        submitButton.disabled = true;
+        commentStatus.textContent = "Enviando comentario...";
+        try {
+            const response = await fetch(ENDPOINT + "/" + encodeURIComponent(currentReport.id) + "/comentarios", {
+                method: "POST",
+                headers: Object.assign({ "Content-Type": "application/json" }, headersAutenticados()),
+                body: JSON.stringify({
+                    comentario: document.getElementById("texto-comentario").value,
+                    telefono_testigo: document.getElementById("telefono-testigo").value,
+                    veracidad_confirmada: document.getElementById("confirmar-veracidad").checked,
+                    autoriza_compartir_telefono: document.getElementById("autorizar-telefono").checked
+                })
+            });
+            const data = await response.json();
+            if (!response.ok) throw new Error(data.error || "No se pudo enviar el comentario.");
+            commentForm.reset();
+            await loadComments(currentReport);
+            commentStatus.textContent = data.detalle || "Comentario enviado.";
+        } catch (error) {
+            commentStatus.textContent = error.message;
+        } finally {
+            submitButton.disabled = false;
+        }
+    });
 
     grid.addEventListener("click", function (event) {
                 const botonCompartir = event.target.closest(".boton_compartir");
@@ -232,6 +313,24 @@ return '<article class="tarjeta_reporte" data-reporte-id="' +
     });
 
     function closeModal() { modal.hidden = true; }
+    function openComments() {
+        commentsPanel.hidden = false;
+        openCommentsButton.setAttribute("aria-expanded", "true");
+        openCommentsButton.innerHTML = '<i class="fa-solid fa-comment-dots" aria-hidden="true"></i> Cerrar comentarios';
+        loadComments(currentReport);
+        commentsPanel.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    }
+    function closeComments() {
+        commentsPanel.hidden = true;
+        openCommentsButton.setAttribute("aria-expanded", "false");
+        openCommentsButton.innerHTML = '<i class="fa-solid fa-comment-dots" aria-hidden="true"></i> Comentar';
+        openCommentsButton.focus();
+    }
+    openCommentsButton.addEventListener("click", function () {
+        if (commentsPanel.hidden) openComments();
+        else closeComments();
+    });
+    closeCommentsButton.addEventListener("click", closeComments);
     document.getElementById("boton-cerrar-ventana").addEventListener("click", closeModal);
     modal.addEventListener("click", function (event) {
         if (event.target === modal) closeModal();
@@ -251,6 +350,14 @@ return '<article class="tarjeta_reporte" data-reporte-id="' +
     form.addEventListener("submit", async function (event) {
         event.preventDefault();
         message.textContent = "";
+        if (!getToken()) {
+            message.textContent = "Inicia sesión en SIGRE para publicar el reporte y recibir sus comentarios. ";
+            const loginLink = document.createElement("a");
+            loginLink.href = "login.html";
+            loginLink.textContent = "Ir a iniciar sesión";
+            message.appendChild(loginLink);
+            return;
+        }
         if (!photoFile) {
             message.textContent = "Primero selecciona la foto del reporte.";
             return;
@@ -269,7 +376,11 @@ return '<article class="tarjeta_reporte" data-reporte-id="' +
         submitButton.textContent = "Publicando...";
 
         try {
-            const response = await fetch(ENDPOINT, { method: "POST", body: formData });
+            const response = await fetch(ENDPOINT, {
+                method: "POST",
+                headers: headersAutenticados(),
+                body: formData
+            });
             const result = await response.json();
             if (!response.ok) throw new Error(result.error || "No fue posible publicar el reporte.");
 
@@ -293,6 +404,18 @@ return '<article class="tarjeta_reporte" data-reporte-id="' +
         }
     });
 
-    loadReports();
+    // Las notificaciones llevan a desaparecidos.html?reporte=ID: abre ese caso.
+    async function openReportFromUrl() {
+        const reportId = new URLSearchParams(window.location.search).get("reporte");
+        await loadReports();
+        if (!reportId) return;
+        const report = loadedReports.find(function (item) { return String(item.id) === reportId; });
+        if (!report) return;
+        document.querySelector('.tarjeta_reporte[data-reporte-id="' + CSS.escape(reportId) + '"]')
+            ?.scrollIntoView({ behavior: "smooth", block: "center" });
+        openReport(report);
+    }
+
+    openReportFromUrl();
 })();
 
