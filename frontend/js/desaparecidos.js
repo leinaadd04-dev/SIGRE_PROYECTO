@@ -1,6 +1,6 @@
 /* SIGRE · Módulo dinámico de desaparecidos */
 (() => {
-    const API_BASE = `http://${window.location.hostname}:5000`;
+    const API_BASE = window.SIGRE_API;   // js/config.js
     const ENDPOINT = API_BASE + "/api/desaparecidos";
 
     const grid = document.getElementById("cuadricula-reportes");

@@ -7,7 +7,7 @@
     const cabecera = document.querySelector(".cabecera_dashboard");
     if (!cabecera) return;
 
-    const API_BASE = `http://${window.location.hostname}:5000`;
+    const API_BASE = window.SIGRE_API;   // js/config.js
     const CLAVE_TOKEN = "sigre_token";
     const INTERVALO = 30000;
 
@@ -125,6 +125,8 @@
             campana.setAttribute("aria-label", "Notificaciones");
         }
         botonTodas.hidden = cantidad === 0;
+        // El menú de la cuenta (js/cuenta_sigre.js) muestra el mismo número.
+        document.dispatchEvent(new CustomEvent("sigre:notificaciones", { detail: { noLeidas: cantidad } }));
     }
 
     function pintarLista() {
@@ -262,7 +264,20 @@
 
     /* ---------- Eventos ---------- */
 
+    // En celulares angostos la campana se oculta y el panel se abre desde el
+    // menú de la cuenta: entonces se muestra flotando sobre la página.
+    function colocarPanel() {
+        const campanaVisible = campana.offsetParent !== null;
+        if (campanaVisible && panel.parentElement !== contenedor) {
+            contenedor.appendChild(panel);
+        } else if (!campanaVisible && panel.parentElement !== document.body) {
+            document.body.appendChild(panel);
+        }
+        panel.classList.toggle("sigre_notif_flotante", !campanaVisible);
+    }
+
     function abrirPanel() {
+        colocarPanel();
         panel.hidden = false;
         campana.setAttribute("aria-expanded", "true");
         cargar();
@@ -298,12 +313,12 @@
     });
 
     document.addEventListener("click", function (evento) {
-        if (!panel.hidden && !contenedor.contains(evento.target)) cerrarPanel();
+        if (!panel.hidden && !contenedor.contains(evento.target) && !panel.contains(evento.target)) cerrarPanel();
     });
     document.addEventListener("keydown", function (evento) {
         if (evento.key === "Escape" && !panel.hidden) {
             cerrarPanel();
-            campana.focus();
+            if (campana.offsetParent !== null) campana.focus();
         }
     });
     document.addEventListener("visibilitychange", function () {
@@ -314,7 +329,7 @@
     }, INTERVALO);
 
     // Otras partes de la página pueden pedir una actualización inmediata.
-    window.SigreNotificaciones = { actualizar: cargar };
+    window.SigreNotificaciones = { actualizar: cargar, abrir: abrirPanel };
 
     cargar();
 })();

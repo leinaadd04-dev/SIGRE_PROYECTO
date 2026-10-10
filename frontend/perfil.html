@@ -8,6 +8,8 @@
     <link rel="stylesheet" href="css/estiloso.css">
     <link rel="stylesheet" href="css/notificaciones.css">
     <link rel="stylesheet" href="css/cuenta_sigre.css">
+    <link rel="stylesheet" href="css/navegacion_movil.css">
+    <link rel="stylesheet" href="css/chatbot.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 
     
@@ -36,6 +38,62 @@
 
     .perfil-cabecera {
         border-left: 6px solid #1b4965;
+    }
+
+    .perfil-identidad {
+        display: flex;
+        align-items: center;
+        gap: 22px;
+        margin-bottom: 14px;
+    }
+
+    .perfil-foto-boton {
+        position: relative;
+        flex-shrink: 0;
+        padding: 0;
+        border: 4px solid #e6eff4;
+        border-radius: 50%;
+        background: none;
+        cursor: pointer;
+    }
+
+    .perfil-foto-boton:focus-visible {
+        outline: 3px solid #1b4965;
+        outline-offset: 3px;
+    }
+
+    .perfil-foto-editar {
+        position: absolute;
+        right: 2px;
+        bottom: 2px;
+        display: grid;
+        place-items: center;
+        width: 34px;
+        height: 34px;
+        border: 3px solid #ffffff;
+        border-radius: 50%;
+        background: #1b4965;
+        color: #ffffff;
+        font-size: .85rem;
+    }
+
+    .perfil-identidad-datos {
+        min-width: 0;
+    }
+
+    .perfil-identidad-datos h1 {
+        margin: 0;
+        overflow-wrap: anywhere;
+    }
+
+    .perfil-identidad-datos p {
+        margin: 2px 0 12px;
+        overflow-wrap: anywhere;
+    }
+
+    .perfil-cambiar-foto {
+        padding: 9px 16px;
+        font-size: .9rem;
     }
 
     .perfil-cabecera h1 {
@@ -172,6 +230,11 @@
             grid-template-columns: 1fr;
         }
 
+        .perfil-identidad {
+            flex-direction: column;
+            text-align: center;
+        }
+
         .perfil-ancho {
             grid-column: auto;
         }
@@ -187,8 +250,16 @@
     }
 </style>
 
+    <!-- App instalable (PWA) y dirección del servidor: van en todas las páginas -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#436097">
+    <link rel="icon" type="image/png" href="imagenes/iconos/icono-192.png">
+    <link rel="apple-touch-icon" href="imagenes/iconos/icono-180.png">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="SIGRE">
+    <script src="js/config.js"></script>
 </head>
-<body>
+<body class="dashboard_body">
     
     
 <header class="cabecera_dashboard">
@@ -219,10 +290,29 @@
             <span>Cerrar sesión</span>
         </a>
     </nav>
+
+    <div class="cabecera_derecha">
+        <button class="boton_campana" type="button" aria-label="Notificaciones">
+            <i class="fa-solid fa-bell"></i>
+            <span class="contador_notificaciones">0</span>
+        </button>
+    </div>
 </header>
 <main class="perfil-contenedor">
     <header class="perfil-cabecera">
-        <h1>Mi perfil SIGRE</h1>
+        <div class="perfil-identidad">
+            <button type="button" class="perfil-foto-boton" id="perfil-foto-boton" aria-label="Cambiar mi foto de perfil">
+                <span class="cuenta_avatar cuenta_avatar_xl" id="perfil-foto"></span>
+                <span class="perfil-foto-editar" aria-hidden="true"><i class="fa-solid fa-camera"></i></span>
+            </button>
+            <div class="perfil-identidad-datos">
+                <h1 id="perfil-nombre">Mi perfil SIGRE</h1>
+                <p id="perfil-correo"></p>
+                <button type="button" class="perfil-boton perfil-volver perfil-cambiar-foto" id="perfil-cambiar-foto">
+                    <i class="fa-solid fa-camera"></i>&nbsp; Cambiar foto
+                </button>
+            </div>
+        </div>
         <p>Administra tus datos personales, información médica y contacto de emergencia.</p>
         <p class="perfil-nota">La información médica es sensible. Completa solo los datos que desees registrar.</p>
     </header>
@@ -320,7 +410,7 @@
 
 <script>
 (() => {
-    const API = `http://${window.location.hostname}:5000`;
+    const API = window.SIGRE_API;   // js/config.js
     const token = localStorage.getItem('sigre_token');
     const form = document.getElementById('form-perfil');
     const mensaje = document.getElementById('perfil-mensaje');
@@ -383,6 +473,11 @@
             const resultado = await respuesta.json();
             if (!respuesta.ok) throw new Error(resultado.error || 'No se pudo guardar.');
 
+            if (resultado.perfil) {
+                campos.forEach(campo => {
+                    document.getElementById(campo).value = resultado.perfil[campo] ?? '';
+                });
+            }
             mensaje.textContent = resultado.mensaje || 'Perfil guardado correctamente.';
         } catch (error) {
             mensaje.textContent = `Error al guardar: ${error.message}`;
@@ -395,32 +490,32 @@
 })();
 </script>
 
-    <!-- BARRA INFERIOR -->
-    <nav class="navegacion_inferior">
-        <a href="dashboard.html" class="item_navegacion">
-            <i class="fa-solid fa-house"></i>
-            <span>Inicio</span>
-        </a>
+    <!-- Barra inferior del celular: la arma js/navegacion_movil.js -->
+    <nav class="navegacion_inferior" aria-label="Navegación principal"></nav>
 
-        <a href="mapa.html" class="item_navegacion">
-            <i class="fa-solid fa-map"></i>
-            <span>Mapa</span>
-        </a>
+    <script src="js/auth.js"></script>
+    <script src="js/cuenta_sigre.js"></script>
+    <script>
+    // Foto de la persona: es el mismo avatar de la cuenta (js/cuenta_sigre.js).
+    // Se puede subir una foto propia o elegir un animalito.
+    (() => {
+        const foto = document.getElementById('perfil-foto');
+        let usuario = {};
+        try {
+            usuario = JSON.parse(localStorage.getItem('sigre_usuario') || '{}') || {};
+        } catch (error) { /* sin datos guardados */ }
+        if (usuario.nombre) document.getElementById('perfil-nombre').textContent = usuario.nombre;
+        document.getElementById('perfil-correo').textContent = usuario.email || '';
 
-        <button class="boton_sos" id="boton-sos" type="button">
-            <span>SOS</span>
-        </button>
-
-        <a href="alertas.html" class="item_navegacion">
-            <i class="fa-solid fa-bell"></i>
-            <span>Alertas</span>
-        </a>
-
-        <a href="perfil.html" class="item_navegacion activo">
-            <i class="fa-solid fa-user"></i>
-            <span>Mi Perfil</span>
-        </a>
-    </nav>
-</body>
+        if (!window.SigreCuenta) return;
+        window.SigreCuenta.alCambiarAvatar(avatar => window.SigreCuenta.pintarAvatar(foto, avatar));
+        ['perfil-foto-boton', 'perfil-cambiar-foto'].forEach(id => {
+            document.getElementById(id).addEventListener('click', () => window.SigreCuenta.abrirAvatar());
+        });
+    })();
+    </script>
+    <script src="js/notificaciones.js"></script>
+    <script src="js/navegacion_movil.js"></script>
+    <script src="js/chatbot.js"></script>
 </body>
 </html>

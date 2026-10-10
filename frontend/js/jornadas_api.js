@@ -5,7 +5,7 @@
 // - "Ver quiénes van" abre la lista de participantes.
 // Filtros, corazones (mis intereses) y "Ver ubicación" los maneja js/jornadas.js.
 (() => {
-    const API_BASE = `http://${window.location.hostname}:5000`;
+    const API_BASE = window.SIGRE_API;   // js/config.js
     const CLAVE_TOKEN = "sigre_token";
     const grid = document.getElementById("jornadas-grid");
     if (!grid) return;

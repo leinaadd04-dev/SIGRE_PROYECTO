@@ -1,0 +1,213 @@
+/* SIGRE · Asistente virtual (js/chatbot.js) */
+
+/* ---------- Botón flotante ---------- */
+.chat_boton {
+    position: fixed;
+    right: 20px;
+    bottom: 20px;
+    width: 58px;
+    height: 58px;
+    border: none;
+    border-radius: 50%;
+    background: #436097;
+    color: #FFFFFF;
+    font-size: 1.5rem;
+    cursor: pointer;
+    box-shadow: 0 8px 20px rgba(27, 47, 85, 0.35);
+    z-index: 1500;
+    transition: transform 0.2s, background 0.2s;
+}
+
+.chat_boton:hover {
+    transform: scale(1.06);
+    background: #36507F;
+}
+
+/* ---------- Ventana ---------- */
+.chat_ventana {
+    position: fixed;
+    right: 20px;
+    bottom: 92px;
+    width: 360px;
+    max-width: calc(100vw - 32px);
+    height: 500px;
+    max-height: calc(100vh - 120px);
+    display: flex;
+    flex-direction: column;
+    background: #FFFFFF;
+    border-radius: 18px;
+    box-shadow: 0 18px 45px rgba(15, 30, 60, 0.28);
+    overflow: hidden;
+    z-index: 1500;
+}
+
+/* Sin esto, el atributo hidden no oculta la ventana (display:flex lo gana). */
+.chat_ventana[hidden] {
+    display: none;
+}
+
+.chat_cabecera {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 14px 16px;
+    background: #436097;
+    color: #FFFFFF;
+}
+
+.chat_logo {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    background: rgba(255, 255, 255, 0.2);
+    font-size: 1.1rem;
+}
+
+.chat_titulo {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+}
+
+.chat_titulo span {
+    font-size: 0.75rem;
+    opacity: 0.85;
+}
+
+.chat_cerrar {
+    border: none;
+    background: transparent;
+    color: #FFFFFF;
+    font-size: 1.2rem;
+    cursor: pointer;
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+}
+
+.chat_cerrar:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+/* ---------- Mensajes (se usan desde el paso 7) ---------- */
+.chat_mensajes {
+    flex: 1;
+    overflow-y: auto;
+    padding: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    background: #F4F7FB;
+}
+
+.de_usuario,
+.de_bot {
+    max-width: 85%;
+    padding: 10px 13px;
+    border-radius: 14px;
+    font-size: 0.88rem;
+    line-height: 1.4;
+    overflow-wrap: anywhere;
+}
+
+.de_usuario {
+    align-self: flex-end;
+    background: #436097;
+    color: #FFFFFF;
+    border-bottom-right-radius: 4px;
+}
+
+.de_bot {
+    align-self: flex-start;
+    white-space: pre-line;   /* los \n de las respuestas se ven como líneas nuevas */
+    background: #FFFFFF;
+    color: #1F2A37;
+    border: 1px solid #E3E8F0;
+    border-bottom-left-radius: 4px;
+}
+
+.de_bot.escribiendo {
+    color: #8A96A8;
+    font-style: italic;
+}
+
+/* ---------- Formulario ---------- */
+.chat_formulario {
+    display: flex;
+    gap: 8px;
+    padding: 10px;
+    border-top: 1px solid #E3E8F0;
+}
+
+.chat_formulario input {
+    flex: 1;
+    min-width: 0;
+    padding: 10px 12px;
+    border: 1px solid #D5DCE6;
+    border-radius: 12px;
+    font: inherit;
+    font-size: 0.9rem;
+}
+
+.chat_formulario input:focus {
+    outline: 2px solid #436097;
+    outline-offset: 1px;
+}
+
+.chat_formulario button {
+    width: 42px;
+    border: none;
+    border-radius: 12px;
+    background: #436097;
+    color: #FFFFFF;
+    cursor: pointer;
+}
+
+/* ---------- Celular: la barra de navegación inferior tapa el botón ---------- */
+@media (max-width: 991px) {
+    .chat_boton {
+        bottom: 92px;
+    }
+
+    .chat_ventana {
+        bottom: 160px;
+        max-height: calc(100vh - 240px);
+    }
+}
+
+@media (max-width: 480px) {
+    .chat_boton {
+        right: 14px;
+    }
+
+    .chat_ventana {
+        right: 16px;
+        left: 16px;
+        width: auto;
+    }
+}
+
+.chat_sugerencias {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.chat_chip {
+    border: 1px solid #436097;
+    background: #FFFFFF;
+    color: #436097;
+    border-radius: 999px;
+    padding: 6px 12px;
+    font: inherit;
+    font-size: 0.8rem;
+    cursor: pointer;
+}
+
+.chat_chip:hover {
+    background: #436097;
+    color: #FFFFFF;
+}
+

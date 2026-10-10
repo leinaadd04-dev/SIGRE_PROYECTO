@@ -9,12 +9,21 @@
     <!-- CSS PRINCIPAL -->
     <link rel="stylesheet" href="css/estiloso.css">
     <link rel="stylesheet" href="css/notificaciones.css">
+    <link rel="stylesheet" href="css/navegacion_movil.css">
     <link rel="stylesheet" href="css/cuenta_sigre.css">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
     <link rel="stylesheet" href="css/dashboard_resumen.css">
-
+    <link rel="stylesheet" href="css/chatbot.css">
     <!-- FONT AWESOME -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <!-- App instalable (PWA) y dirección del servidor: van en todas las páginas -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#436097">
+    <link rel="icon" type="image/png" href="imagenes/iconos/icono-192.png">
+    <link rel="apple-touch-icon" href="imagenes/iconos/icono-180.png">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="SIGRE">
+    <script src="js/config.js"></script>
 </head>
 
 <body class="dashboard_body">
@@ -320,7 +329,7 @@
 
             <p class="directorio_nota">
                 <i class="fa-solid fa-circle-info"></i>
-                Líneas nacionales revisadas en octubre de 2026. De las clínicas solo mostramos la dirección: confirma teléfono y servicios antes de ir.
+                Antes de ir a un centro de salud, llama para confirmar su horario y los servicios que ofrece.
             </p>
         </section>
     </div>
@@ -358,6 +367,8 @@
     <script src="js/auth.js"></script>
     <script src="js/cuenta_sigre.js"></script>
     <script src="js/notificaciones.js"></script>
+    <script src="js/navegacion_movil.js"></script>
+    <script src="js/chatbot.js"></script>
     <script src="js/dashboard.js"></script>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="js/dashboard_resumen.js"></script>

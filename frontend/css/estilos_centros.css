@@ -139,3 +139,122 @@
     color: #8d99ae;
 }
 
+
+/* Inventario del centro (solo lectura; lo edita el admin desde el panel) */
+.centro_inventario {
+    margin-top: 16px;
+    border: 1px solid var(--border-color, #e4e9ec);
+    border-radius: 12px;
+    background: #f8fafb;
+}
+
+.centro_inventario summary {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    padding: 11px 13px;
+    color: var(--primary-color, #1b4965);
+    font-size: .9rem;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.centro_inventario summary i {
+    color: var(--primary-light, #2c7da0);
+}
+
+.inventario_faltan {
+    padding: 3px 8px;
+    border-radius: 20px;
+    background: #fff4d6;
+    color: #975a16;
+    font-size: .75rem;
+}
+
+.inventario_grupo {
+    padding: 4px 13px 10px;
+}
+
+.inventario_grupo h4 {
+    margin: 6px 0 6px;
+    color: #526274;
+    font-size: .8rem;
+    text-transform: uppercase;
+    letter-spacing: .03em;
+}
+
+.inventario_grupo ul {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.inventario_grupo li {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px 10px;
+    padding: 6px 0;
+    border-bottom: 1px dashed #e3e8ec;
+    color: #3b4a5c;
+    font-size: .88rem;
+}
+
+.inventario_grupo li:last-child {
+    border-bottom: 0;
+}
+
+.inventario_grupo li span:first-child {
+    flex: 1;
+    min-width: 120px;
+}
+
+.inventario_marca {
+    padding: 2px 8px;
+    border-radius: 20px;
+    font-size: .72rem;
+    font-weight: 700;
+}
+
+.inventario_marca.agotado { background: #fde8e8; color: #c53030; }
+.inventario_marca.bajo { background: #fff4d6; color: #975a16; }
+
+.inventario_talla {
+    margin-left: 4px;
+    padding: 1px 7px;
+    border-radius: 20px;
+    background: #ece9fb;
+    color: #5A4FCF;
+    font-size: .75rem;
+    font-style: normal;
+    font-weight: 700;
+}
+
+/* Tarjetas de la misma fila: cupos, inventario y pie quedan alineados abajo. */
+.centro_card_contenido {
+    display: flex;
+    flex-direction: column;
+    align-self: stretch;
+}
+
+.centro_card_pie {
+    margin-top: auto;
+}
+
+.centro_necesidades em {
+    font-style: normal;
+    font-size: .85em;
+    opacity: .85;
+}
+
+.centro_abastecido {
+    padding: 10px 12px;
+    border-radius: 10px;
+    background: #e9f5ed;
+    color: #2f6b47;
+}
+
+.centro_abastecido i {
+    color: #34845b;
+}

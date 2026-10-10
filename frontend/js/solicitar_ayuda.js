@@ -3,7 +3,7 @@
    hogar) y solicitudes de visita a vivienda. Usa el token JWT de la cuenta y
    muestra únicamente las solicitudes creadas por esa misma cuenta. */
 (() => {
-    const API_BASE = `http://${window.location.hostname}:5000`;
+    const API_BASE = window.SIGRE_API;   // js/config.js
     const ENDPOINT = API_BASE + "/api/solicitudes-ayuda";
     const CLAVE_TOKEN = "sigre_token";
     const LIMITE_ADJUNTO = 5 * 1024 * 1024;
