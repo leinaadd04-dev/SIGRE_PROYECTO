@@ -1,7 +1,10 @@
-/* SIGRE · Navegación inferior para celular (todas las páginas del ciudadano)
-   - Mismo estilo que las pestañas del panel de administración: una barra con
-     pestañas que se desliza de lado, la página actual resaltada y SOS en rojo.
-   - Reemplaza la barra que traía cada página, para que todas sean iguales.
+/* SIGRE · Navegación de las páginas del ciudadano (celular y escritorio)
+   - Celular: barra inferior con el mismo estilo que las pestañas del panel de
+     administración (se desliza de lado, página actual resaltada, SOS en rojo).
+   - Escritorio: los enlaces de la cabecera, con las mismas opciones.
+   - Reemplaza los enlaces que traía cada página, para que todas sean iguales.
+     Las opciones de la cuenta (Mi perfil, Notificaciones…) están en el menú ☰
+     (js/cuenta_sigre.js).
    - SOS pregunta y luego llama a la línea única de emergencias 123.
    Expone window.SigreSOS() para que otros botones SOS hagan lo mismo. */
 (() => {
@@ -60,6 +63,40 @@
     });
 
     document.body.classList.add("con_nav_movil");
+
+    // Escritorio: mismos módulos en la cabecera y "Cerrar sesión" al final.
+    const navEscritorio = document.querySelector(".cabecera_dashboard .navegacion_escritorio");
+    if (navEscritorio) {
+        navEscritorio.classList.add("nav_escritorio_sigre");
+        navEscritorio.setAttribute("aria-label", "Navegación principal");
+        navEscritorio.replaceChildren();
+        OPCIONES.filter(opcion => !opcion.sos).forEach(opcion => {
+            const enlace = document.createElement("a");
+            enlace.href = opcion.href;
+            enlace.className = "enlace_escritorio";
+            enlace.title = opcion.texto;
+            enlace.innerHTML = `<i class="fa-solid ${opcion.icono}" aria-hidden="true"></i><span>${opcion.texto}</span>`;
+            if (opcion.href === paginaActual) {
+                enlace.classList.add("activo");
+                enlace.setAttribute("aria-current", "page");
+            }
+            navEscritorio.appendChild(enlace);
+        });
+        const salir = document.createElement("a");
+        salir.href = "#";
+        salir.className = "enlace_escritorio nav_escritorio_salir";
+        salir.title = "Cerrar sesión";
+        salir.innerHTML = '<i class="fa-solid fa-right-from-bracket" aria-hidden="true"></i><span>Cerrar sesión</span>';
+        salir.addEventListener("click", evento => {
+            evento.preventDefault();
+            try {
+                localStorage.removeItem("sigre_usuario");
+                localStorage.removeItem("sigre_token");
+            } catch (error) { /* nada que limpiar */ }
+            window.location.href = "index.html";
+        });
+        navEscritorio.appendChild(salir);
+    }
 
     // Deja visible la pestaña de la página actual aunque la barra se deslice.
     const activa = nav.querySelector(".activa");

@@ -92,3 +92,55 @@ nav.navegacion_inferior.nav_movil_sigre::-webkit-scrollbar {
         padding-bottom: 96px;
     }
 }
+
+/* ---------- Escritorio: enlaces de la cabecera ---------- */
+.navegacion_escritorio.nav_escritorio_sigre {
+    align-items: center;
+    gap: 6px;
+}
+
+.nav_escritorio_sigre .enlace_escritorio {
+    padding: 8px 12px;
+    border-radius: 10px;
+    font-size: 0.9rem;
+    white-space: nowrap;
+}
+
+.nav_escritorio_sigre .enlace_escritorio:hover {
+    background: rgba(255, 255, 255, 0.14);
+    color: #ffffff;
+}
+
+.nav_escritorio_sigre .enlace_escritorio.activo {
+    background: #ffffff;
+    color: #2c7da0;
+}
+
+.nav_escritorio_sigre .nav_escritorio_salir {
+    margin-left: 6px;
+}
+
+.nav_escritorio_sigre .enlace_escritorio:focus-visible {
+    outline: 2px solid #ffffff;
+    outline-offset: 2px;
+}
+
+/* Pantallas medianas: solo íconos para que quepan todos (el nombre sale al pasar el mouse). */
+@media (min-width: 992px) and (max-width: 1240px) {
+    .nav_escritorio_sigre .enlace_escritorio span {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+        clip: rect(0 0 0 0);
+        white-space: nowrap;
+    }
+
+    .nav_escritorio_sigre .enlace_escritorio.activo span {
+        position: static;
+        width: auto;
+        height: auto;
+        overflow: visible;
+        clip: auto;
+    }
+}

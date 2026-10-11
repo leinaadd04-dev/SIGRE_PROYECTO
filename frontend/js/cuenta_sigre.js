@@ -147,19 +147,11 @@
     const correoMenu = menu.querySelector(".cuenta_menu_datos small");
     const enlacesMenu = menu.querySelector(".cuenta_menu_enlaces");
 
-    // Copia los enlaces de la navegación de escritorio de cada página.
+    // Navegación de escritorio de la página (se usa para saber si está oculta).
     const navEscritorio = cabecera.querySelector(".navegacion_escritorio");
 
-    // Las cuentas de autoridad ven un acceso directo a su panel en todas las páginas.
-    // Solo es un enlace: el panel y la API comprueban el rol en el servidor.
-    if (navEscritorio && leerToken() && leerUsuario().rol === "autoridad"
-        && !navEscritorio.querySelector('a[href="dashboard_admin.html"]')) {
-        const enlacePanel = crear("a", "enlace_escritorio", { href: "dashboard_admin.html" });
-        enlacePanel.innerHTML = '<i class="fa-solid fa-gauge-high"></i><span>Panel</span>';
-        navEscritorio.insertBefore(enlacePanel, navEscritorio.firstChild);
-    }
     // Menú de las tres rayitas: opciones de la cuenta. La navegación entre
-    // módulos está en la barra de abajo (js/navegacion_movil.js).
+    // módulos está en la cabecera y en la barra de abajo (js/navegacion_movil.js).
     //   Administrador: Vista ciudadana, Panel, Mi perfil, Notificaciones, Cerrar sesión.
     //   Ciudadano:     Mi perfil, Notificaciones, Cerrar sesión.
     const paginaActual = window.location.pathname.split("/").pop() || "dashboard.html";
@@ -244,11 +236,11 @@
         abrirVentanaAvatar();
     });
 
-    // El botón de menú aparece solo cuando la navegación de escritorio está oculta.
+    // En celular la navegación de escritorio se oculta (la cabecera se compacta).
+    // El botón ☰ está siempre: tiene las opciones de la cuenta.
     function revisarNavegacion() {
         const oculta = !navEscritorio || window.getComputedStyle(navEscritorio).display === "none";
         cabecera.classList.toggle("cuenta_nav_oculta", oculta);
-        if (!oculta) abrirMenu(false);
     }
     window.addEventListener("resize", revisarNavegacion);
 

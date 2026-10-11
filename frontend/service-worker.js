@@ -1,8 +1,4 @@
-/* SIGRE · Service worker (permite instalar SIGRE como app en el celular)
-   - Páginas, estilos, scripts e imágenes: primero se piden a internet (siempre
-     la versión más nueva) y se guarda una copia; sin conexión se usa la copia.
-   - La API (/api/...) nunca se guarda: lleva datos personales y debe estar
-     siempre al día. */
+
 const CACHE = "sigre-v1";
 
 self.addEventListener("install", () => self.skipWaiting());

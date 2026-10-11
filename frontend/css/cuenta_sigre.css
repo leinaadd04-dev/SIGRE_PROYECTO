@@ -78,7 +78,8 @@
 /* Botón de menú: solo cuando la navegación de escritorio está oculta */
 
 .cuenta_menu_boton {
-    display: none;
+    display: grid;
+    place-items: center;
     flex-shrink: 0;
     width: 40px;
     height: 40px;
