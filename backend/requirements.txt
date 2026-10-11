@@ -12,6 +12,8 @@ google-auth
 gunicorn
 
 # Módulo de rutas de evacuación (backend/rutas.py)
+# scikit-learn la necesita osmnx para buscar la calle más cercana a un punto.
 osmnx==2.1.1
+scikit-learn==1.9.1
 networkx==3.6.1
 shapely==2.1.2
