@@ -19,6 +19,7 @@ cache/
 desktop.ini
 Thumbs.db
 
-# Redes de calles de Montería (OpenStreetMap): se suben al repositorio para que
-# el servidor en internet no tenga que descargarlas en cada despliegue.
-# Si las borras, backend/rutas.py las vuelve a descargar.
+# Redes de calles: el .graphml completo de OpenStreetMap queda solo en tu PC;
+# al servidor se suben las versiones livianas (*.json.gz) que crea
+# "python backend/rutas.py".
+backend/datos_rutas/*.graphml

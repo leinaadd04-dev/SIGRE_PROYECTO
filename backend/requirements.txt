@@ -11,9 +11,10 @@ pillow==12.3.0
 google-auth
 gunicorn
 
-# Módulo de rutas de evacuación (backend/rutas.py)
-# scikit-learn la necesita osmnx para buscar la calle más cercana a un punto.
-osmnx==2.1.1
-scikit-learn==1.9.1
+# Módulo de rutas de evacuación (backend/rutas.py). El servidor solo calcula
+# rutas sobre las redes livianas de backend/datos_rutas/*.json.gz.
 networkx==3.6.1
-shapely==2.1.2
+
+# Para volver a preparar las redes en tu PC (python backend/rutas.py) instala
+# además: pip install osmnx==2.1.1 shapely==2.1.2 scikit-learn==1.9.1
+# No van aquí porque ocupan cientos de MB de memoria en el servidor.
