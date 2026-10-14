@@ -81,7 +81,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    fetch(`http://${window.location.hostname}:5000/api/emergencias/activa`)
+    fetch(`${window.SIGRE_API}/api/emergencias/activa`)
         .then(function (respuesta) {
             if (!respuesta.ok) throw new Error();
             return respuesta.json();
@@ -129,21 +129,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     /* ============================================================
        5. BOTÓN SOS
+       Lo maneja js/navegacion_movil.js (window.SigreSOS): llama al 123.
        ============================================================ */
-    const botonSOS = document.getElementById('boton-sos');
-
-    if (botonSOS) {
-        botonSOS.addEventListener('click', () => {
-            const confirmar = confirm(
-                '¿Enviar alerta SOS?\n\n' +
-                'Se notificará a las autoridades de tu ubicación actual.'
-            );
-
-            if (confirmar) {
-                alert('¡Alerta SOS enviada! Las autoridades se pondrán en contacto.');
-                // Aquí irá el fetch al backend cuando lo tengamos
-            }
-        });
-    }
 
 });

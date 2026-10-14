@@ -78,7 +78,8 @@
 /* Botón de menú: solo cuando la navegación de escritorio está oculta */
 
 .cuenta_menu_boton {
-    display: none;
+    display: grid;
+    place-items: center;
     flex-shrink: 0;
     width: 40px;
     height: 40px;
@@ -388,4 +389,27 @@
     .cuenta_derecha {
         gap: 8px;
     }
+}
+
+/* Opciones del menú que son botones (Notificaciones) se ven igual que los enlaces. */
+button.cuenta_menu_enlace {
+    width: 100%;
+    border: 0;
+    background: none;
+    font: inherit;
+    font-weight: 600;
+    text-align: left;
+    cursor: pointer;
+}
+
+.cuenta_menu_contador {
+    margin-left: auto;
+    min-width: 22px;
+    padding: 2px 7px;
+    border-radius: 20px;
+    background: #e53e3e;
+    color: #ffffff;
+    font-size: 0.75rem;
+    font-weight: 800;
+    text-align: center;
 }

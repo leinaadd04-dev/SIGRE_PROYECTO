@@ -527,6 +527,42 @@
     let entidades = [];
     let entidadEditando = null;
 
+        const inputFotoEntidad = formEntidad.foto;
+    const vistaFotoEntidad = document.getElementById("vista-foto-entidad");
+    const cajaQuitarFoto = document.getElementById("quitar-foto-entidad-caja");
+
+    // ?v= cambia con cada foto nueva, así el navegador no muestra la vieja.
+    function urlFotoEntidad(e) {
+        return `${API_BASE}/api/directorio/${e.id}/foto?v=${e.foto_version || 0}`;
+    }
+
+    // La foto viaja como FormData (no como JSON), por eso no se usa llamarApi.
+    async function enviarFotoEntidad(id, archivo) {
+        const datos = new FormData();
+        datos.append("foto", archivo);
+        const respuesta = await fetch(`${API_BASE}/api/admin/directorio/${id}/foto`, {
+            method: "POST",
+            headers: { Authorization: "Bearer " + A.leerToken() },   // sin Content-Type: el navegador lo pone solo
+            body: datos
+        });
+        if (!respuesta.ok) {
+            let mensaje = "No se pudo subir la foto.";
+            try { mensaje = (await respuesta.json()).error || mensaje; } catch (error) { /* sin JSON */ }
+            throw new Error(mensaje);
+        }
+    }
+
+    // Vista previa apenas se elige el archivo.
+    inputFotoEntidad.addEventListener("change", function () {
+        const archivo = inputFotoEntidad.files[0];
+        if (!archivo) return;
+        vistaFotoEntidad.src = URL.createObjectURL(archivo);
+        vistaFotoEntidad.hidden = false;
+    });
+
+
+
+
     async function cargarDirectorio() {
         listaDirectorio.innerHTML = `<p class="admin_vacio">Cargando directorio...</p>`;
         try {
@@ -539,7 +575,12 @@
             listaDirectorio.innerHTML = entidades.map(function (e) {
                 const contacto = [e.telefono ? "Tel. " + e.telefono : "", e.direccion, e.web].filter(Boolean).join(" · ");
                 return `<article class="admin_centro">
-                    <span class="admin_centro_icono grupo_${htmlSafe(e.grupo)}"><i class="fa-solid fa-address-book"></i></span>
+                                        ${e.tiene_foto
+                        ? `<img class="admin_centro_icono admin_foto_lista" src="${urlFotoEntidad(e)}" alt="">`
+                        : `<span class="admin_centro_icono grupo_${htmlSafe(e.grupo)}"><i class="fa-solid fa-address-book"></i></span>`}
+
+
+
                     <div class="admin_centro_datos">
                         <div class="admin_centro_cabecera"><h4>${htmlSafe(e.nombre)}</h4><span class="admin_chip">${htmlSafe(T.grupo[e.grupo])}</span></div>
                         ${e.detalle ? `<p class="admin_centro_tipo">${htmlSafe(e.detalle)}</p>` : ""}
@@ -560,6 +601,11 @@
     function abrirFormularioEntidad(entidad) {
         entidadEditando = entidad || null;
         formEntidad.reset();
+        const conFoto = Boolean(entidad && entidad.tiene_foto);
+        vistaFotoEntidad.hidden = !conFoto;
+        if (conFoto) vistaFotoEntidad.src = urlFotoEntidad(entidad);
+        cajaQuitarFoto.hidden = !conFoto;
+
         document.getElementById("titulo-formulario-entidad").textContent = entidad ? "Editar: " + entidad.nombre : "Nueva entidad";
         if (entidad) {
             ["nombre", "grupo", "telefono", "orden", "detalle", "direccion", "web"].forEach(function (campo) {
@@ -575,16 +621,30 @@
     document.getElementById("boton-nueva-entidad").addEventListener("click", function () { abrirFormularioEntidad(null); });
     document.getElementById("cancelar-entidad").addEventListener("click", function () { formEntidad.hidden = true; });
 
-    formEntidad.addEventListener("submit", async function (evento) {
+        formEntidad.addEventListener("submit", async function (evento) {
         evento.preventDefault();
+        const archivoFoto = inputFotoEntidad.files[0];
+        const quitarFoto = formEntidad.quitar_foto.checked;
+
         const datos = Object.fromEntries(new FormData(formEntidad));
+        delete datos.foto;          // la foto se envía aparte, no en el JSON
+        delete datos.quitar_foto;
         Object.keys(datos).forEach(function (k) { datos[k] = String(datos[k]).trim(); });
         datos.orden = datos.orden === "" ? 100 : Number(datos.orden);
         if (datos.nombre.length < 2) return mostrarMensaje("mensaje-formulario-entidad", "Escribe el nombre de la entidad.", "error");
         if (!datos.telefono && !datos.direccion && !datos.web) return mostrarMensaje("mensaje-formulario-entidad", "Agrega al menos un teléfono, una dirección o un sitio web.", "error");
         if (datos.web && !/^https:\/\//.test(datos.web)) return mostrarMensaje("mensaje-formulario-entidad", "El sitio web debe empezar por https://", "error");
+        if (archivoFoto && archivoFoto.size > 3 * 1024 * 1024) return mostrarMensaje("mensaje-formulario-entidad", "La foto debe pesar máximo 3 MB.", "error");
+
         try {
-            await llamarApi(entidadEditando ? `/api/admin/directorio/${entidadEditando.id}` : "/api/admin/directorio", { method: "POST", body: JSON.stringify(datos) });
+            const guardada = await llamarApi(entidadEditando ? `/api/admin/directorio/${entidadEditando.id}` : "/api/admin/directorio", { method: "POST", body: JSON.stringify(datos) });
+            // Para una entidad nueva, el id llega en la respuesta.
+            const id = entidadEditando ? entidadEditando.id : guardada.id;
+            if (archivoFoto) {
+                await enviarFotoEntidad(id, archivoFoto);
+            } else if (quitarFoto) {
+                await llamarApi(`/api/admin/directorio/${id}/foto/eliminar`, { method: "POST" });
+            }
             formEntidad.hidden = true;
             mostrarMensaje("mensaje-directorio", entidadEditando ? "Entidad actualizada." : "Entidad agregada al directorio.", "exito");
             cargarDirectorio();
@@ -592,6 +652,7 @@
             mostrarMensaje("mensaje-formulario-entidad", textoError(error), "error");
         }
     });
+
 
     listaDirectorio.addEventListener("click", async function (evento) {
         const editar = evento.target.closest("[data-entidad-editar]");

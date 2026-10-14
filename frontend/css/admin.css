@@ -1018,3 +1018,214 @@ body.admin_modal_abierto { overflow: hidden; }
     color: #667085;
     font-size: 0.78rem;
 }
+
+/* Foto o logo de las entidades del directorio */
+.admin_foto_lista {
+    object-fit: cover;
+    padding: 0;
+}
+
+.admin_foto_fila {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.admin_foto_vista {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 1px solid #d5dce6;
+}
+
+.admin_foto_vista[hidden],
+.admin_check_foto[hidden] {
+    display: none;
+}
+
+.admin_check_foto {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 6px;
+    font-size: 0.85rem;
+}
+
+.admin_check_foto input {
+    width: auto;
+}
+
+
+/* ---------- Inventario de centros (js/admin_inventario.js) ---------- */
+
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+}
+
+.admin_inventario_resumen {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+    gap: 10px;
+    margin: 6px 0 16px;
+}
+
+.admin_inventario_resumen:empty {
+    display: none;
+}
+
+.inv_resumen_item {
+    display: grid;
+    grid-template-columns: 34px 1fr;
+    align-items: center;
+    gap: 4px 10px;
+    padding: 12px;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    background: #ffffff;
+    color: #475467;
+    font: inherit;
+    font-size: 0.82rem;
+    text-align: left;
+    cursor: pointer;
+}
+
+.inv_resumen_item:hover,
+.inv_resumen_item.activo {
+    border-color: #2c7da0;
+    background: #f1f8fb;
+}
+
+.inv_resumen_item > i {
+    grid-row: span 2;
+    display: grid;
+    place-items: center;
+    width: 34px;
+    height: 34px;
+    border-radius: 10px;
+    background: #e5f2f7;
+    color: #2c7da0;
+}
+
+.inv_resumen_item strong {
+    display: block;
+    color: #1b4965;
+    font-size: 0.86rem;
+}
+
+.inv_alerta {
+    font-weight: 700;
+}
+
+.inv_alerta.agotado { color: #c53030; }
+.inv_alerta.bajo { color: #b7791f; }
+.inv_alerta.ok { color: #2e7d32; }
+
+.admin_filtros_inventario {
+    margin-bottom: 12px;
+}
+
+.admin_tabla_inventario .inv_fila_categoria td {
+    padding: 14px 12px 8px;
+    border-bottom: 2px solid #e2e8f0;
+    background: #f8fafc;
+    color: #1b4965;
+    font-weight: 800;
+}
+
+.admin_tabla_inventario .inv_fila_categoria span {
+    margin-left: 8px;
+    color: #667085;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+.admin_tabla_inventario tbody tr.inv_fila_categoria:hover {
+    background: #f8fafc;
+}
+
+.inv_centro {
+    color: #475467;
+    font-size: 0.86rem;
+}
+
+.inv_centro i {
+    color: #2c7da0;
+}
+
+.inv_cantidad {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.inv_cantidad input {
+    width: 78px;
+    min-height: 34px;
+    padding: 4px 6px;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    font: inherit;
+    font-weight: 700;
+    text-align: center;
+}
+
+.inv_paso {
+    width: 30px;
+    height: 34px;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    background: #ffffff;
+    color: #1b4965;
+    font-size: 1.05rem;
+    font-weight: 800;
+    cursor: pointer;
+}
+
+.inv_paso:hover {
+    border-color: #2c7da0;
+    background: #f1f8fb;
+}
+
+.inv_unidad {
+    margin-left: 4px;
+    color: #667085;
+    font-size: 0.8rem;
+}
+
+.inv_estado {
+    display: inline-flex;
+    padding: 3px 9px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.inv_estado.agotado { background: #fde8e8; color: #c53030; }
+.inv_estado.bajo { background: #fff4d6; color: #975a16; }
+.inv_estado.ok { background: #e8f5e9; color: #2e7d32; }
+
+.inv_acciones {
+    white-space: nowrap;
+}
+
+.inv_acciones .admin_boton_secundario {
+    padding: 7px 10px;
+}
+
+.inv_talla {
+    display: inline-block;
+    margin-left: 6px;
+    padding: 2px 8px;
+    border-radius: 20px;
+    background: #ece9fb;
+    color: #5A4FCF;
+    font-size: 0.75rem;
+    font-weight: 700;
+}

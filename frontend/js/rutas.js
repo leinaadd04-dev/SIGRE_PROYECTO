@@ -6,7 +6,7 @@
    Parámetros de URL: ?o=lat,lon&d=lat,lon&modo=pie|carro|moto (abre y calcula)
    o ?ruta=ID (ruta guardada). */
 (() => {
-    const API_BASE = `http://${window.location.hostname}:5000`;
+    const API_BASE = window.SIGRE_API;   // js/config.js
     const CENTRO_MONTERIA = [8.757, -75.884];
     const COLOR_SEGURA = "#2e7d32";
     const COLOR_CORTA = "#e76f51";

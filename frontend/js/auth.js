@@ -94,7 +94,7 @@ document.addEventListener('DOMContentLoaded', () => {
        el token de sesión y los datos que muestra el dashboard
        (nombre, email y rol); nunca la contraseña.
        ============================================================ */
-    const API_SIGRE = `http://${window.location.hostname}:5000`;
+    const API_SIGRE = window.SIGRE_API;   // js/config.js
     const CLAVE_TOKEN_SIGRE = 'sigre_token';
     const MENSAJE_SIN_SERVIDOR = 'No se pudo conectar con el servidor de SIGRE. Verifica que Flask esté en ejecución.';
 

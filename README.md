@@ -39,6 +39,8 @@ Prototipo académico para registrar y consultar emergencias y explorar rutas en 
 - `GET /api/admin/solicitudes`, `POST /api/admin/solicitudes/<id>/estado`, `GET /api/admin/solicitudes/<id>/carta` (PDF) y `/adjunto`: solicitudes de ayuda en el panel (requiere `backend/migracion_administracion_contenidos.sql`).
 - `GET /api/notificaciones`, `POST /api/notificaciones/<id>/leida` y `POST /api/notificaciones/leidas`: campana de notificaciones de la cuenta autenticada; las notificaciones las crean disparadores en la base (requiere `backend/migracion_notificaciones.sql`, después de las demás).
 - `POST /api/jornadas/<id>/participar`, `GET /api/jornadas/<id>/participantes` y `GET /api/jornadas/estadisticas`: inscripción en jornadas, lista de quienes van (con correo y teléfono solo para autoridades) y gráfica por categoría (requiere `backend/migracion_participacion_jornadas.sql`).
+- `GET /api/centros/inventario` (público) y `POST /api/admin/inventario`, `/api/admin/inventario/<id>`, `/<id>/cantidad`, `/<id>/eliminar` (solo autoridad): inventario por centro y categoría (requiere `backend/migracion_inventario_centros.sql`).
+- `GET /api/mi-perfil` y `PUT /api/mi-perfil`: identificación, datos médicos y contacto de emergencia de la cuenta autenticada (requiere `backend/migracion_perfil_completo.sql`).
 - `GET /api/directorio` (público) y `POST /api/admin/directorio[/<id>[/eliminar]]`: directorio de entidades.
 - `GET /api/jornadas` (público) y `POST /api/admin/jornadas`, `/<id>/estado`, `/<id>/eliminar`: jornadas comunitarias.
 - `GET /api/emergencias/activa` (público), `GET/POST /api/admin/emergencias` y `POST /api/admin/emergencias/<id>/finalizar`: emergencias.
@@ -106,6 +108,8 @@ psql -U postgres -d sigre -f backend\migracion_administracion.sql
 psql -U postgres -d sigre -f backend\migracion_administracion_contenidos.sql
 psql -U postgres -d sigre -f backend\migracion_notificaciones.sql
 psql -U postgres -d sigre -f backend\migracion_participacion_jornadas.sql
+psql -U postgres -d sigre -f backend\migracion_inventario_centros.sql
+psql -U postgres -d sigre -f backend\migracion_perfil_completo.sql
 ```
 
 Cada integrante debe usar sus propias claves locales. **No subas `backend/.env` a GitHub ni compartas sus contraseñas.**
@@ -137,3 +141,13 @@ Las zonas del mapa son aproximaciones para el prototipo; no son cartografía ofi
 ## Estado
 
 SIGRE está en desarrollo. La configuración completa de PostgreSQL para una computadora nueva todavía debe documentarse junto con el esquema, los permisos y las políticas de seguridad.
+
+## Publicar en internet (Render + Neon)
+
+- **Base de datos:** PostgreSQL en Neon. Se copia la base local con `pg_dump --no-owner` y se carga con `psql`; antes se crea el rol `sigre_app`. El rol dueño debe tener `BYPASSRLS`.
+- **Servidor:** Render, *Web Service* con **Root Directory** `backend`, **Build** `pip install -r requirements.txt` y **Start** `gunicorn app:app --workers 1 --threads 4 --timeout 120`.
+- **Variables de entorno en Render:** `DB_HOST` (host *-pooler* de Neon), `DB_PORT`, `DB_NAME`, `DB_USER=sigre_app`, `DB_PASSWORD`, `DB_SSLMODE=require`, `JWT_SECRET_KEY` (nueva), `GOOGLE_CLIENT_ID` y `PYTHON_VERSION`.
+- Flask entrega también las páginas de `frontend/`, así que todo queda en una sola dirección HTTPS.
+- `frontend/js/config.js` decide la dirección de la API: en desarrollo (Live Server, puertos 5500/8000) usa el puerto 5000; publicado, usa la misma dirección de la página.
+- SIGRE se instala como app (PWA) con `frontend/manifest.json` y `frontend/service-worker.js`: en Android, menú ⋮ → *Instalar aplicación*; en iPhone, Compartir → *Agregar a inicio*.
+- Si agregas una migración nueva, ejecútala también en Neon.

@@ -1,0 +1,146 @@
+/* SIGRE · Navegación inferior para celular (js/navegacion_movil.js)
+   Mismo estilo que las pestañas del panel de administración (.admin_pestanas).
+   Las reglas usan nav.navegacion_inferior.nav_movil_sigre para ganarle a los
+   estilos viejos de la barra que trae cada página. */
+
+nav.navegacion_inferior.nav_movil_sigre {
+    position: fixed;
+    left: 10px;
+    right: 10px;
+    bottom: 10px;
+    top: auto;
+    width: auto;
+    height: auto;
+    display: none;
+    gap: 6px;
+    padding: 6px;
+    border: 0;
+    border-radius: 16px;
+    background: #e9eef2;
+    box-shadow: 0 8px 24px rgba(27, 73, 101, 0.22);
+    overflow-x: auto;
+    scroll-behavior: smooth;
+    scrollbar-width: none;
+    justify-content: flex-start;
+    align-items: stretch;
+    z-index: 1000;
+}
+
+nav.navegacion_inferior.nav_movil_sigre::-webkit-scrollbar {
+    display: none;
+}
+
+.nav_movil_sigre .nav_movil_pestana {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    flex-shrink: 0;
+    min-width: 74px;
+    margin: 0;
+    padding: 9px 12px;
+    border: 0;
+    border-radius: 11px;
+    background: transparent;
+    color: #1b4965;
+    font: inherit;
+    font-size: 0.74rem;
+    font-weight: 700;
+    line-height: 1.1;
+    text-decoration: none;
+    white-space: nowrap;
+    box-shadow: none;
+    transform: none;
+    cursor: pointer;
+}
+
+.nav_movil_sigre .nav_movil_pestana i {
+    font-size: 1.05rem;
+}
+
+.nav_movil_sigre .nav_movil_pestana.activa {
+    background: #ffffff;
+    color: #2c7da0;
+    box-shadow: 0 2px 8px rgba(27, 73, 101, 0.14);
+}
+
+.nav_movil_sigre .nav_movil_pestana:focus-visible {
+    outline: 2px solid #2c7da0;
+    outline-offset: 2px;
+}
+
+/* SOS: pestaña roja, siempre a la vista. */
+.nav_movil_sigre .nav_movil_pestana.nav_movil_sos {
+    background: #e53e3e;
+    color: #ffffff;
+    box-shadow: 0 3px 10px rgba(229, 62, 62, 0.4);
+}
+
+.nav_movil_sigre .nav_movil_pestana.nav_movil_sos:active {
+    background: #c53030;
+}
+
+/* Solo en celular y tablet; en escritorio está la navegación de arriba. */
+@media (max-width: 991px) {
+    nav.navegacion_inferior.nav_movil_sigre {
+        display: flex;
+    }
+
+    /* Que la barra no tape el final de la página. */
+    body.con_nav_movil {
+        padding-bottom: 96px;
+    }
+}
+
+/* ---------- Escritorio: enlaces de la cabecera ---------- */
+.navegacion_escritorio.nav_escritorio_sigre {
+    align-items: center;
+    gap: 6px;
+}
+
+.nav_escritorio_sigre .enlace_escritorio {
+    padding: 8px 12px;
+    border-radius: 10px;
+    font-size: 0.9rem;
+    white-space: nowrap;
+}
+
+.nav_escritorio_sigre .enlace_escritorio:hover {
+    background: rgba(255, 255, 255, 0.14);
+    color: #ffffff;
+}
+
+.nav_escritorio_sigre .enlace_escritorio.activo {
+    background: #ffffff;
+    color: #2c7da0;
+}
+
+.nav_escritorio_sigre .nav_escritorio_salir {
+    margin-left: 6px;
+}
+
+.nav_escritorio_sigre .enlace_escritorio:focus-visible {
+    outline: 2px solid #ffffff;
+    outline-offset: 2px;
+}
+
+/* Pantallas medianas: solo íconos para que quepan todos (el nombre sale al pasar el mouse). */
+@media (min-width: 992px) and (max-width: 1240px) {
+    .nav_escritorio_sigre .enlace_escritorio span {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+        clip: rect(0 0 0 0);
+        white-space: nowrap;
+    }
+
+    .nav_escritorio_sigre .enlace_escritorio.activo span {
+        position: static;
+        width: auto;
+        height: auto;
+        overflow: visible;
+        clip: auto;
+    }
+}

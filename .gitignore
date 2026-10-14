@@ -19,5 +19,7 @@ cache/
 desktop.ini
 Thumbs.db
 
-# Red peatonal descargada de OpenStreetMap (se genera sola)
-backend/datos_rutas/
+# Redes de calles: el .graphml completo de OpenStreetMap queda solo en tu PC;
+# al servidor se suben las versiones livianas (*.json.gz) que crea
+# "python backend/rutas.py".
+backend/datos_rutas/*.graphml

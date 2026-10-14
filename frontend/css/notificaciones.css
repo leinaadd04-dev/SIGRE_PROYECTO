@@ -238,3 +238,13 @@
         animation: none;
     }
 }
+
+/* Abierto desde el menú de la cuenta cuando la campana está oculta (celular). */
+.sigre_notif_panel.sigre_notif_flotante {
+    position: fixed;
+    top: 76px;
+    left: 16px;
+    right: 16px;
+    width: auto;
+    z-index: 1100;
+}

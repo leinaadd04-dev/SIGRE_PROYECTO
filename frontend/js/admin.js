@@ -1,7 +1,7 @@
 /* SIGRE · Panel de administración (rol autoridad)
    El servidor comprueba el rol en cada operación; esta página solo decide qué mostrar. */
 (() => {
-    const API_BASE = `http://${window.location.hostname}:5000`;
+    const API_BASE = window.SIGRE_API;   // js/config.js
     const ROLES = { ciudadano: "Ciudadano", voluntario: "Voluntario", autoridad: "Autoridad / entidad" };
 
     const acceso = document.getElementById("admin-acceso");
@@ -253,6 +253,7 @@
                     <p class="admin_centro_meta">${c.latitud != null ? '<i class="fa-solid fa-location-dot"></i> Con ubicación en el mapa' : '<i class="fa-solid fa-triangle-exclamation"></i> Sin ubicación en el mapa'} · Actualizado ${htmlSafe(fecha(c.actualizado_en, true))}</p>
                 </div>
                 <div class="admin_centro_acciones">
+                    <button type="button" class="admin_boton_secundario" data-inventario="${c.id}"><i class="fa-solid fa-boxes-stacked"></i> Inventario</button>
                     <button type="button" class="admin_boton_secundario" data-editar="${c.id}"><i class="fa-solid fa-pen"></i> Editar</button>
                     <button type="button" class="admin_boton_secundario peligro" data-eliminar="${c.id}"><i class="fa-solid fa-trash"></i> Eliminar</button>
                 </div>

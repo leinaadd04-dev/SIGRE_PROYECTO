@@ -8,7 +8,7 @@
     const cabecera = document.querySelector(".cabecera_dashboard");
     if (!cabecera) return;
 
-    const API_BASE = `http://${window.location.hostname}:5000`;
+    const API_BASE = window.SIGRE_API;   // js/config.js
     const CLAVE_TOKEN = "sigre_token";
     const TIPOS_FOTO = ["image/jpeg", "image/png", "image/webp"];
     const LIMITE_FOTO_ORIGINAL = 5 * 1024 * 1024;
@@ -147,41 +147,61 @@
     const correoMenu = menu.querySelector(".cuenta_menu_datos small");
     const enlacesMenu = menu.querySelector(".cuenta_menu_enlaces");
 
-    // Copia los enlaces de la navegación de escritorio de cada página.
+    // Navegación de escritorio de la página (se usa para saber si está oculta).
     const navEscritorio = cabecera.querySelector(".navegacion_escritorio");
 
-    // Las cuentas de autoridad ven un acceso directo a su panel en todas las páginas.
-    // Solo es un enlace: el panel y la API comprueban el rol en el servidor.
-    if (navEscritorio && leerToken() && leerUsuario().rol === "autoridad"
-        && !navEscritorio.querySelector('a[href="dashboard_admin.html"]')) {
-        const enlacePanel = crear("a", "enlace_escritorio", { href: "dashboard_admin.html" });
-        enlacePanel.innerHTML = '<i class="fa-solid fa-gauge-high"></i><span>Panel</span>';
-        navEscritorio.insertBefore(enlacePanel, navEscritorio.firstChild);
+    // Menú de las tres rayitas: opciones de la cuenta. La navegación entre
+    // módulos está en la cabecera y en la barra de abajo (js/navegacion_movil.js).
+    //   Administrador: Vista ciudadana, Panel, Mi perfil, Notificaciones, Cerrar sesión.
+    //   Ciudadano:     Mi perfil, Notificaciones, Cerrar sesión.
+    const paginaActual = window.location.pathname.split("/").pop() || "dashboard.html";
+
+    function opcionMenu(etiqueta, atributos, icono, texto) {
+        const opcion = crear(etiqueta, "cuenta_menu_enlace", atributos);
+        opcion.innerHTML = `<i class="fa-solid ${icono}"></i><span>${texto}</span>`;
+        enlacesMenu.appendChild(opcion);
+        return opcion;
     }
-    let tieneCerrarSesion = false;
-    if (navEscritorio) {
-        navEscritorio.querySelectorAll("a").forEach(function (enlace) {
-            const copia = enlace.cloneNode(true);
-            copia.removeAttribute("id");
-            copia.className = "cuenta_menu_enlace" + (enlace.classList.contains("activo") ? " activo" : "");
-            if (enlace.id === "cerrar-sesion") {
-                tieneCerrarSesion = true;
-                copia.addEventListener("click", function (evento) {
-                    evento.preventDefault();
-                    cerrarSesion();
-                });
-            }
-            enlacesMenu.appendChild(copia);
-        });
+
+    if (leerToken() && leerUsuario().rol === "autoridad") {
+        const vistaCiudadana = opcionMenu("a", { href: "dashboard.html" }, "fa-house-user", "Vista ciudadana");
+        const panelAdmin = opcionMenu("a", { href: "dashboard_admin.html" }, "fa-gauge-high", "Panel de administración");
+        if (paginaActual === "dashboard_admin.html") panelAdmin.classList.add("activo");
+        else if (paginaActual !== "perfil.html") vistaCiudadana.classList.add("activo");
     }
-    if (!tieneCerrarSesion) {
-        const salir = crear("a", "cuenta_menu_enlace", { href: "#" });
-        salir.innerHTML = '<i class="fa-solid fa-right-from-bracket"></i><span>Cerrar sesión</span>';
+
+    if (leerToken()) {
+        // Datos personales, médicos y contacto de emergencia (perfil.html).
+        const miPerfil = opcionMenu("a", { href: "perfil.html" }, "fa-id-card", "Mi perfil");
+        if (paginaActual === "perfil.html") miPerfil.classList.add("activo");
+    }
+
+    const opcionNotificaciones = opcionMenu("button", { type: "button" }, "fa-bell", "Notificaciones");
+    const contadorMenu = crear("span", "cuenta_menu_contador");
+    contadorMenu.hidden = true;
+    opcionNotificaciones.appendChild(contadorMenu);
+    opcionNotificaciones.addEventListener("click", function () {
+        abrirMenu(false);
+        // Se abre después de este clic para que no lo cierre el clic "afuera".
+        setTimeout(function () {
+            if (window.SigreNotificaciones) window.SigreNotificaciones.abrir();
+        }, 0);
+    });
+    // js/notificaciones.js avisa cuántas hay sin leer.
+    document.addEventListener("sigre:notificaciones", function (evento) {
+        const cantidad = evento.detail.noLeidas;
+        contadorMenu.hidden = !cantidad;
+        contadorMenu.textContent = cantidad > 9 ? "9+" : String(cantidad);
+    });
+
+    if (leerToken()) {
+        const salir = opcionMenu("a", { href: "#" }, "fa-right-from-bracket", "Cerrar sesión");
         salir.addEventListener("click", function (evento) {
             evento.preventDefault();
             cerrarSesion();
         });
-        enlacesMenu.appendChild(salir);
+    } else {
+        opcionMenu("a", { href: "login.html" }, "fa-right-to-bracket", "Iniciar sesión");
     }
 
     function pintarDatosUsuario() {
@@ -216,11 +236,11 @@
         abrirVentanaAvatar();
     });
 
-    // El botón de menú aparece solo cuando la navegación de escritorio está oculta.
+    // En celular la navegación de escritorio se oculta (la cabecera se compacta).
+    // El botón ☰ está siempre: tiene las opciones de la cuenta.
     function revisarNavegacion() {
         const oculta = !navEscritorio || window.getComputedStyle(navEscritorio).display === "none";
         cabecera.classList.toggle("cuenta_nav_oculta", oculta);
-        if (!oculta) abrirMenu(false);
     }
     window.addEventListener("resize", revisarNavegacion);
 

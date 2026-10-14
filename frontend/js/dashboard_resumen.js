@@ -11,7 +11,7 @@
    - Clínicas de Montería: nombres y direcciones de directorios públicos.
      No incluimos sus teléfonos porque no se pudieron confirmar en una fuente oficial. */
 (() => {
-    const API_BASE = `http://${window.location.hostname}:5000`;
+    const API_BASE = window.SIGRE_API;   // js/config.js
 
     const GRUPOS_DIRECTORIO = [
         { clave: "emergencias", grupo: "Emergencias", icono: "fa-tower-broadcast", color: "rojo", iconoEntidad: "fa-phone-volume" },
@@ -42,7 +42,9 @@
                         web: e.web,
                         telefono: e.telefono ? e.telefono.replace(/[^0-9+]/g, "") : null,
                         telefonoTexto: e.telefono,
-                        icono: icono
+                        icono: icono,
+                        foto: e.tiene_foto ? `${API_BASE}/api/directorio/${e.id}/foto?v=${e.foto_version || 0}` : null
+
                     };
                 })
             };
@@ -131,9 +133,17 @@
                 const item = crear("article", "directorio_item");
                 item.dataset.busqueda = textoBusqueda(entidad, seccion.grupo);
 
-                const icono = crear("span", "directorio_item_icono");
-                icono.innerHTML = `<i class="fa-solid ${entidad.icono}"></i>`;
+                                const icono = crear("span", "directorio_item_icono");
+                if (entidad.foto) {
+                    const imagen = crear("img", "directorio_item_foto");
+                    imagen.src = entidad.foto;
+                    imagen.alt = "";
+                    icono.appendChild(imagen);
+                } else {
+                    icono.innerHTML = `<i class="fa-solid ${entidad.icono}"></i>`;
+                }
                 item.appendChild(icono);
+
 
                 const datos = crear("div", "directorio_item_datos");
                 datos.appendChild(crear("strong", "", entidad.nombre));
@@ -185,6 +195,9 @@
     }
 
     function abrirDirectorio() {
+        // Se vuelve a pedir cada vez: así aparecen las entidades que el admin
+        // agregó o editó mientras esta página estaba abierta.
+        cargarDirectorio();
         ventana.hidden = false;
         document.body.classList.add("directorio_abierto");
         botonCerrar.focus();
@@ -322,12 +335,13 @@
         }
     }
 
-    // El SOS de la tarjeta de emergencia reutiliza el del celular (js/dashboard.js).
+    // El SOS de la tarjeta de emergencia hace lo mismo que el de la barra del
+    // celular (js/navegacion_movil.js): pregunta y llama al 123.
     const botonSosTarjeta = document.getElementById("boton-sos-tarjeta");
-    const botonSosMovil = document.getElementById("boton-sos");
-    if (botonSosTarjeta && botonSosMovil) {
+    if (botonSosTarjeta) {
         botonSosTarjeta.addEventListener("click", function () {
-            botonSosMovil.click();
+            if (window.SigreSOS) window.SigreSOS();
+            else if (window.confirm("¿Llamar a la línea única de emergencias 123?")) window.location.href = "tel:123";
         });
     }
 

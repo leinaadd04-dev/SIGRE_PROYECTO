@@ -11,4 +11,6 @@ def obtener_conexion():
         dbname=os.getenv("DB_NAME"),
         user=os.getenv("DB_USER"),
         password=os.getenv("DB_PASSWORD"),
+        # En tu PC no hace falta SSL; en internet (Neon) usa DB_SSLMODE=require.
+        sslmode=os.getenv("DB_SSLMODE", "prefer"),
     )

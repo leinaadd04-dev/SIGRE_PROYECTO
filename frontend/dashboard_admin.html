@@ -11,6 +11,14 @@
     <link rel="stylesheet" href="css/admin.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+    <!-- App instalable (PWA) y dirección del servidor: van en todas las páginas -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#436097">
+    <link rel="icon" type="image/png" href="imagenes/iconos/icono-192.png">
+    <link rel="apple-touch-icon" href="imagenes/iconos/icono-180.png">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="SIGRE">
+    <script src="js/config.js"></script>
 </head>
 <body class="dashboard_body pagina_admin">
 
@@ -78,6 +86,9 @@
                 </button>
                 <button type="button" role="tab" class="admin_pestana" data-seccion="centros" aria-selected="false">
                     <i class="fa-solid fa-house-chimney"></i> Centros y albergues
+                </button>
+                <button type="button" role="tab" class="admin_pestana" data-seccion="inventario" aria-selected="false">
+                    <i class="fa-solid fa-boxes-stacked"></i> Inventario
                 </button>
                 <button type="button" role="tab" class="admin_pestana" data-seccion="desaparecidos" aria-selected="false">
                     <i class="fa-solid fa-person-circle-question"></i> Desaparecidos
@@ -190,7 +201,7 @@
                                 <textarea name="descripcion" rows="2" maxlength="600"></textarea>
                             </label>
                             <label class="admin_campo admin_campo_ancho">
-                                <span>Qué necesita (donaciones)</span>
+                                <span>Qué necesita (solo se muestra si el centro aún no tiene inventario)</span>
                                 <textarea name="necesidades" rows="2" maxlength="400" placeholder="Ej. agua potable, ropa de niño, colchonetas"></textarea>
                             </label>
                         </div>
@@ -231,6 +242,97 @@
                             </button>
                         </div>
                     </form>
+                </div>
+            </section>
+
+            <!-- INVENTARIO DE CENTROS (js/admin_inventario.js) -->
+            <section class="admin_seccion" id="seccion-inventario" role="tabpanel" hidden>
+                <div class="admin_tarjeta">
+                    <div class="admin_titulo_seccion">
+                        <div>
+                            <h3>Inventario de centros</h3>
+                            <p>Cantidad de cada producto por centro de acopio o albergue. La comunidad lo ve en "Acopio y albergues"; solo las cuentas de administrador lo editan.</p>
+                        </div>
+                        <button type="button" class="admin_boton" id="boton-nuevo-producto">
+                            <i class="fa-solid fa-plus"></i> Agregar producto
+                        </button>
+                    </div>
+                    <p class="admin_mensaje" id="mensaje-inventario" role="status" aria-live="polite"></p>
+
+                    <form class="admin_formulario_simple" id="formulario-producto" hidden novalidate>
+                        <h4 id="titulo-formulario-producto">Agregar producto</h4>
+                        <div class="admin_campos">
+                            <label class="admin_campo">
+                                <span>Centro *</span>
+                                <select name="centro_id" required></select>
+                            </label>
+                            <label class="admin_campo">
+                                <span>Categoría *</span>
+                                <select name="categoria" required></select>
+                            </label>
+                            <label class="admin_campo">
+                                <span>Producto *</span>
+                                <input type="text" name="producto" maxlength="120" list="sugerencias-productos" placeholder="Ej. Arroz, colchoneta, jabón" required>
+                            </label>
+                            <label class="admin_campo" id="campo-talla" hidden>
+                                <span>Talla</span>
+                                <input type="text" name="talla" maxlength="20" list="sugerencias-tallas" placeholder="Ej. M, 10, 38">
+                            </label>
+                            <label class="admin_campo">
+                                <span>Cantidad *</span>
+                                <input type="number" name="cantidad" min="0" max="1000000" step="1" value="0" required>
+                            </label>
+                            <label class="admin_campo">
+                                <span>Unidad</span>
+                                <select name="unidad"></select>
+                            </label>
+                            <label class="admin_campo">
+                                <span>Mínimo (avisa "por agotarse")</span>
+                                <input type="number" name="minimo" min="0" max="1000000" step="1" value="0">
+                            </label>
+                        </div>
+                        <datalist id="sugerencias-productos"></datalist>
+                        <datalist id="sugerencias-tallas"></datalist>
+                        <p class="admin_mensaje" id="mensaje-formulario-producto" role="status" aria-live="polite"></p>
+                        <div class="admin_acciones_formulario">
+                            <button type="button" class="admin_boton_secundario" id="cancelar-producto">Cancelar</button>
+                            <button type="submit" class="admin_boton" id="guardar-producto"><i class="fa-solid fa-floppy-disk"></i> Guardar producto</button>
+                        </div>
+                    </form>
+
+                    <div class="admin_inventario_resumen" id="resumen-inventario" aria-label="Resumen por categoría"></div>
+
+                    <div class="admin_filtros admin_filtros_inventario">
+                        <label class="admin_buscador">
+                            <i class="fa-solid fa-magnifying-glass"></i>
+                            <input type="search" id="buscar-producto" placeholder="Buscar producto" aria-label="Buscar producto">
+                        </label>
+                        <select id="filtro-centro-inventario" aria-label="Filtrar por centro"></select>
+                        <select id="filtro-categoria-inventario" aria-label="Filtrar por categoría"></select>
+                        <select id="filtro-estado-inventario" aria-label="Filtrar por estado">
+                            <option value="">Todos los estados</option>
+                            <option value="agotado">Agotados</option>
+                            <option value="bajo">Por agotarse</option>
+                            <option value="ok">Suficientes</option>
+                        </select>
+                    </div>
+
+                    <div class="admin_tabla_contenedor">
+                        <table class="admin_tabla admin_tabla_inventario">
+                            <thead>
+                                <tr>
+                                    <th>Producto</th>
+                                    <th>Centro</th>
+                                    <th>Cantidad</th>
+                                    <th>Mínimo</th>
+                                    <th>Estado</th>
+                                    <th>Actualizado</th>
+                                    <th><span class="sr-only">Acciones</span></th>
+                                </tr>
+                            </thead>
+                            <tbody id="tabla-inventario"></tbody>
+                        </table>
+                    </div>
                 </div>
             </section>
 
@@ -468,6 +570,18 @@
                                 <span>Sitio web oficial</span>
                                 <input type="url" name="web" maxlength="300" placeholder="https://">
                             </label>
+                                                        <div class="admin_campo admin_campo_ancho">
+                                <span>Foto o logo (opcional)</span>
+                                <div class="admin_foto_fila">
+                                    <img id="vista-foto-entidad" class="admin_foto_vista" alt="Vista previa de la foto" hidden>
+                                    <input type="file" name="foto" accept="image/jpeg,image/png,image/webp">
+                                </div>
+                                <label class="admin_check_foto" id="quitar-foto-entidad-caja" hidden>
+                                    <input type="checkbox" name="quitar_foto"> Quitar la foto actual
+                                </label>
+                            </div>
+
+
                         </div>
                         <p class="admin_mensaje" id="mensaje-formulario-entidad" role="status" aria-live="polite"></p>
                         <div class="admin_acciones_formulario">
@@ -515,5 +629,6 @@
     <script src="js/notificaciones.js"></script>
     <script src="js/admin.js"></script>
     <script src="js/admin_contenidos.js"></script>
+    <script src="js/admin_inventario.js"></script>
 </body>
 </html>

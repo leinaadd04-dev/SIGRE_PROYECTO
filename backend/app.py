@@ -10,7 +10,7 @@ import unicodedata
 from urllib.parse import urlparse
 
 from dotenv import load_dotenv
-from flask import Flask, jsonify,request, send_file
+from flask import Flask, jsonify, request, send_file, send_from_directory
 from flask_jwt_extended import JWTManager,create_access_token
 from flask_jwt_extended import get_jwt, get_jwt_identity, jwt_required
 from reportlab.lib.pagesizes import A4
@@ -279,92 +279,155 @@ def mi_cuenta():
         "telefono": usuario[4]
     })
 
+# ---------- Mi perfil: identificación, datos médicos y contacto de emergencia ----------
+# Requiere backend/migracion_perfil_completo.sql. Los datos médicos son sensibles:
+# se leen y guardan con funciones de la base que solo tocan la cuenta de la sesión.
+
+CAMPOS_PERFIL = (
+    "tipo_documento", "numero_documento", "fecha_nacimiento",
+    "tipo_sangre", "alergias", "condiciones_medicas", "medicamentos",
+    "contacto_emergencia_nombre", "contacto_emergencia_telefono",
+    "direccion", "comunidad"
+)
+TIPOS_DOCUMENTO = ("CC", "TI", "CE", "PASAPORTE")
+TIPOS_SANGRE = ("A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-")
+
+
+def texto_perfil(valor, minimo, maximo, multilinea=False):
+    """Devuelve (ok, texto o None). Vacío cuenta como None (el campo es opcional)."""
+    if valor is None or (isinstance(valor, str) and not valor.strip()):
+        return True, None
+    if not isinstance(valor, str):
+        return False, None
+    texto = unicodedata.normalize("NFC", valor)
+    if multilinea:
+        # Conserva los saltos de línea de los cuadros de texto largos.
+        lineas = ["".join(c for c in linea if c.isprintable()).strip() for linea in texto.splitlines()]
+        texto = "\n".join(lineas).strip()
+    else:
+        texto = " ".join("".join(c for c in texto if c.isprintable()).split())
+    if not minimo <= len(texto) <= maximo:
+        return False, None
+    return True, texto
+
+
+def respuesta_perfil(fila):
+    perfil = dict(zip(CAMPOS_PERFIL, fila))
+    if perfil["fecha_nacimiento"]:
+        perfil["fecha_nacimiento"] = perfil["fecha_nacimiento"].isoformat()
+    return perfil
+
+
 @app.get("/api/mi-perfil")
 @jwt_required()
 def obtener_mi_perfil():
-    usuario_id = get_jwt_identity()
+    usuario_id, rol = usuario_autenticado()
+    if usuario_id is None:
+        return jsonify({"error": "Sesión no válida"}), 401
 
-    with obtener_conexion() as conexion:
-        perfil = conexion.execute(
-            """
-            SELECT tipo_documento, numero_documento, fecha_nacimiento,
-                   tipo_sangre, alergias, condiciones_medicas, medicamentos,
-                   contacto_emergencia_nombre, contacto_emergencia_telefono,
-                   direccion, comunidad
-            FROM usuarios
-            WHERE id = %s
-            """,
-            (usuario_id,)
-        ).fetchone()
+    try:
+        with obtener_conexion() as conexion:
+            fijar_contexto_usuario(conexion, usuario_id, rol)
+            perfil = conexion.execute(
+                f"SELECT {', '.join(CAMPOS_PERFIL)} FROM sigre_mi_perfil()"
+            ).fetchone()
+    except psycopg.errors.UndefinedFunction:
+        return jsonify({"error": "Falta preparar la base: aplica backend/migracion_perfil_completo.sql"}), 500
 
     if perfil is None:
         return jsonify({"error": "Cuenta no encontrada"}), 404
-
-    campos = [
-        "tipo_documento", "numero_documento", "fecha_nacimiento",
-        "tipo_sangre", "alergias", "condiciones_medicas", "medicamentos",
-        "contacto_emergencia_nombre", "contacto_emergencia_telefono",
-        "direccion", "comunidad"
-    ]
-    resultado = dict(zip(campos, perfil))
-    if resultado["fecha_nacimiento"]:
-        resultado["fecha_nacimiento"] = resultado["fecha_nacimiento"].isoformat()
-
-    return jsonify(resultado), 200
+    respuesta = jsonify(respuesta_perfil(perfil))
+    respuesta.headers["Cache-Control"] = "private, no-store"   # datos médicos: no guardar en caché
+    return respuesta
 
 
 @app.put("/api/mi-perfil")
 @jwt_required()
 def actualizar_mi_perfil():
-    usuario_id = get_jwt_identity()
-    datos = request.get_json(silent=True)
+    usuario_id, rol = usuario_autenticado()
+    if usuario_id is None:
+        return jsonify({"error": "Sesión no válida"}), 401
 
+    datos = request.get_json(silent=True)
     if not isinstance(datos, dict):
         return jsonify({"error": "Envía los datos del perfil en formato JSON"}), 400
 
-    campos = [
-        "tipo_documento", "numero_documento", "fecha_nacimiento",
-        "tipo_sangre", "alergias", "condiciones_medicas", "medicamentos",
-        "contacto_emergencia_nombre", "contacto_emergencia_telefono",
-        "direccion", "comunidad"
-    ]
-
-    valores = [datos.get(campo) or None for campo in campos]
-    try:
-        if valores[2]:
-            valores[2] = date.fromisoformat(valores[2])
-    except (ValueError, TypeError):
-        return jsonify({"error": "La fecha de nacimiento no es válida"}), 400
-
-    if valores[0] and valores[0] not in ("CC", "TI", "CE", "PASAPORTE"):
+    tipo_documento = datos.get("tipo_documento") or None
+    if tipo_documento is not None and tipo_documento not in TIPOS_DOCUMENTO:
         return jsonify({"error": "Tipo de documento no válido"}), 400
 
-    if valores[3] and valores[3] not in (
-        "A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"
-    ):
+    ok, numero_documento = texto_perfil(datos.get("numero_documento"), 3, 40)
+    if not ok or (numero_documento and not re.fullmatch(r"[A-Za-z0-9.\- ]{3,40}", numero_documento)):
+        return jsonify({"error": "El número de documento debe tener entre 3 y 40 letras o números"}), 400
+    if bool(tipo_documento) != bool(numero_documento):
+        return jsonify({"error": "Escribe el tipo y el número de documento juntos, o deja ambos vacíos"}), 400
+    if numero_documento:
+        # "1.234.567" y "1234567" son el mismo documento.
+        numero_documento = re.sub(r"[.\s]", "", numero_documento).upper()
+
+    fecha_nacimiento = datos.get("fecha_nacimiento") or None
+    if fecha_nacimiento is not None:
+        try:
+            fecha_nacimiento = date.fromisoformat(str(fecha_nacimiento))
+        except ValueError:
+            return jsonify({"error": "La fecha de nacimiento no es válida"}), 400
+        if not date(1900, 1, 1) <= fecha_nacimiento <= date.today():
+            return jsonify({"error": "La fecha de nacimiento debe estar entre 1900 y hoy"}), 400
+
+    tipo_sangre = datos.get("tipo_sangre") or None
+    if tipo_sangre is not None and tipo_sangre not in TIPOS_SANGRE:
         return jsonify({"error": "Tipo de sangre no válido"}), 400
 
-    with obtener_conexion() as conexion:
-        conexion.execute(
-            """
-            UPDATE usuarios SET
-                tipo_documento = %s,
-                numero_documento = %s,
-                fecha_nacimiento = %s,
-                tipo_sangre = %s,
-                alergias = %s,
-                condiciones_medicas = %s,
-                medicamentos = %s,
-                contacto_emergencia_nombre = %s,
-                contacto_emergencia_telefono = %s,
-                direccion = %s,
-                comunidad = %s
-            WHERE id = %s
-            """,
-            (*valores, usuario_id)
-        )
+    textos_largos = {}
+    for campo, nombre in (("alergias", "Las alergias"),
+                          ("condiciones_medicas", "Las condiciones médicas"),
+                          ("medicamentos", "Los medicamentos")):
+        ok, textos_largos[campo] = texto_perfil(datos.get(campo), 1, 3000, multilinea=True)
+        if not ok:
+            return jsonify({"error": f"{nombre} pueden tener máximo 3000 caracteres"}), 400
 
-    return jsonify({"mensaje": "Perfil actualizado correctamente"}), 200
+    ok, contacto_nombre = texto_perfil(datos.get("contacto_emergencia_nombre"), 2, 120)
+    if not ok:
+        return jsonify({"error": "El nombre del contacto de emergencia debe tener entre 2 y 120 caracteres"}), 400
+    ok, contacto_telefono = texto_perfil(datos.get("contacto_emergencia_telefono"), 7, 30)
+    if not ok or (contacto_telefono and (
+        not re.fullmatch(r"\+?[0-9 ()-]{7,30}", contacto_telefono)
+        or len(re.sub(r"\D", "", contacto_telefono)) < 7
+    )):
+        return jsonify({"error": "El teléfono del contacto de emergencia no es válido"}), 400
+    if bool(contacto_nombre) != bool(contacto_telefono):
+        return jsonify({"error": "Escribe el nombre y el teléfono del contacto de emergencia"}), 400
+
+    ok, direccion = texto_perfil(datos.get("direccion"), 3, 300)
+    if not ok:
+        return jsonify({"error": "La dirección debe tener entre 3 y 300 caracteres"}), 400
+    ok, comunidad = texto_perfil(datos.get("comunidad"), 2, 150)
+    if not ok:
+        return jsonify({"error": "El barrio o comunidad debe tener entre 2 y 150 caracteres"}), 400
+
+    try:
+        with obtener_conexion() as conexion:
+            fijar_contexto_usuario(conexion, usuario_id, rol)
+            guardado = conexion.execute(
+                "SELECT sigre_guardar_mi_perfil(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
+                (tipo_documento, numero_documento, fecha_nacimiento, tipo_sangre,
+                 textos_largos["alergias"], textos_largos["condiciones_medicas"],
+                 textos_largos["medicamentos"], contacto_nombre, contacto_telefono,
+                 direccion, comunidad)
+            ).fetchone()[0]
+            perfil = conexion.execute(
+                f"SELECT {', '.join(CAMPOS_PERFIL)} FROM sigre_mi_perfil()"
+            ).fetchone()
+    except psycopg.errors.UniqueViolation:
+        return jsonify({"error": "Ese número de documento ya está registrado en otra cuenta"}), 409
+    except psycopg.errors.UndefinedFunction:
+        return jsonify({"error": "Falta preparar la base: aplica backend/migracion_perfil_completo.sql"}), 500
+
+    if not guardado or perfil is None:
+        return jsonify({"error": "Cuenta no encontrada"}), 404
+    respuesta = jsonify({"mensaje": "Perfil actualizado correctamente", "perfil": respuesta_perfil(perfil)})
+    respuesta.headers["Cache-Control"] = "private, no-store"
+    return respuesta, 200
 
 
 @app.get("/api/emergencias")
@@ -1384,6 +1447,31 @@ def estado_salud():
     })
 
 
+# ---------- Páginas del frontend ----------
+# Publicado en internet, Flask entrega también las páginas (frontend/) desde la
+# misma dirección que la API. En tu PC puedes seguir usando Live Server.
+CARPETA_FRONTEND = Path(__file__).resolve().parent.parent / "frontend"
+
+
+@app.get("/")
+def pagina_inicio():
+    return send_from_directory(CARPETA_FRONTEND, "index.html")
+
+
+@app.get("/<path:ruta>")
+def archivo_frontend(ruta):
+    # Las rutas de la API que no existen responden JSON, no una página.
+    if ruta.startswith("api/"):
+        return jsonify({"error": "Ruta no encontrada"}), 404
+    # send_from_directory no deja salir de la carpeta frontend (../ no funciona).
+    respuesta = send_from_directory(CARPETA_FRONTEND, ruta)
+    if ruta == "service-worker.js":
+        # El navegador debe revisar siempre si hay una versión nueva.
+        respuesta.headers["Cache-Control"] = "no-cache"
+    return respuesta
+
+
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000, debug=True)
+    # Solo para tu PC. En Render se usa gunicorn y este bloque no se ejecuta.
+    app.run(host="0.0.0.0", port=5000, debug=os.getenv("FLASK_DEBUG", "1") == "1")
 

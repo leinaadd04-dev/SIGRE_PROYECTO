@@ -13,6 +13,8 @@ import re
 import unicodedata
 
 import psycopg
+from PIL import Image, ImageOps
+
 from flask import Blueprint, jsonify, request
 from flask_jwt_extended import get_jwt, get_jwt_identity, jwt_required, verify_jwt_in_request
 
@@ -49,9 +51,8 @@ def error_base_datos(error):
         return jsonify({"error": error.diag.message_primary or "Dato no válido"}), 400
     registro.exception("Error de base de datos en administración")
     if isinstance(error, (psycopg.errors.UndefinedFunction, psycopg.errors.UndefinedTable)):
-        mensaje = ("Falta preparar la base: aplica backend/migracion_administracion.sql, "
-                   "backend/migracion_administracion_contenidos.sql y "
-                   "backend/migracion_participacion_jornadas.sql.")
+        mensaje = ("Falta preparar la base: aplica las migraciones del backend "
+                   "(administración, contenidos, participación en jornadas e inventario de centros).")
     elif isinstance(error, psycopg.OperationalError):
         mensaje = "No se pudo conectar con la base de datos. Revisa que PostgreSQL esté encendido."
     else:
@@ -292,6 +293,161 @@ def eliminar_centro(centro_id):
     if fila is None:
         return jsonify({"error": "Centro no encontrado"}), 404
     return jsonify({"mensaje": "Centro eliminado"})
+
+
+# ---------- Centros: inventario ----------
+# Requiere backend/migracion_inventario_centros.sql.
+
+CATEGORIAS_INVENTARIO = ("aseo", "no_perecederos", "perecederos", "agua", "mascotas",
+                         "descanso", "ropa", "botiquin", "bebes", "otros")
+UNIDADES_INVENTARIO = ("unidades", "kg", "libras", "litros", "paquetes", "cajas", "bolsas", "pares")
+COLUMNAS_INVENTARIO = ("id", "centro_id", "centro_nombre", "centro_tipo", "categoria", "producto",
+                       "talla", "cantidad", "unidad", "minimo", "actualizado_en")
+SELECT_INVENTARIO = """
+    SELECT i.id, i.centro_id, c.nombre, c.tipo, i.categoria, i.producto,
+           i.talla, i.cantidad, i.unidad, i.minimo, i.actualizado_en
+    FROM inventario_centros i
+    JOIN centros_ayuda c ON c.id = i.centro_id
+"""
+
+
+def _fila_inventario(fila):
+    producto = dict(zip(COLUMNAS_INVENTARIO, fila))
+    producto["actualizado_en"] = producto["actualizado_en"].isoformat()
+    return producto
+
+
+def _validar_producto(datos):
+    """Devuelve (producto, None) o (None, mensaje de error)."""
+    if not isinstance(datos, dict):
+        return None, "Envía los datos como JSON"
+    centro_id = _entero(datos.get("centro_id"), 1, 10 ** 12)
+    if centro_id is None:
+        return None, "Elige el centro de acopio o albergue"
+    categoria = datos.get("categoria")
+    if categoria not in CATEGORIAS_INVENTARIO:
+        return None, "Elige una categoría válida"
+    ok, producto = _texto(datos.get("producto"), 2, 120)
+    if not ok:
+        return None, "Escribe el nombre del producto (entre 2 y 120 caracteres)"
+    # La talla solo aplica a ropa y calzado; en las demás categorías se ignora.
+    talla = None
+    if categoria == "ropa":
+        ok, talla = _texto(datos.get("talla"), 1, 20, opcional=True)
+        if not ok:
+            return None, "La talla puede tener máximo 20 caracteres"
+    cantidad = _entero(datos.get("cantidad", 0), 0, 1000000)
+    if cantidad is None:
+        return None, "La cantidad debe ser un número entero entre 0 y 1.000.000"
+    unidad = datos.get("unidad", "unidades")
+    if unidad not in UNIDADES_INVENTARIO:
+        return None, "Elige una unidad válida"
+    minimo = _entero(datos.get("minimo", 0), 0, 1000000)
+    if minimo is None:
+        return None, "La cantidad mínima debe ser un número entero entre 0 y 1.000.000"
+    return {"centro_id": centro_id, "categoria": categoria, "producto": producto, "talla": talla,
+            "cantidad": cantidad, "unidad": unidad, "minimo": minimo}, None
+
+
+@administracion_bp.get("/api/centros/inventario")
+def listar_inventario():
+    # Público: la comunidad ve qué hay y qué falta. Filtros opcionales.
+    condiciones, parametros = [], []
+    centro_id = request.args.get("centro_id")
+    if centro_id:
+        centro_id = _entero(centro_id, 1, 10 ** 12)
+        if centro_id is None:
+            return jsonify({"error": "Centro no válido"}), 400
+        condiciones.append("i.centro_id = %s")
+        parametros.append(centro_id)
+    categoria = request.args.get("categoria")
+    if categoria:
+        if categoria not in CATEGORIAS_INVENTARIO:
+            return jsonify({"error": "Categoría no válida"}), 400
+        condiciones.append("i.categoria = %s")
+        parametros.append(categoria)
+    donde = ("WHERE " + " AND ".join(condiciones)) if condiciones else ""
+    with obtener_conexion() as conexion:
+        filas = conexion.execute(
+            f"{SELECT_INVENTARIO} {donde} ORDER BY c.nombre, i.categoria, lower(i.producto), i.talla NULLS FIRST LIMIT 5000",
+            parametros
+        ).fetchall()
+    return jsonify([_fila_inventario(fila) for fila in filas])
+
+
+@administracion_bp.post("/api/admin/inventario")
+@administracion_bp.post("/api/admin/inventario/<int:producto_id>")
+@jwt_required()
+def guardar_producto(producto_id=None):
+    usuario_id = _autoridad()
+    producto, error = _validar_producto(request.get_json(silent=True))
+    if error:
+        return jsonify({"error": error}), 400
+    try:
+        with _conexion_autoridad(usuario_id) as conexion:
+            if conexion.execute("SELECT 1 FROM centros_ayuda WHERE id = %s",
+                                (producto["centro_id"],)).fetchone() is None:
+                return jsonify({"error": "El centro ya no existe"}), 404
+            if producto_id is None:
+                nuevo = conexion.execute(
+                    """INSERT INTO inventario_centros
+                           (centro_id, categoria, producto, talla, cantidad, unidad, minimo, actualizado_por)
+                       VALUES (%(centro_id)s, %(categoria)s, %(producto)s, %(talla)s, %(cantidad)s,
+                               %(unidad)s, %(minimo)s, %(usuario)s)
+                       RETURNING id""",
+                    dict(producto, usuario=usuario_id)
+                ).fetchone()
+            else:
+                nuevo = conexion.execute(
+                    """UPDATE inventario_centros
+                       SET centro_id = %(centro_id)s, categoria = %(categoria)s, producto = %(producto)s,
+                           talla = %(talla)s, cantidad = %(cantidad)s, unidad = %(unidad)s, minimo = %(minimo)s,
+                           actualizado_por = %(usuario)s, actualizado_en = NOW()
+                       WHERE id = %(id)s
+                       RETURNING id""",
+                    dict(producto, usuario=usuario_id, id=producto_id)
+                ).fetchone()
+            if nuevo is None:
+                return jsonify({"error": "Producto no encontrado"}), 404
+            fila = conexion.execute(f"{SELECT_INVENTARIO} WHERE i.id = %s", (nuevo[0],)).fetchone()
+    except psycopg.errors.UniqueViolation:
+        return jsonify({"error": "Ese producto (con esa talla) ya está en el inventario de este centro. Edita su cantidad."}), 409
+    return jsonify(_fila_inventario(fila)), 201 if producto_id is None else 200
+
+
+@administracion_bp.post("/api/admin/inventario/<int:producto_id>/cantidad")
+@jwt_required()
+def cambiar_cantidad_producto(producto_id):
+    # Edición rápida desde la tabla: solo la cantidad.
+    usuario_id = _autoridad()
+    cantidad = _entero((request.get_json(silent=True) or {}).get("cantidad"), 0, 1000000)
+    if cantidad is None:
+        return jsonify({"error": "La cantidad debe ser un número entero entre 0 y 1.000.000"}), 400
+    with _conexion_autoridad(usuario_id) as conexion:
+        nuevo = conexion.execute(
+            """UPDATE inventario_centros
+               SET cantidad = %s, actualizado_por = %s, actualizado_en = NOW()
+               WHERE id = %s
+               RETURNING id""",
+            (cantidad, usuario_id, producto_id)
+        ).fetchone()
+        if nuevo is None:
+            return jsonify({"error": "Producto no encontrado"}), 404
+        fila = conexion.execute(f"{SELECT_INVENTARIO} WHERE i.id = %s", (producto_id,)).fetchone()
+    return jsonify(_fila_inventario(fila))
+
+
+@administracion_bp.post("/api/admin/inventario/<int:producto_id>/eliminar")
+@jwt_required()
+def eliminar_producto(producto_id):
+    usuario_id = _autoridad()
+    with _conexion_autoridad(usuario_id) as conexion:
+        fila = conexion.execute(
+            "DELETE FROM inventario_centros WHERE id = %s RETURNING id", (producto_id,)
+        ).fetchone()
+    if fila is None:
+        return jsonify({"error": "Producto no encontrado"}), 404
+    return jsonify({"mensaje": "Producto eliminado del inventario"})
 
 
 # ---------- Desaparecidos: gestión ----------
@@ -631,9 +787,18 @@ def _validar_directorio(datos):
 def listar_directorio():
     with obtener_conexion() as conexion:
         filas = conexion.execute(
-            f"SELECT {', '.join(COLUMNAS_DIRECTORIO)} FROM directorio_entidades ORDER BY orden, nombre"
+            f"SELECT {', '.join(COLUMNAS_DIRECTORIO)}, "
+            "foto IS NOT NULL, extract(epoch FROM foto_actualizada)::BIGINT "
+            "FROM directorio_entidades ORDER BY orden, nombre"
         ).fetchall()
-    return jsonify([dict(zip(COLUMNAS_DIRECTORIO, fila)) for fila in filas])
+    entidades = []
+    for fila in filas:
+        entidad = dict(zip(COLUMNAS_DIRECTORIO, fila))
+        entidad["tiene_foto"] = fila[-2]
+        entidad["foto_version"] = fila[-1]   # cambia cada vez que se sube otra foto
+        entidades.append(entidad)
+    return jsonify(entidades)
+
 
 
 @administracion_bp.post("/api/admin/directorio")
@@ -674,6 +839,95 @@ def eliminar_entidad(entidad_id):
         return jsonify({"error": "Entidad no encontrada"}), 404
     return jsonify({"mensaje": "Entidad eliminada"})
 
+# ---------- Directorio: foto o logo ----------
+
+LIMITE_FOTO_DIRECTORIO = 3 * 1024 * 1024   # lo máximo que se acepta al subir
+LADO_FOTO_DIRECTORIO = 256                 # se guarda cuadrada de 256 x 256 px
+
+
+def _tipo_imagen(contenido):
+    """Reconoce la imagen por sus primeros bytes, no por el nombre del archivo."""
+    if contenido.startswith(b"\xff\xd8\xff"):
+        return "image/jpeg"
+    if contenido.startswith(b"\x89PNG\r\n\x1a\n"):
+        return "image/png"
+    if contenido[:4] == b"RIFF" and contenido[8:12] == b"WEBP":
+        return "image/webp"
+    return None
+
+@administracion_bp.post("/api/admin/directorio/<int:entidad_id>/foto")
+@jwt_required()
+def subir_foto_entidad(entidad_id):
+    usuario_id = _autoridad()
+    archivo = request.files.get("foto")
+    if archivo is None or not archivo.filename:
+        return jsonify({"error": "Selecciona una foto"}), 400
+    contenido = archivo.read(LIMITE_FOTO_DIRECTORIO + 1)
+    if not contenido or len(contenido) > LIMITE_FOTO_DIRECTORIO:
+        return jsonify({"error": "La foto debe pesar máximo 3 MB"}), 400
+    if _tipo_imagen(contenido) is None:
+        return jsonify({"error": "Usa una foto JPG, PNG o WEBP"}), 400
+
+    # Se achica y se recorta cuadrada para que pese poco y se vea bien en círculo.
+    try:
+        with Image.open(io.BytesIO(contenido)) as original:
+            imagen = ImageOps.exif_transpose(original)   # respeta la orientación de fotos de celular
+            if imagen.mode in ("RGBA", "LA", "P"):
+                # Los PNG transparentes quedan sobre fondo blanco.
+                imagen = imagen.convert("RGBA")
+                fondo = Image.new("RGB", imagen.size, "white")
+                fondo.paste(imagen, mask=imagen.split()[-1])
+                imagen = fondo
+            else:
+                imagen = imagen.convert("RGB")
+            imagen = ImageOps.fit(imagen, (LADO_FOTO_DIRECTORIO, LADO_FOTO_DIRECTORIO))
+            salida = io.BytesIO()
+            imagen.save(salida, "JPEG", quality=85)
+    except Exception:
+        return jsonify({"error": "No se pudo leer la imagen. Prueba con otra foto."}), 400
+
+    with _conexion_autoridad(usuario_id) as conexion:
+        fila = conexion.execute(
+            """UPDATE directorio_entidades
+               SET foto = %s, foto_mime = 'image/jpeg', foto_actualizada = NOW()
+               WHERE id = %s
+               RETURNING id""",
+            (salida.getvalue(), entidad_id)
+        ).fetchone()
+    if fila is None:
+        return jsonify({"error": "Entidad no encontrada"}), 404
+    return jsonify({"mensaje": "Foto guardada"})
+
+@administracion_bp.post("/api/admin/directorio/<int:entidad_id>/foto/eliminar")
+@jwt_required()
+def quitar_foto_entidad(entidad_id):
+    usuario_id = _autoridad()
+    with _conexion_autoridad(usuario_id) as conexion:
+        fila = conexion.execute(
+            """UPDATE directorio_entidades
+               SET foto = NULL, foto_mime = NULL, foto_actualizada = NOW()
+               WHERE id = %s
+               RETURNING id""",
+            (entidad_id,)
+        ).fetchone()
+    if fila is None:
+        return jsonify({"error": "Entidad no encontrada"}), 404
+    return jsonify({"mensaje": "Foto eliminada"})
+
+
+@administracion_bp.get("/api/directorio/<int:entidad_id>/foto")
+def foto_entidad(entidad_id):
+    with obtener_conexion() as conexion:
+        fila = conexion.execute(
+            "SELECT foto, foto_mime FROM directorio_entidades WHERE id = %s AND foto IS NOT NULL",
+            (entidad_id,)
+        ).fetchone()
+    if fila is None:
+        return jsonify({"error": "Foto no encontrada"}), 404
+    respuesta = send_file(io.BytesIO(bytes(fila[0])), mimetype=fila[1])
+    respuesta.headers["Cache-Control"] = "public, max-age=86400"
+    respuesta.headers["X-Content-Type-Options"] = "nosniff"
+    return respuesta
 
 # ---------- Jornadas comunitarias ----------
 

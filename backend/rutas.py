@@ -1,8 +1,10 @@
 """SIGRE · Rutas de evacuación.
 
 Lleva a Flask el algoritmo de rutas_eva_corregido.ipynb:
-- Descarga (una sola vez) la red peatonal de Montería desde OpenStreetMap
-  y la guarda en backend/datos_rutas/ para que los siguientes arranques sean rápidos.
+- Las redes de calles de Montería se preparan una vez en el computador de
+  desarrollo (python rutas.py) y se guardan livianas en backend/datos_rutas/
+  (*.json.gz). El servidor solo las lee: no necesita osmnx, geopandas ni
+  scikit-learn, que ocupan cientos de MB de memoria.
 - Penaliza los tramos que cruzan zonas de riesgo y compara la ruta más
   corta con la ruta más segura.
 - Busca direcciones con Nominatim (OpenStreetMap), limitado a Montería.
@@ -11,8 +13,10 @@ Lleva a Flask el algoritmo de rutas_eva_corregido.ipynb:
 Las zonas son aproximaciones académicas: no son cartografía oficial.
 """
 
+import gzip
 import json
 import logging
+import math
 import os
 import threading
 import unicodedata
@@ -47,9 +51,15 @@ CARPETA_DATOS = Path(__file__).resolve().parent / "datos_rutas"
 
 # Redes de OpenStreetMap. Carro y moto comparten la red vial (respeta los sentidos de
 # las calles); el tiempo se estima con los límites de velocidad de OSM, sin tráfico.
+# archivo: red completa de OpenStreetMap (solo en desarrollo, no se sube).
+# liviano: lo que usa el servidor (esquinas, largo, tiempo, riesgo y trazado).
 REDES = {
-    "peatonal": {"tipo_osm": "walk", "archivo": CARPETA_DATOS / "monteria_peatonal.graphml"},
-    "vehicular": {"tipo_osm": "drive", "archivo": CARPETA_DATOS / "monteria_vehicular.graphml"},
+    "peatonal": {"tipo_osm": "walk",
+                 "archivo": CARPETA_DATOS / "monteria_peatonal.graphml",
+                 "liviano": CARPETA_DATOS / "monteria_peatonal.json.gz"},
+    "vehicular": {"tipo_osm": "drive",
+                  "archivo": CARPETA_DATOS / "monteria_vehicular.graphml",
+                  "liviano": CARPETA_DATOS / "monteria_vehicular.json.gz"},
 }
 MODOS = {"pie": "peatonal", "carro": "vehicular", "moto": "vehicular"}
 
@@ -91,54 +101,112 @@ _candado = threading.Lock()
 
 # ---------- Redes de calles ----------
 
+def construir_red_liviana(red):
+    """Descarga o abre la red de OpenStreetMap, marca los tramos en zonas de
+    riesgo y guarda la versión liviana. Necesita osmnx (solo en desarrollo)."""
+    import osmnx as ox
+    from shapely.geometry import LineString, Polygon
+    from shapely.ops import unary_union
+    from shapely.prepared import prep
+
+    ox.settings.use_cache = True
+    ox.settings.cache_folder = str(RAIZ_PROYECTO / "cache")
+    ox.settings.log_console = False
+
+    archivo = REDES[red]["archivo"]
+    if archivo.exists():
+        grafo = ox.load_graphml(archivo)
+    else:
+        grafo = ox.graph_from_place(CIUDAD, network_type=REDES[red]["tipo_osm"], simplify=True)
+        if red == "vehicular":
+            grafo = ox.routing.add_edge_speeds(grafo)
+            grafo = ox.routing.add_edge_travel_times(grafo)
+        CARPETA_DATOS.mkdir(exist_ok=True)
+        ox.save_graphml(grafo, archivo)
+
+    reales = prep(unary_union([Polygon(z["coordenadas"]) for z in ZONAS if not z["demo"]]))
+    demo = prep(unary_union([Polygon(z["coordenadas"]) for z in ZONAS if z["demo"]]))
+
+    nodos = [[nodo, round(d["x"], 6), round(d["y"], 6)] for nodo, d in grafo.nodes(data=True)]
+    aristas = []
+    for u, v, datos in grafo.edges(data=True):
+        geometria = datos.get("geometry")
+        linea = geometria or LineString([
+            (grafo.nodes[u]["x"], grafo.nodes[u]["y"]),
+            (grafo.nodes[v]["x"], grafo.nodes[v]["y"]),
+        ])
+        trazado = ([[round(x, 6), round(y, 6)] for x, y in geometria.coords]
+                   if geometria is not None else None)
+        aristas.append([
+            u, v,
+            round(float(datos["length"]), 2),
+            round(float(datos.get("travel_time", 0.0)), 2),
+            bool(reales.intersects(linea)),
+            bool(demo.intersects(linea)),
+            trazado,
+        ])
+
+    with gzip.open(REDES[red]["liviano"], "wt", encoding="utf-8") as salida:
+        json.dump({"nodos": nodos, "aristas": aristas}, salida, separators=(",", ":"))
+    return REDES[red]["liviano"]
+
+
 def _preparar_grafo(red):
     estado = _estado[red]
     try:
-        # Importaciones pesadas: solo cuando se usa el módulo de rutas.
-        import osmnx as ox
-        from shapely.geometry import LineString, Polygon
-        from shapely.ops import unary_union
-        from shapely.prepared import prep
+        import networkx as nx
 
-        ox.settings.use_cache = True
-        ox.settings.cache_folder = str(RAIZ_PROYECTO / "cache")
-        ox.settings.log_console = False
+        liviano = REDES[red]["liviano"]
+        if not liviano.exists():
+            # En desarrollo se genera; en el servidor debe venir en el repositorio.
+            construir_red_liviana(red)
 
-        archivo = REDES[red]["archivo"]
-        if archivo.exists():
-            grafo = ox.load_graphml(archivo)
-        else:
-            grafo = ox.graph_from_place(CIUDAD, network_type=REDES[red]["tipo_osm"], simplify=True)
-            if red == "vehicular":
-                grafo = ox.routing.add_edge_speeds(grafo)
-                grafo = ox.routing.add_edge_travel_times(grafo)
-            CARPETA_DATOS.mkdir(exist_ok=True)
-            ox.save_graphml(grafo, archivo)
+        with gzip.open(liviano, "rt", encoding="utf-8") as entrada:
+            datos = json.load(entrada)
 
-        reales = prep(unary_union([Polygon(z["coordenadas"]) for z in ZONAS if not z["demo"]]))
-        demo = prep(unary_union([Polygon(z["coordenadas"]) for z in ZONAS if z["demo"]]))
+        grafo = nx.MultiDiGraph()
+        for nodo, x, y in datos["nodos"]:
+            grafo.add_node(nodo, x=x, y=y)
+        for u, v, largo, tiempo, riesgo_real, riesgo_demo, trazado in datos["aristas"]:
+            atributos = {"length": largo, "travel_time": tiempo,
+                         "riesgo_real": riesgo_real, "riesgo_demo": riesgo_demo}
+            if trazado:
+                atributos["trazado"] = [tuple(punto) for punto in trazado]
+            grafo.add_edge(u, v, **atributos)
+        del datos
 
-        for u, v, _, datos in grafo.edges(keys=True, data=True):
-            linea = datos.get("geometry") or LineString([
-                (grafo.nodes[u]["x"], grafo.nodes[u]["y"]),
-                (grafo.nodes[v]["x"], grafo.nodes[v]["y"]),
-            ])
-            datos["riesgo_real"] = reales.intersects(linea)
-            datos["riesgo_demo"] = demo.intersects(linea)
-
-        # Calentamiento: la primera búsqueda de nodos carga librerías pesadas.
-        import networkx  # noqa: F401
-        ox.distance.nearest_nodes(grafo, X=[-75.88], Y=[8.75])
-
+        # Coordenadas en listas para buscar rápido la esquina más cercana.
+        estado["ids"] = list(grafo.nodes)
+        estado["xs"] = [grafo.nodes[n]["x"] for n in estado["ids"]]
+        estado["ys"] = [grafo.nodes[n]["y"] for n in estado["ids"]]
         estado["grafo"] = grafo
     except Exception:
         registro.exception("No se pudo preparar la red %s de Montería", red)
         estado["error"] = (
-            "No se pudo preparar el mapa de calles. La primera vez se necesita "
-            "internet para descargarlo de OpenStreetMap."
+            "No se pudo preparar el mapa de calles. Avísale al equipo de SIGRE: "
+            "falta el archivo de la red de calles en el servidor."
         )
     finally:
         estado["cargando"] = False
+
+
+def _metros(lat1, lon1, lat2, lon2):
+    """Distancia en metros entre dos puntos (fórmula de haversine)."""
+    radio = 6371000.0
+    p1, p2 = math.radians(lat1), math.radians(lat2)
+    dp, dl = p2 - p1, math.radians(lon2 - lon1)
+    a = math.sin(dp / 2) ** 2 + math.cos(p1) * math.cos(p2) * math.sin(dl / 2) ** 2
+    return 2 * radio * math.asin(math.sqrt(a))
+
+
+def _nodo_mas_cercano(estado, lat, lon):
+    """Esquina de la red más cercana al punto. Devuelve (nodo, metros)."""
+    # Dentro de una ciudad, comparar en un plano con la longitud corregida por
+    # la latitud da el mismo vecino que la distancia real.
+    escala = math.cos(math.radians(lat)) ** 2
+    xs, ys = estado["xs"], estado["ys"]
+    mejor = min(range(len(xs)), key=lambda i: (ys[i] - lat) ** 2 + escala * (xs[i] - lon) ** 2)
+    return estado["ids"][mejor], _metros(lat, lon, ys[mejor], xs[mejor])
 
 
 def _iniciar_carga(red):
@@ -199,8 +267,8 @@ def _describir_ruta(grafo, nodos, peso, red):
         if datos["riesgo_demo"]:
             metros_demo += largo
 
-        if "geometry" in datos:
-            tramo = [(lat, lon) for lon, lat in datos["geometry"].coords]
+        if "trazado" in datos:
+            tramo = [(lat, lon) for lon, lat in datos["trazado"]]
             # La geometría puede venir en sentido contrario al recorrido.
             inicio = (grafo.nodes[u]["y"], grafo.nodes[u]["x"])
             if (tramo[0][0] - inicio[0]) ** 2 + (tramo[0][1] - inicio[1]) ** 2 > \
@@ -282,12 +350,11 @@ def calcular_ruta():
     incluir_demo = datos.get("incluir_demo") is True
 
     import networkx as nx
-    import osmnx as ox
 
-    nodos, distancias = ox.distance.nearest_nodes(
-        grafo, X=[origen[1], destino[1]], Y=[origen[0], destino[0]], return_dist=True
-    )
-    if max(distancias) > DISTANCIA_MAXIMA_A_CALLE_M:
+    nodo_origen, metros_origen = _nodo_mas_cercano(_estado[red], *origen)
+    nodo_destino, metros_destino = _nodo_mas_cercano(_estado[red], *destino)
+    nodos = [nodo_origen, nodo_destino]
+    if max(metros_origen, metros_destino) > DISTANCIA_MAXIMA_A_CALLE_M:
         return jsonify({"error": "Uno de los puntos está muy lejos de una calle de Montería"}), 400
     if nodos[0] == nodos[1]:
         return jsonify({"error": "La partida y el destino están en el mismo lugar"}), 400
@@ -513,3 +580,11 @@ def eliminar_ruta(ruta_id):
     if fila is None:
         return jsonify({"error": "Ruta no encontrada"}), 404
     return jsonify({"mensaje": "Ruta eliminada"})
+
+
+if __name__ == "__main__":
+    # Prepara las redes livianas en el computador de desarrollo (necesita osmnx):
+    #   python rutas.py
+    # Ejecútalo de nuevo si cambias las ZONAS de riesgo.
+    for nombre_red in REDES:
+        print("Preparando", nombre_red, "->", construir_red_liviana(nombre_red))
