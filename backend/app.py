@@ -2,6 +2,10 @@ import io
 import os 
 from pathlib import Path
 
+import hashlib
+import secrets
+from datetime import timedelta
+
 import re
 import secrets
 from datetime import date, datetime, timedelta
@@ -170,13 +174,15 @@ def registrar_usuario():
     password = datos.get("password")
     nombre = limpiar_texto(datos.get("nombre"), 120)
     telefono_texto = datos.get("telefono") or ""
-    telefono = limpiar_texto(telefono_texto, 20) if telefono_texto else None
 
     if not isinstance(email, str) or not isinstance(password, str):
         return jsonify({"error": "Faltan email o contraseña"}), 400
 
     if not nombre or len(nombre) < 2:
         return jsonify({"error": "Escribe tu nombre (mínimo 2 caracteres)"}), 400
+
+    # Validar teléfono opcional
+    telefono = limpiar_texto(telefono_texto, 20) if telefono_texto else None
 
     if telefono_texto and (
         not telefono
@@ -185,13 +191,20 @@ def registrar_usuario():
     ):
         return jsonify({"error": "El teléfono no tiene un formato válido"}), 400
 
+    # Validar correo
     email = email.strip().lower()
 
-    if len(email) > 254 or not re.fullmatch(r"[^@\s]+@[^@\s]+\.[^@\s]+", email):
+    if (
+        len(email) > 254
+        or not re.fullmatch(r"[^@\s]+@[^@\s]+\.[^@\s]+", email)
+    ):
         return jsonify({"error": "El email no tiene un formato válido"}), 400
 
+    # Validar contraseña
     if len(password) < 12 or len(password) > 128:
-        return jsonify({"error": "La contraseña debe tener entre 12 y 128 caracteres"}), 400
+        return jsonify({
+            "error": "La contraseña debe tener entre 12 y 128 caracteres"
+        }), 400
 
     password_hash = generate_password_hash(password)
 
@@ -207,7 +220,121 @@ def registrar_usuario():
     except psycopg.errors.UniqueViolation:
         return jsonify({"error": "Ese email ya está registrado"}), 409
 
-    return jsonify({"mensaje": "Cuenta creada. Ya puedes iniciar sesión."}), 201
+    return jsonify({
+        "mensaje": "Cuenta creada. Ya puedes iniciar sesión."
+    }), 201
+
+
+
+@app.post("/api/auth/recuperar")
+def solicitar_recuperacion():
+    datos = request.get_json(silent=True)
+
+    if not isinstance(datos, dict):
+        return jsonify({"error": "Envía los datos como JSON"}), 400
+
+    email = datos.get("email")
+
+    if not isinstance(email, str):
+        return jsonify({"error": "Escribe un correo válido"}), 400
+
+    email = email.strip().lower()
+
+    if len(email) > 254 or not re.fullmatch(
+        r"[^@\s]+@[^@\s]+\.[^@\s]+", email
+    ):
+        return jsonify({"error": "Escribe un correo válido"}), 400
+
+    # Respuesta genérica para no revelar si existe una cuenta.
+    respuesta = {
+        "mensaje": "Si el correo está registrado, recibirás instrucciones para recuperar tu contraseña."
+    }
+
+    with obtener_conexion() as conexion:
+        usuario = conexion.execute(
+            "SELECT id FROM usuarios WHERE email = %s",
+            (email,)
+        ).fetchone()
+
+        if usuario is not None:
+            token = secrets.token_urlsafe(32)
+            token_hash = hashlib.sha256(token.encode()).hexdigest()
+
+            conexion.execute(
+                """
+                INSERT INTO recuperacion_contrasenas
+                    (usuario_id, token_hash, expira_en)
+                VALUES (%s, %s, NOW() + INTERVAL '15 minutes')
+                """,
+                (usuario[0], token_hash)
+            )
+
+            # Pendiente: enviar este enlace por correo mediante Gmail.
+            # No se devuelve el token en la respuesta pública.
+
+    return jsonify(respuesta), 200
+
+
+@app.post("/api/auth/restablecer")
+def restablecer_contrasena():
+    datos = request.get_json(silent=True)
+
+    if not isinstance(datos, dict):
+        return jsonify({"error": "Envía los datos como JSON"}), 400
+
+    token = datos.get("token")
+    password = datos.get("password")
+
+    if not isinstance(token, str) or not token:
+        return jsonify({"error": "El enlace de recuperación no es válido"}), 400
+
+    if not isinstance(password, str) or not 12 <= len(password) <= 128:
+        return jsonify({
+            "error": "La contraseña debe tener entre 12 y 128 caracteres"
+        }), 400
+
+    token_hash = hashlib.sha256(token.encode()).hexdigest()
+    password_hash = generate_password_hash(password)
+
+    with obtener_conexion() as conexion:
+        recuperacion = conexion.execute(
+            """
+            SELECT id, usuario_id
+            FROM recuperacion_contrasenas
+            WHERE token_hash = %s
+              AND usado = FALSE
+              AND expira_en > NOW()
+            FOR UPDATE
+            """,
+            (token_hash,)
+        ).fetchone()
+
+        if recuperacion is None:
+            return jsonify({
+                "error": "El enlace ha caducado o ya fue utilizado"
+            }), 400
+
+        conexion.execute(
+            """
+            UPDATE usuarios
+            SET password_hash = %s
+            WHERE id = %s
+            """,
+            (password_hash, recuperacion[1])
+        )
+
+        conexion.execute(
+            """
+            UPDATE recuperacion_contrasenas
+            SET usado = TRUE
+            WHERE id = %s
+            """,
+            (recuperacion[0],)
+        )
+
+    return jsonify({
+        "mensaje": "Contraseña actualizada correctamente. Ya puedes iniciar sesión."
+    }), 200
 
 
 @app.post("/api/auth/login")

@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recuperar contraseña - SIGRE</title>
+    <style>
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            min-height: 100vh;
+            display: grid;
+            place-items: center;
+            padding: 20px;
+            font-family: Arial, sans-serif;
+            background: #f1f3ff;
+            color: #19365b;
+        }
+        main {
+            width: 100%;
+            max-width: 440px;
+            padding: 32px;
+            background: white;
+            border-radius: 18px;
+            box-shadow: 0 12px 35px #1b28551a;
+        }
+        h1 { color: #5b4bd8; font-size: 25px; }
+        p { line-height: 1.5; color: #65758b; }
+        label { display: block; margin: 22px 0 8px; font-weight: bold; }
+        input {
+            width: 100%;
+            padding: 13px;
+            border: 1px solid #d6def0;
+            border-radius: 9px;
+            font-size: 16px;
+        }
+        button {
+            width: 100%;
+            margin-top: 18px;
+            padding: 14px;
+            border: 0;
+            border-radius: 25px;
+            background: #5b4bd8;
+            color: white;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        #mensaje { margin-top: 16px; overflow-wrap: anywhere; }
+        a { color: #5b4bd8; }
+        .volver { display: block; margin-top: 22px; text-align: center; }
+    </style>
+</head>
+<body>
+    <main>
+        <h1>¿Olvidaste tu contraseña?</h1>
+        <p>Escribe el correo asociado a tu cuenta SIGRE. Te indicaremos cómo continuar.</p>
+
+        <form id="form-recuperar">
+            <label for="email">Correo electrónico</label>
+            <input
+                type="email"
+                id="email"
+                name="email"
+                maxlength="254"
+                autocomplete="email"
+                placeholder="tucorreo@ejemplo.com"
+                required
+            >
+            <button type="submit" id="enviar">Solicitar recuperación</button>
+        </form>
+
+        <p id="mensaje" role="status" aria-live="polite"></p>
+        <a class="volver" href="login.html">Volver al inicio de sesión</a>
+    </main>
+
+    <script>
+        const API = "http://127.0.0.1:5000";
+
+        document.getElementById("form-recuperar")
+            .addEventListener("submit", async (evento) => {
+                evento.preventDefault();
+
+                const boton = document.getElementById("enviar");
+                const mensaje = document.getElementById("mensaje");
+                const email = document.getElementById("email").value.trim();
+
+                boton.disabled = true;
+                mensaje.textContent = "Procesando solicitud...";
+
+                try {
+                    const respuesta = await fetch(
+                        `${API}/api/auth/recuperar`,
+                        {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({ email })
+                        }
+                    );
+
+                    const datos = await respuesta.json();
+
+                    if (!respuesta.ok) {
+                        throw new Error(datos.error || "No se pudo procesar la solicitud.");
+                    }
+
+                    mensaje.textContent = datos.mensaje;
+                    document.getElementById("form-recuperar").reset();
+                } catch (error) {
+                    mensaje.textContent =
+                        "No se pudo conectar con SIGRE. Comprueba que Flask esté ejecutándose.";
+                } finally {
+                    boton.disabled = false;
+                }
+            });
+    </script>
+</body>
+</html>
