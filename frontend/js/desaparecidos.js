@@ -42,8 +42,38 @@
         });
     }
 
+
     function fullPhotoUrl(path) {
         return path.indexOf("http") === 0 ? path : API_BASE + path;
+    }
+
+    async function copiarEnlaceReporte(enlace) {
+        try {
+            if (navigator.clipboard && window.isSecureContext) {
+                await navigator.clipboard.writeText(enlace);
+            } else {
+                const temporal = document.createElement("textarea");
+                temporal.value = enlace;
+                temporal.setAttribute("readonly", "");
+                temporal.style.position = "fixed";
+                temporal.style.opacity = "0";
+
+                document.body.appendChild(temporal);
+                temporal.select();
+
+                const copiado = document.execCommand("copy");
+                temporal.remove();
+
+                if (!copiado) {
+                    throw new Error("El navegador no permitió copiar el enlace.");
+                }
+            }
+
+            return true;
+        } catch (error) {
+            console.error("Error al copiar el enlace:", error);
+            return false;
+        }
     }
 
     function getToken() {
@@ -76,7 +106,13 @@
     `SIGRE: reporte de ${report.tipo} de ${report.nombre}. ` +
     `Visto en: ${report.sector || "sector no especificado"}.`
 );
-const urlCompartir = encodeURIComponent(window.location.href.split("#")[0]);
+
+const urlReporte = new URL(window.location.href);
+urlReporte.search = "";
+urlReporte.hash = "";
+urlReporte.searchParams.set("reporte", report.id);
+
+const urlCompartir = encodeURIComponent(urlReporte.href);
 
 return '<article class="tarjeta_reporte" data-reporte-id="' +
     htmlSafe(report.id) + '">' +
@@ -294,6 +330,42 @@ return '<article class="tarjeta_reporte" data-reporte-id="' +
     });
 
     grid.addEventListener("click", function (event) {
+                const botonCopiar = event.target.closest(".copiar_enlace_reporte");
+
+                if (botonCopiar) {
+                    event.preventDefault();
+                    event.stopPropagation();
+
+                    const enlace = decodeURIComponent(botonCopiar.dataset.url || "");
+
+                    botonCopiar.disabled = true;
+
+                    copiarEnlaceReporte(enlace)
+                        .then(function (copiado) {
+                            if (copiado) {
+                                botonCopiar.innerHTML =
+                                    '<i class="fa-solid fa-check"></i> ¡Enlace copiado!';
+
+                                setTimeout(function () {
+                                    if (botonCopiar.isConnected) {
+                                        botonCopiar.innerHTML =
+                                            '<i class="fa-solid fa-link"></i> Copiar enlace';
+                                    }
+                                }, 2000);
+                            } else {
+                                alert(
+                                    "No se pudo copiar. Intenta copiar este enlace manualmente:\n" +
+                                    enlace
+                                );
+                            }
+                        })
+                        .finally(function () {
+                            botonCopiar.disabled = false;
+                        });
+
+                    return;
+                }
+
                 const botonCompartir = event.target.closest(".boton_compartir");
 
         if (botonCompartir) {

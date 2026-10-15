@@ -33,6 +33,33 @@
         }
     }
 
+    const CLAVE_NOTIFICACIONES_OCULTAS = "sigre_notificaciones_ocultas";
+
+    function leerNotificacionesOcultas() {
+        try {
+            return JSON.parse(
+                localStorage.getItem(CLAVE_NOTIFICACIONES_OCULTAS) || "[]"
+            ).map(String);
+        } catch (error) {
+            return [];
+        }
+    }
+
+    function guardarNotificacionOculta(id) {
+        const ocultas = new Set(leerNotificacionesOcultas());
+        ocultas.add(String(id));
+
+        try {
+            localStorage.setItem(
+                CLAVE_NOTIFICACIONES_OCULTAS,
+                JSON.stringify([...ocultas])
+            );
+        } catch (error) {
+            console.error("No se pudo guardar la notificación oculta.", error);
+        }
+    }
+
+
     function crear(etiqueta, clase, texto) {
         const elemento = document.createElement(etiqueta);
         if (clase) elemento.className = clase;
@@ -160,7 +187,17 @@
                 punto.setAttribute("aria-label", "Sin leer");
                 boton.appendChild(punto);
             }
-            fila.appendChild(boton);
+            
+            const botonQuitar = crear("button", "sigre_notif_quitar");
+            botonQuitar.type = "button";
+            botonQuitar.setAttribute(
+                "aria-label",
+                "Quitar notificación: " + item.titulo
+            );
+            botonQuitar.title = "Quitar notificación";
+            botonQuitar.innerHTML = "&times;";
+
+            fila.append(boton, botonQuitar);
             lista.appendChild(fila);
         });
     }
@@ -210,8 +247,18 @@
         cargando = true;
         try {
             const datos = await pedir("/api/notificaciones");
-            notificaciones = datos.notificaciones || [];
-            pintarContador(datos.no_leidas || 0);
+            const ocultas = new Set(leerNotificacionesOcultas());
+
+            notificaciones = (datos.notificaciones || []).filter(function (item) {
+                return !ocultas.has(String(item.id));
+            });
+
+            pintarContador(
+                notificaciones.filter(function (item) {
+                    return !item.leida;
+                }).length
+            );
+
             pintarLista();
 
             const nuevas = idsConocidos === null ? [] :
@@ -295,11 +342,34 @@
     });
 
     lista.addEventListener("click", function (evento) {
-        const boton = evento.target.closest(".sigre_notif_boton");
-        if (!boton) return;
-        const item = notificaciones.find(function (n) { return String(n.id) === boton.dataset.id; });
-        if (item) abrirNotificacion(item);
+    const botonQuitar = evento.target.closest(".sigre_notif_quitar");
+    if (!botonQuitar) return;
+
+    evento.preventDefault();
+    evento.stopPropagation();
+
+    const fila = botonQuitar.closest(".sigre_notif_item");
+    if (!fila) return;
+
+    const botonNotificacion = fila.querySelector(".sigre_notif_boton");
+    const id = botonNotificacion?.dataset.id;
+
+    if (!id) return;
+
+    guardarNotificacionOculta(id);
+
+    notificaciones = notificaciones.filter(function (item) {
+        return String(item.id) !== String(id);
     });
+
+    pintarLista();
+
+    pintarContador(
+        notificaciones.filter(function (item) {
+            return !item.leida;
+        }).length
+    );
+});
 
     botonTodas.addEventListener("click", async function () {
         notificaciones.forEach(function (n) { n.leida = true; });

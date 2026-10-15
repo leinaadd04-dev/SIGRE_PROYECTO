@@ -2,6 +2,11 @@ import io
 import os 
 from pathlib import Path
 
+import smtplib
+from email.message import EmailMessage
+from itsdangerous import URLSafeTimedSerializer
+from dotenv import load_dotenv
+
 import hashlib
 import secrets
 from datetime import timedelta
@@ -268,10 +273,48 @@ def solicitar_recuperacion():
                 """,
                 (usuario[0], token_hash)
             )
+            # Enviar enlace de recuperación por Gmail.
+            frontend_url = os.getenv(
+                "FRONTEND_URL",
+                "http://127.0.0.1:5500/frontend"
+            ).rstrip("/")
 
-            # Pendiente: enviar este enlace por correo mediante Gmail.
-            # No se devuelve el token en la respuesta pública.
+            enlace = f"{frontend_url}/restablecer_contrasena.html?token={token}"
 
+            remitente = os.getenv("MAIL_USERNAME")
+            clave_aplicacion = os.getenv("MAIL_APP_PASSWORD")
+
+            if not remitente or not clave_aplicacion:
+                app.logger.error(
+                    "Falta configurar MAIL_USERNAME o MAIL_APP_PASSWORD."
+                )
+            else:
+                mensaje_correo = EmailMessage()
+                mensaje_correo["Subject"] = "Restablecer contraseña - SIGRE"
+                mensaje_correo["From"] = remitente
+                mensaje_correo["To"] = email
+                mensaje_correo.set_content(
+                    "Hola,\n\n"
+                    "Recibimos una solicitud para restablecer tu contraseña "
+                    "de SIGRE.\n\n"
+                    f"Abre este enlace para crear una contraseña nueva:\n{enlace}\n\n"
+                    "El enlace vence en 15 minutos y solo puede utilizarse una vez.\n\n"
+                    "Si no solicitaste este cambio, ignora este correo."
+                )
+                try:
+                    with smtplib.SMTP("smtp.gmail.com", 587, timeout=20) as servidor:
+                        servidor.set_debuglevel(1)
+                        servidor.ehlo()
+                        servidor.starttls()
+                        servidor.ehlo()
+                        servidor.login(remitente, clave_aplicacion)
+                        servidor.send_message(mensaje_correo)
+
+                    app.logger.info("Correo de recuperación enviado correctamente.")
+
+                except Exception:
+                    app.logger.exception("No se pudo enviar el correo de recuperación.")
+                
     return jsonify(respuesta), 200
 
 

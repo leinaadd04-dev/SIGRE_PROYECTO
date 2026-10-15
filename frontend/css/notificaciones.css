@@ -248,3 +248,38 @@
     width: auto;
     z-index: 1100;
 }
+
+/* SIGRE · Panel de notificaciones de la campana (css/notificaciones.css) */
+.sigre_notif_item {
+    position: relative;
+}
+
+.sigre_notif_quitar {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 25px;
+    height: 25px;
+    padding: 0;
+    border: none;
+    border-radius: 50%;
+    background: transparent;
+    color: #53627a;
+    font-size: 20px;
+    line-height: 1;
+    cursor: pointer;
+}
+
+.sigre_notif_quitar:hover {
+    background: #edf1f7;
+    color: #b42318;
+}
+
+.sigre_notif_quitar:focus-visible {
+    outline: 2px solid #42649b;
+    outline-offset: 2px;
+}
