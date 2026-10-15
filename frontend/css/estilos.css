@@ -692,11 +692,21 @@ body {
     opacity: 0.9;
 }
 
+/* Las opciones de rol ocupan el mismo ancho que los campos */
 .roles_contenedor {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 0.5rem;
-    margin-bottom: 0.25rem;
+    display: flex !important;
+    width: 100%;
+    gap: 8px;
+    justify-content: stretch;
+    align-items: stretch;
+}
+
+.roles_contenedor .rol_opcion {
+    flex: 1 1 0;
+    width: 0;
+    max-width: none;
+    min-width: 0;
+    margin: 0;
 }
 
 .rol_opcion {
@@ -1747,9 +1757,9 @@ body {
     }
 
     .roles_contenedor {
-        grid-template-columns: repeat(3, 1fr);
-        gap: 0.35rem;
-    }
+    justify-content: center;
+    gap: 0.35rem;
+}
 
     .rol_texto {
         font-size: 0.65rem;
@@ -2365,4 +2375,12 @@ body {
 
 .boton_sos:active {
     transform: scale(0.95);
+}
+
+.roles_contenedor .rol_opcion {
+    flex: 1 1 0;
+    width: 0;
+    max-width: none;
+    min-width: 0;
+    margin: 0;
 }
