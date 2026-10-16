@@ -1,5 +1,7 @@
 /* SIGRE · Ventana para verificar el correo con un código de 6 números.
-   La usan registro.html y login.html: window.SigreVerificacion.abrir(correo, alVerificar). */
+   La usan registro.html y login.html: window.SigreVerificacion.abrir(correo, alVerificar).
+   Recuerda la verificación pendiente: si el celular recarga la página (por
+   ejemplo, al ir a Gmail a copiar el código), la ventana vuelve a abrirse. */
 (() => {
     const ventana = document.getElementById("ventana-verificacion");
     if (!ventana) return;
@@ -13,6 +15,35 @@
     let alVerificar = null;
     let verificando = false;
     let temporizador = null;
+
+    const CLAVE_PENDIENTE = "sigre_verificacion_pendiente";
+    const VIGENCIA_PENDIENTE = 30 * 60 * 1000;   // 30 minutos
+
+    function guardarPendiente(email) {
+        try {
+            localStorage.setItem(CLAVE_PENDIENTE, JSON.stringify({ email: email, hasta: Date.now() + VIGENCIA_PENDIENTE }));
+        } catch (error) { /* sin almacenamiento: solo no se recordará */ }
+    }
+
+    function leerPendiente() {
+        try {
+            const pendiente = JSON.parse(localStorage.getItem(CLAVE_PENDIENTE) || "null");
+            return pendiente && pendiente.email && pendiente.hasta > Date.now() ? pendiente.email : null;
+        } catch (error) {
+            return null;
+        }
+    }
+
+    function borrarPendiente() {
+        try {
+            localStorage.removeItem(CLAVE_PENDIENTE);
+        } catch (error) { /* nada que borrar */ }
+    }
+
+    // Qué hacer al verificar si la página se recargó y se perdió lo que pidió auth.js.
+    function despuesPorDefecto() {
+        if (/registro\.html$/.test(window.location.pathname)) window.location.href = "login.html";
+    }
 
     function mostrar(texto, tipo) {
         mensaje.textContent = texto;
@@ -69,6 +100,7 @@
         try {
             const datos = await pedir("/api/auth/verificar", { email: correo, codigo: codigo() });
             mostrar(datos.mensaje || "¡Correo verificado!", "exito");
+            borrarPendiente();
             setTimeout(() => {
                 cerrar();
                 if (alVerificar) alVerificar();
@@ -120,7 +152,8 @@
 
     function abrir(email, despues) {
         correo = email;
-        alVerificar = despues || null;
+        alVerificar = despues || despuesPorDefecto;
+        guardarPendiente(email);
         document.getElementById("verificacion-correo").textContent = email;
         mostrar("");
         ventana.hidden = false;
@@ -135,7 +168,18 @@
 
     botonVerificar.addEventListener("click", verificar);
     botonReenviar.addEventListener("click", reenviar);
-    document.getElementById("verificacion-cerrar").addEventListener("click", cerrar);
+    // Cerrar con la ✕ es una decisión de la persona: ya no se vuelve a abrir sola.
+    document.getElementById("verificacion-cerrar").addEventListener("click", () => {
+        borrarPendiente();
+        cerrar();
+    });
 
     window.SigreVerificacion = { abrir: abrir };
+
+    // Si quedó una verificación a medias (el celular recargó la página), se retoma.
+    const pendiente = leerPendiente();
+    if (pendiente) {
+        abrir(pendiente, despuesPorDefecto);
+        mostrar("Retomamos la verificación de tu correo. Escribe el código que te enviamos.");
+    }
 })();

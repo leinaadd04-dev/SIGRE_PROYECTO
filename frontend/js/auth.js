@@ -258,7 +258,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }
 
+            // Evita crear la cuenta dos veces si se toca el botón mientras espera.
+            const textoBoton = botonRegistro.textContent;
             botonRegistro.disabled = true;
+            botonRegistro.textContent = 'Creando cuenta...';
 
             try {
                 const respuesta = await fetch(`${API_SIGRE}/api/auth/registro`, {
@@ -269,6 +272,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 const datos = await leerJsonSeguro(respuesta);
 
                 if (!respuesta.ok) {
+                    // La cuenta ya existía pero sin verificar: se retoma la verificación.
+                    if (datos.verificar && window.SigreVerificacion) {
+                        window.SigreVerificacion.abrir(email.toLowerCase(), () => {
+                            window.location.href = 'login.html';
+                        });
+                    }
                     throw new Error(datos.error || 'No se pudo crear la cuenta. Inténtalo de nuevo.');
                 }
 
@@ -279,6 +288,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     : '¡Cuenta creada como ciudadano! El rol de voluntario o autoridad lo asigna un administrador de SIGRE. Escribe el código que enviamos a tu correo.';
                 exitoMsg.style.display = 'block';
                 botonRegistro.disabled = false;
+                botonRegistro.textContent = textoBoton;
 
                 window.SigreVerificacion.abrir(email.toLowerCase(), () => {
                     exitoMsg.textContent = '¡Correo verificado! Redirigiendo al inicio de sesión...';
@@ -290,6 +300,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 errorMsg.textContent = error instanceof TypeError ? MENSAJE_SIN_SERVIDOR : error.message;
                 errorMsg.style.display = 'block';
                 botonRegistro.disabled = false;
+                botonRegistro.textContent = textoBoton;
             }
         });
     }

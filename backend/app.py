@@ -13,10 +13,13 @@ from datetime import timedelta
 
 import re
 import secrets
+import threading
 from datetime import date, datetime, timedelta
 import psycopg
 import unicodedata
 from urllib.parse import urlparse
+
+import requests
 
 from dotenv import load_dotenv
 from flask import Flask, jsonify, request, send_file, send_from_directory
@@ -169,19 +172,38 @@ def limpiar_texto(valor, limite):
     return texto
 
 
-def enviar_correo(destino, asunto, texto):
-    """Envía un correo desde la cuenta de SIGRE. Devuelve True si salió."""
-    remitente = os.getenv("MAIL_USERNAME")
-    clave_aplicacion = os.getenv("MAIL_APP_PASSWORD")
-    if not remitente or not clave_aplicacion:
-        app.logger.error("Falta configurar MAIL_USERNAME o MAIL_APP_PASSWORD.")
-        return False
-    mensaje = EmailMessage()
-    mensaje["Subject"] = asunto
-    mensaje["From"] = f"SIGRE <{remitente}>"
-    mensaje["To"] = destino
-    mensaje.set_content(texto)
+def _enviar_correo_ahora(destino, asunto, texto):
+    """Envía un correo desde la cuenta de SIGRE. Devuelve True si salió.
+
+    - Con MAIL_SCRIPT_URL (en Render): lo envía un Google Apps Script de la
+      cuenta sigre.oficial por HTTPS. Render gratis bloquea el SMTP de Gmail.
+    - Sin ella (en tu PC): SMTP de Gmail con MAIL_USERNAME y MAIL_APP_PASSWORD.
+    """
+    url_script = os.getenv("MAIL_SCRIPT_URL")
     try:
+        if url_script:
+            respuesta = requests.post(
+                url_script,
+                json={"clave": os.getenv("MAIL_SCRIPT_CLAVE", ""), "para": destino,
+                      "asunto": asunto, "texto": texto},
+                timeout=30,
+            )
+            resultado = respuesta.json()
+            if not resultado.get("ok"):
+                app.logger.error("El Apps Script no envió el correo: %s", resultado.get("error"))
+                return False
+            return True
+
+        remitente = os.getenv("MAIL_USERNAME")
+        clave_aplicacion = os.getenv("MAIL_APP_PASSWORD")
+        if not remitente or not clave_aplicacion:
+            app.logger.error("Falta configurar MAIL_SCRIPT_URL o MAIL_USERNAME y MAIL_APP_PASSWORD.")
+            return False
+        mensaje = EmailMessage()
+        mensaje["Subject"] = asunto
+        mensaje["From"] = f"SIGRE <{remitente}>"
+        mensaje["To"] = destino
+        mensaje.set_content(texto)
         with smtplib.SMTP("smtp.gmail.com", 587, timeout=20) as servidor:
             servidor.starttls()
             servidor.login(remitente, clave_aplicacion)
@@ -190,6 +212,12 @@ def enviar_correo(destino, asunto, texto):
     except Exception:
         app.logger.exception("No se pudo enviar un correo.")
         return False
+
+
+def enviar_correo(destino, asunto, texto):
+    """Envía el correo en segundo plano: la respuesta a la página no espera a Gmail."""
+    threading.Thread(target=_enviar_correo_ahora, args=(destino, asunto, texto), daemon=True).start()
+    return True
 
 
 def hash_codigo(email, codigo):
@@ -273,6 +301,23 @@ def registrar_usuario():
                 (email, password_hash, "ciudadano", nombre, telefono)
             )
     except psycopg.errors.UniqueViolation:
+        # Si la cuenta existe pero nunca se verificó, se reenvía el código para
+        # que la persona termine el registro en lugar de quedarse bloqueada.
+        try:
+            with obtener_conexion() as conexion:
+                pendiente = conexion.execute(
+                    "SELECT sigre_cuenta_sin_verificar(%s)", (email,)
+                ).fetchone()[0]
+        except psycopg.errors.UndefinedFunction:
+            # Falta volver a aplicar backend/migracion_verificacion_correo.sql.
+            pendiente = False
+        if pendiente:
+            enviar_codigo_verificacion(email)
+            return jsonify({
+                "error": "Ya creaste esta cuenta, pero falta verificar el correo. "
+                         "Escribe el código que enviamos (o pide uno nuevo).",
+                "verificar": True,
+            }), 409
         return jsonify({"error": "Ese email ya está registrado"}), 409
 
     enviar_codigo_verificacion(email)
@@ -350,31 +395,15 @@ def solicitar_recuperacion():
 
     frontend_url = os.getenv("FRONTEND_URL", "http://127.0.0.1:5500/frontend").rstrip("/")
     enlace = f"{frontend_url}/restablecer_contrasena.html?token={token}"
-    remitente = os.getenv("MAIL_USERNAME")
-    clave_aplicacion = os.getenv("MAIL_APP_PASSWORD")
-    if not remitente or not clave_aplicacion:
-        app.logger.error("Falta configurar MAIL_USERNAME o MAIL_APP_PASSWORD.")
-        return jsonify(respuesta), 200
-
-    mensaje_correo = EmailMessage()
-    mensaje_correo["Subject"] = "Restablecer contraseña - SIGRE"
-    mensaje_correo["From"] = remitente
-    mensaje_correo["To"] = email
-    mensaje_correo.set_content(
+    enviar_correo(
+        email,
+        "Restablecer contraseña - SIGRE",
         "Hola,\n\n"
         "Recibimos una solicitud para restablecer tu contraseña de SIGRE.\n\n"
         f"Abre este enlace para crear una contraseña nueva:\n{enlace}\n\n"
         "El enlace vence en 15 minutos y solo puede utilizarse una vez.\n\n"
         "Si no solicitaste este cambio, ignora este correo."
     )
-    try:
-        # Sin set_debuglevel: imprimiría la clave de Gmail en los registros.
-        with smtplib.SMTP("smtp.gmail.com", 587, timeout=20) as servidor:
-            servidor.starttls()
-            servidor.login(remitente, clave_aplicacion)
-            servidor.send_message(mensaje_correo)
-    except Exception:
-        app.logger.exception("No se pudo enviar el correo de recuperación.")
 
     return jsonify(respuesta), 200
 

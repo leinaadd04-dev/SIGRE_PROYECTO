@@ -90,8 +90,23 @@ BEGIN
 END;
 $$;
 
+-- ¿El correo tiene una cuenta que aún no está verificada? (registro repetido)
+CREATE OR REPLACE FUNCTION sigre_cuenta_sin_verificar(p_email TEXT)
+RETURNS BOOLEAN
+LANGUAGE sql
+STABLE
+SECURITY DEFINER
+SET search_path = public, pg_temp
+AS $$
+    SELECT EXISTS (
+        SELECT 1 FROM usuarios
+        WHERE email = lower(btrim(p_email)) AND NOT email_verificado
+    );
+$$;
+
 REVOKE ALL ON FUNCTION sigre_crear_codigo_verificacion(TEXT, TEXT) FROM PUBLIC;
 REVOKE ALL ON FUNCTION sigre_verificar_correo(TEXT, TEXT) FROM PUBLIC;
+REVOKE ALL ON FUNCTION sigre_cuenta_sin_verificar(TEXT) FROM PUBLIC;
 
 -- Si tu DB_USER tiene otro nombre, cambia 'sigre_app' en este bloque.
 DO $$
@@ -99,6 +114,7 @@ BEGIN
     IF EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'sigre_app') THEN
         GRANT EXECUTE ON FUNCTION sigre_crear_codigo_verificacion(TEXT, TEXT) TO sigre_app;
         GRANT EXECUTE ON FUNCTION sigre_verificar_correo(TEXT, TEXT) TO sigre_app;
+        GRANT EXECUTE ON FUNCTION sigre_cuenta_sin_verificar(TEXT) TO sigre_app;
         -- El login necesita saber si la cuenta ya está verificada.
         GRANT SELECT (email_verificado) ON usuarios TO sigre_app;
     END IF;

@@ -155,3 +155,4 @@ SIGRE está en desarrollo. La configuración completa de PostgreSQL para una com
 - `frontend/js/config.js` decide la dirección de la API: en desarrollo (Live Server, puertos 5500/8000) usa el puerto 5000; publicado, usa la misma dirección de la página.
 - SIGRE se instala como app (PWA) con `frontend/manifest.json` y `frontend/service-worker.js`: en Android, menú ⋮ → *Instalar aplicación*; en iPhone, Compartir → *Agregar a inicio*.
 - Si agregas una migración nueva, ejecútala también en Neon.
+- **Correos en Render:** el plan gratis bloquea el SMTP de Gmail. Los correos (código de verificación y recuperación de contraseña) los envía un Google Apps Script de la cuenta del proyecto; en Render se configuran `MAIL_SCRIPT_URL` y `MAIL_SCRIPT_CLAVE`. En tu PC, sin esas variables, se usa SMTP con `MAIL_USERNAME` y `MAIL_APP_PASSWORD`.
