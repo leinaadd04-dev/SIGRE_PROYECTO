@@ -26,7 +26,7 @@ Sistema de Gestión de Riesgos y Emergencias. Prototipo académico para registra
   - `apps_script/correos.gs`: código del Google Apps Script que envía los correos en la versión publicada.
 - `frontend/`: páginas web (HTML, CSS y JavaScript).
 - `.env.example`: nombres de todas las variables de entorno, sin valores reales.
-- `database/`: base de datos: esquema completo (`schema.sql`), datos de demostración (`datos_demo.sql`) y respaldo listo para restaurar (`sigre_demo.sql`).
+- `database/`: base de datos: esquema completo (`schema.sql`), datos de demostración (`datos_demo.sql`), respaldo listo para restaurar (`sigre_demo.sql`) y diagrama entidad-relación (`der.png`).
 - `rutas_eva_corregido.ipynb`: notebook para explorar rutas peatonales con OpenStreetMap.
 - `mapa_rutas.html`: mapa generado por el notebook.
 
@@ -261,6 +261,17 @@ El plan gratis de Render bloquea el SMTP de Gmail, así que los correos los env�
 | [`schema.sql`](database/schema.sql) | Esquema completo, sacado de la base real con `pg_dump --schema-only`: 19 tablas con llaves primarias, llaves foráneas, restricciones, índices, funciones, disparadores y seguridad por filas. Sin datos. |
 | [`datos_demo.sql`](database/datos_demo.sql) | Datos de demostración **inventados** (cuentas, emergencia, centros con inventario, jornadas, solicitudes, desaparecidos y directorio). Se carga sobre `schema.sql`. |
 | [`sigre_demo.sql`](database/sigre_demo.sql) | Respaldo completo (`pg_dump`) de una base con el esquema y los datos de demostración. Es la forma más rápida de ver el sistema con información. |
+| [`der.png`](database/der.png) | Diagrama entidad-relación: las 19 tablas, sus columnas, llaves primarias y foráneas, y las 23 relaciones. |
+| [`der.dbml`](database/der.dbml) | Código del diagrama, generado de `schema.sql`. Se abre en [dbdiagram.io](https://dbdiagram.io) para editarlo y volver a exportarlo. |
+
+### Diagrama entidad-relación
+
+![Diagrama entidad-relación de SIGRE](database/der.png)
+
+- `usuarios` es la tabla central: casi todas las demás se relacionan con ella (uno a muchos).
+- **Uno a uno:** `avatares_usuario` y `codigos_verificacion` con `usuarios`; `contactos_comentarios_desaparecidos` y `notificaciones_comentarios_desaparecidos` con `comentarios_desaparecidos`.
+- **Muchos a muchos**, resueltas con una tabla intermedia: usuarios ↔ jornadas (`participaciones_jornadas`) y usuarios ↔ notificaciones leídas (`notificaciones_leidas`).
+- **Relaciones opcionales (0..1):** `notificaciones.destinatario_id` (los avisos generales no tienen destinatario), `emergencias.finalizada_por` (una emergencia activa aún no se finaliza) y las columnas `creado_por`, `creada_por`, `actualizado_por`, `publicado_por` y `comentarios_desaparecidos.usuario_id`, que quedan vacías si se elimina la cuenta (`ON DELETE SET NULL`) para no perder el registro.
 
 **Restaurar la base de demostración** (con el usuario `postgres`):
 
