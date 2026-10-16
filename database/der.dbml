@@ -1,0 +1,284 @@
+// SIGRE · Diagrama entidad-relación (DBML para https://dbdiagram.io)
+// Generado de database/schema.sql: mismas tablas, columnas, llaves y relaciones.
+
+Table avatares_usuario [note: 'Foto o animalito de la cuenta (1 a 1)'] {
+  usuario_id bigint [pk]
+  tipo text [not null]
+  animal text
+  foto bytea
+  foto_mime text
+  actualizado_en timestamptz [not null]
+}
+
+Table centros_ayuda [note: 'Centros de acopio y albergues'] {
+  id bigint [pk, increment]
+  nombre text [not null]
+  tipo text [not null]
+  direccion text [not null]
+  descripcion text
+  necesidades text
+  telefono text
+  latitud float
+  longitud float
+  capacidad integer [not null]
+  ocupados integer [not null]
+  estado text [not null]
+  creado_por bigint
+  creado_en timestamptz [not null]
+  actualizado_en timestamptz [not null]
+}
+
+Table codigos_verificacion [note: 'Código de 6 números vigente por cuenta (1 a 1)'] {
+  usuario_id bigint [pk]
+  codigo_hash text [not null]
+  expira_en timestamptz [not null]
+  intentos integer [not null]
+  enviado_en timestamptz [not null]
+}
+
+Table comentarios_desaparecidos [note: 'Comentarios de testigos en un reporte'] {
+  id bigint [pk, increment]
+  reporte_id bigint [not null]
+  usuario_id bigint
+  nombre_testigo text [not null]
+  comentario text [not null]
+  veracidad_confirmada boolean [not null]
+  autoriza_compartir_telefono boolean [not null]
+  creado_en timestamptz [not null]
+}
+
+Table contactos_comentarios_desaparecidos [note: 'Teléfono privado del testigo (1 a 1 con el comentario)'] {
+  comentario_id bigint [pk]
+  telefono_testigo text [not null]
+}
+
+Table directorio_entidades [note: 'Directorio de entidades y líneas de atención'] {
+  id bigint [pk, increment]
+  grupo text [not null]
+  nombre text [not null]
+  detalle text
+  telefono text
+  direccion text
+  web text
+  orden integer [not null]
+  actualizado_en timestamptz [not null]
+  foto bytea
+  foto_mime text
+  foto_actualizada timestamptz
+}
+
+Table emergencias [note: 'Emergencias publicadas por las autoridades'] {
+  id bigint [pk, increment]
+  tipo text [not null]
+  descripcion text [not null]
+  alcance text [not null]
+  departamento text [not null]
+  municipio text
+  sector text
+  latitud float
+  longitud float
+  nivel_riesgo text [not null]
+  estado text [not null]
+  registrada_por bigint [not null]
+  creada_en timestamptz [not null]
+  actualizada_en timestamptz [not null]
+  finalizada_por bigint
+  finalizada_en timestamptz
+}
+
+Table inventario_centros [note: 'Productos de cada centro por categoría'] {
+  id bigint [pk, increment]
+  centro_id bigint [not null]
+  categoria text [not null]
+  producto text [not null]
+  cantidad integer [not null]
+  unidad text [not null]
+  minimo integer [not null]
+  actualizado_por bigint
+  actualizado_en timestamptz [not null]
+  talla text
+}
+
+Table jornadas [note: 'Jornadas comunitarias'] {
+  id bigint [pk, increment]
+  nombre text [not null]
+  categoria text [not null]
+  descripcion text [not null]
+  fecha_inicio timestamptz [not null]
+  lugar text [not null]
+  latitud float
+  longitud float
+  estado text [not null]
+  creada_por bigint
+  creada_en timestamptz [not null]
+  fecha_fin timestamptz
+}
+
+Table notificaciones [note: 'Campana: personales (destinatario) o generales (por rol)'] {
+  id bigint [pk, increment]
+  destinatario_id bigint
+  rol_destino text
+  tipo text [not null]
+  titulo text [not null]
+  mensaje text [not null]
+  enlace text
+  creada_en timestamptz [not null]
+  push_enviada boolean [not null]
+}
+
+Table notificaciones_comentarios_desaparecidos [note: 'Aviso a quien publicó el reporte'] {
+  id bigint [pk, increment]
+  destinatario_id bigint [not null]
+  comentario_id bigint [not null, unique]
+  leida boolean [not null]
+  creada_en timestamptz [not null]
+}
+
+Table notificaciones_leidas [note: 'Qué notificaciones leyó cada cuenta (N a N)'] {
+  notificacion_id bigint [not null]
+  usuario_id bigint [not null]
+  leida_en timestamptz [not null]
+
+  indexes {
+    (usuario_id, notificacion_id) [pk]
+  }
+}
+
+Table participaciones_jornadas [note: 'Inscripciones: quién va a qué jornada (N a N)'] {
+  jornada_id bigint [not null]
+  usuario_id bigint [not null]
+  creada_en timestamptz [not null]
+
+  indexes {
+    (jornada_id, usuario_id) [pk]
+  }
+}
+
+Table recuperacion_contrasenas [note: 'Enlaces para restablecer la contraseña'] {
+  id bigint [pk, increment]
+  usuario_id bigint [not null]
+  token_hash text [not null, unique]
+  expira_en timestamptz [not null]
+  usado boolean [not null]
+  creado_en timestamptz [not null]
+}
+
+Table reportes_desaparecidos [note: 'Personas y animales desaparecidos'] {
+  id bigint [pk, increment]
+  tipo text [not null]
+  nombre text [not null]
+  edad text
+  genero text
+  sector text [not null]
+  fecha_visto timestamptz
+  descripcion text [not null]
+  foto bytea [not null]
+  foto_mime text [not null]
+  estado text [not null]
+  autoriza_publicacion boolean [not null]
+  creado_en timestamptz [not null]
+  actualizado_en timestamptz [not null]
+  telefono_contacto varchar(20)
+  publicado_por bigint
+}
+
+Table rutas_guardadas [note: 'Rutas de evacuación guardadas por cada cuenta'] {
+  id bigint [pk, increment]
+  usuario_id bigint [not null]
+  nombre text [not null]
+  origen_lat float [not null]
+  origen_lon float [not null]
+  origen_texto text [not null]
+  destino_lat float [not null]
+  destino_lon float [not null]
+  destino_texto text [not null]
+  incluye_demo boolean [not null]
+  distancia_m integer [not null]
+  tiempo_min integer [not null]
+  metros_riesgo integer [not null]
+  geometria jsonb [not null]
+  creada_en timestamptz [not null]
+  modo text [not null]
+}
+
+Table solicitudes_ayuda [note: 'Pedidos de ayuda y de visita a la vivienda'] {
+  id bigint [pk, increment]
+  usuario_id bigint [not null]
+  categoria text
+  urgencia text [not null]
+  descripcion text [not null]
+  personas_afectadas integer [not null]
+  direccion text [not null]
+  latitud float
+  longitud float
+  nombre_contacto text [not null]
+  telefono_contacto text [not null]
+  adjunto bytea
+  adjunto_mime text
+  autoriza_compartir boolean [not null]
+  estado text [not null]
+  creada_en timestamptz [not null]
+  actualizada_en timestamptz [not null]
+  tipo text [not null]
+  alcance text [not null]
+  nombre_comunidad text
+  motivo_visita text
+  fecha_visita_preferida date
+  franja_horaria text
+}
+
+Table suscripciones_push [note: 'Celulares inscritos para avisos push'] {
+  id bigint [pk, increment]
+  usuario_id bigint [not null]
+  endpoint text [not null, unique]
+  p256dh text [not null]
+  auth text [not null]
+  creada_en timestamptz [not null]
+}
+
+Table usuarios [note: 'Cuentas: rol, perfil médico y correo verificado'] {
+  id bigint [pk, increment]
+  email text [not null, unique]
+  password_hash text [not null]
+  rol text [not null]
+  creado_en timestamptz [not null]
+  nombre text
+  telefono text
+  tipo_documento text
+  numero_documento text
+  fecha_nacimiento date
+  tipo_sangre text
+  alergias text
+  condiciones_medicas text
+  medicamentos text
+  contacto_emergencia_nombre text
+  contacto_emergencia_telefono text
+  direccion text
+  comunidad text
+  email_verificado boolean [not null]
+}
+
+// Relaciones (llaves foráneas). '>' = muchos a uno; '-' = uno a uno.
+Ref: avatares_usuario.usuario_id - usuarios.id [delete: cascade]
+Ref: centros_ayuda.creado_por > usuarios.id [delete: set null]
+Ref: codigos_verificacion.usuario_id - usuarios.id [delete: cascade]
+Ref: comentarios_desaparecidos.reporte_id > reportes_desaparecidos.id [delete: cascade]
+Ref: comentarios_desaparecidos.usuario_id > usuarios.id [delete: set null]
+Ref: contactos_comentarios_desaparecidos.comentario_id - comentarios_desaparecidos.id [delete: cascade]
+Ref: emergencias.finalizada_por > usuarios.id
+Ref: emergencias.registrada_por > usuarios.id
+Ref: inventario_centros.actualizado_por > usuarios.id [delete: set null]
+Ref: inventario_centros.centro_id > centros_ayuda.id [delete: cascade]
+Ref: jornadas.creada_por > usuarios.id [delete: set null]
+Ref: notificaciones_comentarios_desaparecidos.comentario_id - comentarios_desaparecidos.id [delete: cascade]
+Ref: notificaciones_comentarios_desaparecidos.destinatario_id > usuarios.id [delete: cascade]
+Ref: notificaciones.destinatario_id > usuarios.id [delete: cascade]
+Ref: notificaciones_leidas.notificacion_id > notificaciones.id [delete: cascade]
+Ref: notificaciones_leidas.usuario_id > usuarios.id [delete: cascade]
+Ref: participaciones_jornadas.jornada_id > jornadas.id [delete: cascade]
+Ref: participaciones_jornadas.usuario_id > usuarios.id [delete: cascade]
+Ref: recuperacion_contrasenas.usuario_id > usuarios.id [delete: cascade]
+Ref: reportes_desaparecidos.publicado_por > usuarios.id [delete: set null]
+Ref: rutas_guardadas.usuario_id > usuarios.id [delete: cascade]
+Ref: solicitudes_ayuda.usuario_id > usuarios.id [delete: cascade]
+Ref: suscripciones_push.usuario_id > usuarios.id [delete: cascade]
