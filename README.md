@@ -16,7 +16,7 @@ Sistema de Gestión de Riesgos y Emergencias. Prototipo académico para registra
   - `migracion_*.sql`: cambios de la base de datos (ver más abajo).
   - `datos_rutas/*.json.gz`: redes de calles de Montería ya preparadas para el servidor.
 - `frontend/`: páginas web (HTML, CSS y JavaScript).
-- `database/`: esquema completo de la base de datos (`schema.sql`).
+- `database/`: base de datos: esquema completo (`schema.sql`), datos de demostración (`datos_demo.sql`) y respaldo listo para restaurar (`sigre_demo.sql`).
 - `rutas_eva_corregido.ipynb`: notebook para explorar rutas peatonales con OpenStreetMap.
 - `mapa_rutas.html`: mapa generado por el notebook.
 
@@ -251,9 +251,36 @@ El plan gratis de Render bloquea el SMTP de Gmail, así que los correos los env�
 ## Base de datos
 
 - **Motor:** PostgreSQL 18.
-- **Esquema completo:** [`database/schema.sql`](database/schema.sql), generado de la base real con `pg_dump --schema-only`. Incluye las 19 tablas con llaves primarias, llaves foráneas, restricciones, índices, funciones, disparadores y seguridad por filas.
-- **Base nueva desde cero:** crear la base y el usuario de la aplicación (`CREATE DATABASE sigre;` y `CREATE ROLE sigre_app LOGIN PASSWORD '...';`) y cargar el esquema con `psql -U postgres -d sigre -f database/schema.sql`. El encabezado del archivo explica cada paso.
-- **Base que ya existe:** aplicar las migraciones `backend/migracion_*.sql` en el orden de arriba; el esquema es el resultado de aplicarlas todas.
+- **Archivos** (carpeta [`database/`](database)):
+
+| Archivo | Qué es |
+|---|---|
+| [`schema.sql`](database/schema.sql) | Esquema completo, sacado de la base real con `pg_dump --schema-only`: 19 tablas con llaves primarias, llaves foráneas, restricciones, índices, funciones, disparadores y seguridad por filas. Sin datos. |
+| [`datos_demo.sql`](database/datos_demo.sql) | Datos de demostración **inventados** (cuentas, emergencia, centros con inventario, jornadas, solicitudes, desaparecidos y directorio). Se carga sobre `schema.sql`. |
+| [`sigre_demo.sql`](database/sigre_demo.sql) | Respaldo completo (`pg_dump`) de una base con el esquema y los datos de demostración. Es la forma más rápida de ver el sistema con información. |
+
+**Restaurar la base de demostración** (con el usuario `postgres`):
+
+```powershell
+psql -U postgres -c "CREATE ROLE sigre_app LOGIN PASSWORD 'una-clave-segura';"
+psql -U postgres -c "CREATE DATABASE sigre_demo;"
+psql -U postgres -d sigre_demo -f database\sigre_demo.sql
+```
+
+Si el rol `sigre_app` ya existe, omite la primera línea. Luego, en `backend/.env`, usa `DB_NAME=sigre_demo`, `DB_USER=sigre_app` y su clave.
+
+**Crear una base vacía** (sin datos): igual, pero cargando `database/schema.sql` en lugar de `sigre_demo.sql`. Para una base que ya existe, aplica las migraciones `backend/migracion_*.sql` en el orden de arriba: el esquema es el resultado de aplicarlas todas.
+
+### Credenciales de prueba
+
+Las cuentas de la base de demostración ya tienen el correo verificado:
+
+| Rol | Correo | Contraseña |
+|---|---|---|
+| Administrador (autoridad) | `admin.demo@sigre.co` | `AdminSigre2026*` |
+| Usuario (ciudadano) | `usuario.demo@sigre.co` | `UsuarioSigre2026*` |
+
+También hay tres cuentas de participantes de ejemplo (`laura.martinez@sigre.co`, `carlos.perez@sigre.co` y `ana.gomez@sigre.co`) con la contraseña `DemoSigre2026*`. Son datos de prueba: no uses estas contraseñas en cuentas reales.
 
 ## Estado
 
