@@ -1,0 +1,5 @@
+# Los archivos de database/ los genera pg_dump: GitHub no los cuenta en las
+# estadísticas de lenguajes del proyecto (así no aparece como "PLpgSQL").
+database/schema.sql linguist-generated=true
+database/sigre_demo.sql linguist-generated=true
+database/datos_demo.sql linguist-generated=true
