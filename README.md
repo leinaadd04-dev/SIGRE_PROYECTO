@@ -1,61 +1,95 @@
 # SIGRE
 
-Prototipo académico para registrar y consultar emergencias y explorar rutas en Montería. El proyecto forma parte de una iniciativa relacionada con el ODS 11.
+Sistema de Gestión de Riesgos y Emergencias. Prototipo académico para registrar y consultar emergencias, pedir ayuda, encontrar rutas de evacuación y organizar a la comunidad en Montería, Córdoba. El proyecto forma parte de una iniciativa relacionada con el ODS 11.
+
+- **Publicado en:** https://sigre.onrender.com (se puede instalar como app en el celular).
+- **Repositorio:** https://github.com/leinaadd04-dev/SIGRE_PROYECTO
 
 ## Componentes
 
-- `backend/`: API desarrollada con Flask y conexión a PostgreSQL.
-- `Interfaz/`: archivos de la interfaz web.
-- `datos/`: datos de referencia del proyecto.
-- `rutas_eva_corregido.ipynb`: notebook para explorar rutas peatonales con OpenStreetMap y visualizar zonas aproximadas.
+- `backend/`: API en Flask con PostgreSQL. También entrega las páginas de `frontend/` cuando está publicada.
+  - `app.py`: cuentas, perfil, desaparecidos, solicitudes de ayuda y correos.
+  - `administracion.py`: panel de administración, centros, inventario, directorio, jornadas y emergencias.
+  - `notificaciones.py`: campana de notificaciones.
+  - `rutas.py`: rutas de evacuación sobre las calles de Montería.
+  - `migracion_*.sql`: cambios de la base de datos (ver más abajo).
+  - `datos_rutas/*.json.gz`: redes de calles de Montería ya preparadas para el servidor.
+- `frontend/`: páginas web (HTML, CSS y JavaScript).
+- `rutas_eva_corregido.ipynb`: notebook para explorar rutas peatonales con OpenStreetMap.
 - `mapa_rutas.html`: mapa generado por el notebook.
+
+## Funciones de la página
+
+**Para la comunidad**
+- Registro con **verificación del correo** (código de 6 números) e inicio de sesión. Recuperación de contraseña por correo.
+- **Dashboard:** emergencia activa, clima, número de usuarios, directorio de entidades (con foto o logo) y rutas guardadas.
+- **Rutas de evacuación:** a pie, en carro o en moto; compara la ruta más corta con la más segura (evita zonas de riesgo).
+- **Centros de acopio y albergues:** mapa, cupos e inventario por categoría (solo lectura). "Necesita" se calcula del inventario.
+- **Solicitar ayuda** (alimentos, salud, alojamiento, ropa, transporte o visita a la vivienda) y seguimiento de "Mis solicitudes".
+- **Jornadas comunitarias:** inscripción, quiénes van, gráfica de participación por categoría y "Mis intereses".
+- **Desaparecidos:** reportes con foto, comentarios de testigos, cartel PDF y enlace para compartir.
+- **Mi perfil:** foto o animalito, identificación, datos médicos y contacto de emergencia.
+- **Campana de notificaciones**, **chatbot** de preguntas frecuentes y botón **SOS** (llama al 123).
+- Navegación igual en todas las páginas: cabecera en computador y barra inferior en celular; menú ☰ con las opciones de la cuenta.
+
+**Para administradores (rol `autoridad`)**
+- Panel en `dashboard_admin.html`: usuarios y roles, centros y albergues, **inventario** (tabla por categoría, tallas y unidades), desaparecidos, solicitudes (con carta en PDF), emergencias, jornadas (crear y editar) y directorio (con foto o logo).
 
 ## Funciones actuales de la API
 
-- `GET /salud`: comprueba que la aplicación responde.
-- `GET /api/salud`: comprueba la conexión con PostgreSQL.
-- `POST /api/auth/registro`: registra una cuenta ciudadana.
-- `POST /api/auth/login`: inicia sesión y devuelve un token.
-- `POST /api/auth/google`: verifica una credencial de Google y crea o inicia la cuenta ciudadana.
-- `GET /api/auth/google/config`: entrega al frontend el Client ID público de Google configurado en el backend.
-- `GET /api/desaparecidos/<id>/comentarios` y `POST /api/desaparecidos/<id>/comentarios`: muestran o guardan comentarios de testigos; para publicar uno se requiere iniciar sesión y confirmar veracidad y autorización para compartir el teléfono con quien publicó el reporte.
-- `GET /api/notificaciones/comentarios/mias`: lista avisos privados de comentarios para la cuenta autenticada.
-- `POST /api/notificaciones/comentarios/<id>/leida`: marca como leída una notificación propia.
-- `GET /api/mi-cuenta`: devuelve los datos de la cuenta autenticada.
-- `GET /api/emergencias`: consulta emergencias con autenticación.
-- `POST /api/solicitudes-ayuda`: crea una solicitud de ayuda (comunitaria, para un grupo de familias o un hogar) o una solicitud de visita a vivienda de la cuenta autenticada (requiere `backend/migracion_solicitudes_ayuda.sql`).
-- `GET /api/solicitudes-ayuda/mias`: lista solo las solicitudes de la cuenta autenticada.
-- `GET /api/solicitudes-ayuda/<id>/adjunto`: descarga el adjunto de una solicitud propia.
-- `GET /api/mi-cuenta/avatar` y `GET /api/mi-cuenta/avatar/foto`: consultan el avatar de la cuenta autenticada (requiere `backend/migracion_avatares.sql`).
-- `POST /api/mi-cuenta/avatar`: guarda un animalito de la galería, una foto propia o quita el avatar.
-- `GET /api/estadisticas/usuarios`: total de usuarios registrados para el dashboard, sin datos personales (requiere `backend/migracion_estadisticas.sql`).
-- `GET /api/rutas/estado`, `GET /api/rutas/zonas` y `POST /api/rutas/calcular`: preparan la red peatonal de Montería (OpenStreetMap) y calculan la ruta más corta y la más segura (código en `backend/rutas.py`).
+**Estado**
+- `GET /salud` y `GET /api/salud`: comprueban que la aplicación y PostgreSQL responden.
+
+**Cuentas** (`app.py`)
+- `POST /api/auth/registro`: crea una cuenta ciudadana sin verificar y envía un código de 6 números al correo. Si el correo ya tenía una cuenta sin verificar, reenvía el código (requiere `migracion_verificacion_correo.sql`).
+- `POST /api/auth/verificar` y `POST /api/auth/reenviar-codigo`: verifican el correo con el código (vence en 10 minutos, máximo 5 intentos, un reenvío por minuto).
+- `POST /api/auth/login`: inicia sesión y devuelve un token. Si el correo no está verificado, envía un código nuevo y responde 403.
+- `POST /api/auth/recuperar` y `POST /api/auth/restablecer`: recuperan la contraseña con un enlace por correo (vence en 15 minutos; requiere `migracion_recuperacion_contrasenas.sql`).
+- `POST /api/auth/google` y `GET /api/auth/google/config`: inicio de sesión con Google (el botón está desactivado en la página).
+- `GET /api/mi-cuenta`: datos de la cuenta autenticada.
+- `GET /api/mi-cuenta/avatar`, `GET /api/mi-cuenta/avatar/foto` y `POST /api/mi-cuenta/avatar`: avatar (animalito o foto propia; requiere `migracion_avatares.sql`).
+- `GET /api/mi-perfil` y `PUT /api/mi-perfil`: identificación, datos médicos y contacto de emergencia (requiere `migracion_perfil_completo.sql`).
+- `GET /api/estadisticas/usuarios`: total de usuarios registrados, sin datos personales (requiere `migracion_estadisticas.sql`).
+
+**Desaparecidos**
+- `GET /api/desaparecidos` y `POST /api/desaparecidos`: lista y crea reportes (crear requiere sesión).
+- `GET /api/desaparecidos/<id>/foto` y `GET /api/desaparecidos/<id>/cartel`: foto y cartel PDF tamaño A4.
+- `GET` y `POST /api/desaparecidos/<id>/comentarios`: comentarios de testigos (publicar requiere sesión y confirmar veracidad).
+- `GET /api/notificaciones/comentarios/mias` y `POST /api/notificaciones/comentarios/<id>/leida`: avisos de comentarios a quien publicó el reporte.
+
+**Solicitudes de ayuda**
+- `POST /api/solicitudes-ayuda`: solicitud de ayuda (hogar, grupo de familias o comunidad) o de visita a la vivienda (requiere `migracion_solicitudes_ayuda.sql`).
+- `GET /api/solicitudes-ayuda/mias` y `GET /api/solicitudes-ayuda/<id>/adjunto`: solicitudes propias y su adjunto.
+
+**Emergencias y notificaciones**
+- `GET /api/emergencias` (con sesión) y `GET /api/emergencias/activa` (público).
+- `GET /api/notificaciones`, `POST /api/notificaciones/<id>/leida` y `POST /api/notificaciones/leidas`: campana; las notificaciones las crean disparadores en la base (requiere `migracion_notificaciones.sql`).
+
+**Centros, inventario, directorio y jornadas** (`administracion.py`)
+- `GET /api/centros` y `GET /api/centros/inventario`: centros y su inventario (públicos; requiere `migracion_inventario_centros.sql`).
+- `GET /api/directorio` y `GET /api/directorio/<id>/foto`: directorio de entidades y su foto o logo (requiere `migracion_fotos_directorio.sql`).
+- `GET /api/jornadas` y `GET /api/jornadas/estadisticas`: jornadas publicadas y gráfica por categoría.
+- `POST /api/jornadas/<id>/participar` y `GET /api/jornadas/<id>/participantes`: inscripción y lista de quienes van; correo y teléfono solo para administradores (requiere `migracion_participacion_jornadas.sql`).
+
+**Rutas de evacuación** (`rutas.py`)
+- `GET /api/rutas/estado`, `GET /api/rutas/zonas` y `POST /api/rutas/calcular`: preparan las redes de calles y calculan la ruta más corta y la más segura.
 - `GET /api/rutas/buscar?q=`: busca direcciones dentro de Montería con Nominatim.
-- `GET /api/rutas/guardadas`, `POST /api/rutas/guardadas` y `POST /api/rutas/guardadas/<id>/eliminar`: rutas guardadas de la cuenta autenticada (requiere `backend/migracion_rutas.sql`).
-- `GET /api/centros`: centros de acopio y albergues registrados por las entidades (público).
-- `GET /api/admin/resumen`, `GET /api/admin/usuarios`, `POST /api/admin/usuarios/<id>/rol`: panel de administración (solo rol `autoridad`; requiere `backend/migracion_administracion.sql`).
-- `POST /api/admin/centros`, `POST /api/admin/centros/<id>` y `POST /api/admin/centros/<id>/eliminar`: crear, editar y eliminar centros.
-- `POST /api/admin/desaparecidos/<id>/estado` y `POST /api/admin/desaparecidos/<id>/eliminar`: marcar un reporte como encontrado o retirarlo.
-- `GET /api/admin/solicitudes`, `POST /api/admin/solicitudes/<id>/estado`, `GET /api/admin/solicitudes/<id>/carta` (PDF) y `/adjunto`: solicitudes de ayuda en el panel (requiere `backend/migracion_administracion_contenidos.sql`).
-- `GET /api/notificaciones`, `POST /api/notificaciones/<id>/leida` y `POST /api/notificaciones/leidas`: campana de notificaciones de la cuenta autenticada; las notificaciones las crean disparadores en la base (requiere `backend/migracion_notificaciones.sql`, después de las demás).
-- `POST /api/jornadas/<id>/participar`, `GET /api/jornadas/<id>/participantes` y `GET /api/jornadas/estadisticas`: inscripción en jornadas, lista de quienes van (con correo y teléfono solo para autoridades) y gráfica por categoría (requiere `backend/migracion_participacion_jornadas.sql`).
-- `GET /api/centros/inventario` (público) y `POST /api/admin/inventario`, `/api/admin/inventario/<id>`, `/<id>/cantidad`, `/<id>/eliminar` (solo autoridad): inventario por centro y categoría (requiere `backend/migracion_inventario_centros.sql`).
-- `GET /api/mi-perfil` y `PUT /api/mi-perfil`: identificación, datos médicos y contacto de emergencia de la cuenta autenticada (requiere `backend/migracion_perfil_completo.sql`).
-- `POST /api/auth/recuperar` y `POST /api/auth/restablecer`: recuperar la contraseña con un enlace por correo (requiere `backend/migracion_recuperacion_contrasenas.sql` y las variables `MAIL_USERNAME`, `MAIL_APP_PASSWORD` —contraseña de aplicación de Gmail— y `FRONTEND_URL` en `backend/.env`).
-- `POST /api/auth/verificar` y `POST /api/auth/reenviar-codigo`: verificación del correo con un código de 6 números al registrarse; sin verificar no se puede iniciar sesión (requiere `backend/migracion_verificacion_correo.sql`; las cuentas que ya existían quedan verificadas).
-- `GET /api/directorio` (público) y `POST /api/admin/directorio[/<id>[/eliminar]]`: directorio de entidades.
-- `GET /api/jornadas` (público) y `POST /api/admin/jornadas`, `/<id>/estado`, `/<id>/eliminar`: jornadas comunitarias.
-- `GET /api/emergencias/activa` (público), `GET/POST /api/admin/emergencias` y `POST /api/admin/emergencias/<id>/finalizar`: emergencias.
-- `GET /api/desaparecidos/<id>/cartel`: descarga un cartel PDF tamaño A4, listo para guardar o imprimir, con la foto y los datos del reporte.
-- `POST /api/desaparecidos`: crea un reporte nuevo asociado a la cuenta que inició sesión.
-- `GET /api/desaparecidos/<id>/comentarios` y `POST /api/desaparecidos/<id>/comentarios`: muestran o guardan comentarios de testigos; para publicar uno se requiere iniciar sesión y confirmar veracidad y autorización para compartir el teléfono con quien publicó el reporte.
-- `GET /api/notificaciones/comentarios/mias`: lista avisos privados de comentarios para la cuenta autenticada.
-- `POST /api/notificaciones/comentarios/<id>/leida`: marca como leída una notificación propia.
+- `GET /api/rutas/guardadas`, `POST /api/rutas/guardadas` y `POST /api/rutas/guardadas/<id>/eliminar`: rutas guardadas de la cuenta (requiere `migracion_rutas.sql`).
+
+**Administración** (solo rol `autoridad`; requiere `migracion_administracion.sql` y `migracion_administracion_contenidos.sql`)
+- `GET /api/admin/resumen`, `GET /api/admin/usuarios` y `POST /api/admin/usuarios/<id>/rol`.
+- `POST /api/admin/centros`, `POST /api/admin/centros/<id>` y `POST /api/admin/centros/<id>/eliminar`.
+- `POST /api/admin/inventario`, `POST /api/admin/inventario/<id>`, `/<id>/cantidad` y `/<id>/eliminar`.
+- `POST /api/admin/desaparecidos/<id>/estado` y `POST /api/admin/desaparecidos/<id>/eliminar`.
+- `GET /api/admin/solicitudes`, `POST /api/admin/solicitudes/<id>/estado`, `GET /api/admin/solicitudes/<id>/carta` (PDF) y `/adjunto`.
+- `GET` y `POST /api/admin/emergencias` y `POST /api/admin/emergencias/<id>/finalizar`.
+- `POST /api/admin/jornadas`, `POST /api/admin/jornadas/<id>` (editar), `/<id>/estado` y `/<id>/eliminar`.
+- `POST /api/admin/directorio`, `POST /api/admin/directorio/<id>`, `/<id>/eliminar`, `/<id>/foto` y `/<id>/foto/eliminar`.
 
 ## Requisitos
 
-- Python
-- PostgreSQL
+- Python 3.12 o más reciente
+- PostgreSQL 18
 - Git
 
 ## Preparación local del backend
@@ -70,13 +104,13 @@ py -m venv venv
 Instala las dependencias del backend:
 
 ```powershell
-python -m pip install Flask "psycopg[binary]" python-dotenv Flask-JWT-Extended google-auth reportlab Pillow
+python -m pip install -r backend\requirements.txt
 ```
 
-Para el módulo de rutas también se necesitan las librerías del notebook:
+Para **volver a preparar los mapas de rutas** (solo si cambias las zonas de riesgo) se necesitan además:
 
 ```powershell
-python -m pip install osmnx networkx shapely scikit-learn requests
+python -m pip install osmnx==2.1.1 shapely==2.1.2 scikit-learn==1.9.1
 ```
 
 Crea `backend/.env` con la configuración local de tu computadora:
@@ -88,19 +122,22 @@ DB_NAME=sigre
 DB_USER=sigre_app
 DB_PASSWORD=tu_clave_local
 JWT_SECRET_KEY=tu_clave_secreta_local
-GOOGLE_CLIENT_ID=tu_client_id_de_aplicacion_web.apps.googleusercontent.com
+
+# Correos (código de verificación y recuperación de contraseña)
+MAIL_USERNAME=correo-del-proyecto@gmail.com
+MAIL_APP_PASSWORD=contraseña-de-aplicacion-de-gmail-sin-espacios
+FRONTEND_URL=http://127.0.0.1:5500/frontend
 ```
 
-Opcionalmente puedes agregar `JWT_HORAS_SESION=8` para cambiar cuántas horas dura la sesión (8 por defecto).
+- `MAIL_APP_PASSWORD` no es la contraseña normal de Gmail: se crea en https://myaccount.google.com/apppasswords (la cuenta necesita verificación en 2 pasos).
+- `FRONTEND_URL` es la dirección donde abres las páginas; se usa para el enlace del correo de recuperación.
+- Opcional: `JWT_HORAS_SESION=8` (horas que dura la sesión) y `GOOGLE_CLIENT_ID` (inicio de sesión con Google).
 
-Para habilitar el botón de Google, crea un cliente OAuth de tipo **Aplicación web** en Google Cloud Console. Registra como orígenes JavaScript autorizados las direcciones de desarrollo, por ejemplo `http://127.0.0.1:5500` y `http://localhost:5500`, y copia el Client ID en `GOOGLE_CLIENT_ID`. No se necesita un secreto OAuth en el frontend. Google no acepta IP sin dominio como origen autorizado; para iniciar sesión desde un celular por Wi-Fi necesitarás servir SIGRE desde un nombre de dominio con HTTPS. Consulta la [configuración oficial de Google Identity Services](https://developers.google.com/identity/gsi/web/guides/get-google-api-clientid).
-
-Después de crear la base, aplica las migraciones del backend:
+Después de crear la base, aplica las migraciones del backend en este orden (todas se pueden volver a ejecutar sin dañar nada):
 
 ```powershell
 psql -U postgres -d sigre -f backend\migracion_usuarios_perfil.sql
 psql -U postgres -d sigre -f backend\migracion_desaparecidos.sql
-psql -U postgres -d sigre -f backend\migracion_comentarios_desaparecidos.sql
 psql -U postgres -d sigre -f backend\migracion_comentarios_desaparecidos.sql
 psql -U postgres -d sigre -f backend\migracion_solicitudes_ayuda.sql
 psql -U postgres -d sigre -f backend\migracion_avatares.sql
@@ -111,10 +148,16 @@ psql -U postgres -d sigre -f backend\migracion_administracion_contenidos.sql
 psql -U postgres -d sigre -f backend\migracion_notificaciones.sql
 psql -U postgres -d sigre -f backend\migracion_participacion_jornadas.sql
 psql -U postgres -d sigre -f backend\migracion_inventario_centros.sql
+psql -U postgres -d sigre -f backend\migracion_fotos_directorio.sql
 psql -U postgres -d sigre -f backend\migracion_perfil_completo.sql
 psql -U postgres -d sigre -f backend\migracion_recuperacion_contrasenas.sql
 psql -U postgres -d sigre -f backend\migracion_verificacion_correo.sql
+psql -U postgres -d sigre -f backend\migracion_reparar_acentos.sql
 ```
+
+Si `psql` no se reconoce, usa la ruta completa: `& "C:\Program Files\PostgreSQL\18\bin\psql.exe" -U postgres -d sigre -f ...`. Ejecuta los comandos **de uno en uno**: el que pide la contraseña no debe pegarse junto con los demás.
+
+`migracion_reparar_acentos.sql` corrige textos con tildes dañadas (por ejemplo "LÃ­nea"); las demás migraciones ya fijan `client_encoding = 'UTF8'` para que no vuelva a pasar.
 
 Cada integrante debe usar sus propias claves locales. **No subas `backend/.env` a GitHub ni compartas sus contraseñas.**
 
@@ -124,7 +167,7 @@ Cuando PostgreSQL y la base de datos estén configurados, inicia la API desde la
 python backend\app.py
 ```
 
-La aplicación se ejecuta localmente en `http://127.0.0.1:5000`.
+La API se ejecuta en `http://127.0.0.1:5000`. Abre las páginas con Live Server (por ejemplo `http://127.0.0.1:5500/frontend/login.html`); `frontend/js/config.js` las conecta solas con el puerto 5000. Deja abierta la terminal de Flask mientras pruebas: si se cierra, la página muestra "No se pudo conectar con el servidor".
 
 ## Cuenta de administrador o entidad
 
@@ -136,23 +179,42 @@ psql -U postgres -d sigre -c "UPDATE usuarios SET rol = 'autoridad' WHERE email 
 
 Después, esa persona cierra sesión y vuelve a entrar: el login la lleva a `dashboard_admin.html`. Desde el panel puede asignar los roles de las demás cuentas.
 
-## Notebook de rutas
+## Rutas de evacuación
 
-El notebook utiliza OpenStreetMap para explorar la red peatonal y generar un mapa. Para ejecutarlo se necesitan las bibliotecas `osmnx`, `networkx`, `geopandas`, `folium` y `shapely`.
+El servidor calcula rutas sobre las redes de calles ya preparadas en `backend/datos_rutas/monteria_peatonal.json.gz` y `monteria_vehicular.json.gz`, para usar poca memoria (unos 150 MB). Si cambias las `ZONAS` de riesgo en `backend/rutas.py`, vuelve a prepararlas en tu PC y sube los `.json.gz` a GitHub:
+
+```powershell
+python backend\rutas.py
+```
+
+Las redes completas de OpenStreetMap (`*.graphml`) se descargan solas la primera vez y quedan solo en tu PC (no se suben).
+
+El notebook `rutas_eva_corregido.ipynb` utiliza OpenStreetMap para explorar la red peatonal y generar un mapa. Para ejecutarlo se necesitan las bibliotecas `osmnx`, `networkx`, `geopandas`, `folium` y `shapely`.
 
 Las zonas del mapa son aproximaciones para el prototipo; no son cartografía oficial ni deben usarse para tomar decisiones reales de emergencia.
 
-## Estado
-
-SIGRE está en desarrollo. La configuración completa de PostgreSQL para una computadora nueva todavía debe documentarse junto con el esquema, los permisos y las políticas de seguridad.
-
 ## Publicar en internet (Render + Neon)
 
-- **Base de datos:** PostgreSQL en Neon. Se copia la base local con `pg_dump --no-owner` y se carga con `psql`; antes se crea el rol `sigre_app`. El rol dueño debe tener `BYPASSRLS`.
+- **Base de datos:** PostgreSQL en Neon. Se copió la base local con `pg_dump --no-owner` y se cargó con `psql`, después de crear el rol `sigre_app`. El rol dueño debe tener `BYPASSRLS`.
 - **Servidor:** Render, *Web Service* con **Root Directory** `backend`, **Build** `pip install -r requirements.txt` y **Start** `gunicorn app:app --workers 1 --threads 4 --timeout 120`.
-- **Variables de entorno en Render:** `DB_HOST` (host *-pooler* de Neon), `DB_PORT`, `DB_NAME`, `DB_USER=sigre_app`, `DB_PASSWORD`, `DB_SSLMODE=require`, `JWT_SECRET_KEY` (nueva), `GOOGLE_CLIENT_ID` y `PYTHON_VERSION`.
+- **Variables de entorno en Render:** `DB_HOST` (host directo de Neon, sin *-pooler*), `DB_PORT`, `DB_NAME`, `DB_USER=sigre_app`, `DB_PASSWORD`, `DB_SSLMODE=require`, `JWT_SECRET_KEY`, `PYTHON_VERSION=3.12.7`, `FRONTEND_URL=https://sigre.onrender.com`, `MAIL_SCRIPT_URL` y `MAIL_SCRIPT_CLAVE`.
 - Flask entrega también las páginas de `frontend/`, así que todo queda en una sola dirección HTTPS.
 - `frontend/js/config.js` decide la dirección de la API: en desarrollo (Live Server, puertos 5500/8000) usa el puerto 5000; publicado, usa la misma dirección de la página.
-- SIGRE se instala como app (PWA) con `frontend/manifest.json` y `frontend/service-worker.js`: en Android, menú ⋮ → *Instalar aplicación*; en iPhone, Compartir → *Agregar a inicio*.
-- Si agregas una migración nueva, ejecútala también en Neon.
-- **Correos en Render:** el plan gratis bloquea el SMTP de Gmail. Los correos (código de verificación y recuperación de contraseña) los envía un Google Apps Script de la cuenta del proyecto; en Render se configuran `MAIL_SCRIPT_URL` y `MAIL_SCRIPT_CLAVE`. En tu PC, sin esas variables, se usa SMTP con `MAIL_USERNAME` y `MAIL_APP_PASSWORD`.
+- SIGRE se instala como app (PWA) con `frontend/manifest.json` y `frontend/service-worker.js`: en Android, Chrome → menú ⋮ → *Instalar aplicación*; en iPhone, Safari → Compartir → *Agregar a inicio*.
+- Cada `git push` a `main` publica los cambios solo en unos minutos.
+- **Si agregas una migración nueva, ejecútala también en Neon** (`psql "<cadena de Neon>" -f backend\migracion_nueva.sql`). La base de tu PC y la de internet son distintas: las cuentas y los datos no se comparten.
+- **Plan gratis:** el servidor se duerme tras unos 15 minutos sin visitas y la primera carga tarda cerca de un minuto. Tiene 512 MB de memoria.
+
+### Correos en Render (Google Apps Script)
+
+El plan gratis de Render bloquea el SMTP de Gmail, así que los correos los envía un Google Apps Script de la cuenta del proyecto (`sigre.oficial@gmail.com`), llamado por HTTPS. Sin `MAIL_SCRIPT_URL` (en tu PC) se usa SMTP con `MAIL_USERNAME` y `MAIL_APP_PASSWORD`. Los correos salen en segundo plano: la página no espera a Gmail.
+
+1. En script.google.com (con la cuenta del proyecto) crea el proyecto **SIGRE correos** con una función `doPost` que lee `{clave, para, asunto, texto}`, comprueba que `clave` sea igual a la propiedad del script `CLAVE_SIGRE` y envía el correo con `MailApp.sendEmail`.
+2. En ⚙️ *Configuración del proyecto* → *Propiedades de las secuencias de comandos*, agrega `CLAVE_SIGRE` con una clave aleatoria (`python -c "import secrets; print(secrets.token_urlsafe(32))"`).
+3. Ejecuta una vez una función de prueba para autorizar el envío de correos.
+4. *Implementar* → *Nueva implementación* → *Aplicación web*, ejecutar como **Yo** y acceso **Cualquier persona**. Copia la URL que termina en `/exec`.
+5. En Render: `MAIL_SCRIPT_URL` = esa URL y `MAIL_SCRIPT_CLAVE` = la misma clave de `CLAVE_SIGRE`. Si los registros dicen "no autorizado", las dos claves no coinciden.
+
+## Estado
+
+SIGRE está en desarrollo. Falta documentar la creación inicial de la base en una computadora nueva (el rol `sigre_app`, sus permisos y las políticas de seguridad de la tabla `usuarios`); mientras tanto, lo más seguro es copiar una base que ya funcione con `pg_dump`.
