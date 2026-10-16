@@ -1773,3 +1773,84 @@ a {
     opacity: 1;
     transform: translate(-50%, 0);
 }
+
+/* ============================================================
+   JORNADAS EN CURSO Y FINALIZADAS (js/jornadas_api.js)
+   ============================================================ */
+
+/* Subtítulo que separa las jornadas que ya terminaron. Ocupa toda la fila. */
+.subtitulo_finalizadas {
+    grid-column: 1 / -1;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 18px 0 0;
+    padding-top: 18px;
+    border-top: 1px dashed var(--border-color);
+    color: var(--text-light);
+    font-size: 1.05rem;
+    font-weight: 800;
+}
+
+.subtitulo_finalizadas[hidden] {
+    display: none;
+}
+
+.jornada_momento {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    width: fit-content;
+    margin-bottom: 6px;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 0.72rem;
+    font-weight: 800;
+}
+
+.jornada_momento.terminada {
+    background: #eef0f3;
+    color: #5b6573;
+}
+
+.jornada_momento.en_curso {
+    background: #e8f5e9;
+    color: var(--success-color);
+}
+
+.jornada_momento.en_curso i {
+    font-size: 0.5rem;
+    animation: sigre-en-curso 1.4s ease-in-out infinite;
+}
+
+@keyframes sigre-en-curso {
+    50% { opacity: 0.3; }
+}
+
+/* Las terminadas se ven apagadas: siguen ahí como historial. */
+.jornada_terminada {
+    background: #fafbfc;
+}
+
+.jornada_terminada .jornada_icono,
+.jornada_terminada h3,
+.jornada_terminada p {
+    opacity: 0.7;
+}
+
+.jornada_cerrada {
+    display: inline-flex;
+    align-items: center;
+    padding: 8px 11px;
+    border-radius: 10px;
+    background: #eef0f3;
+    color: #5b6573;
+    font-size: 0.73rem;
+    font-weight: 700;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .jornada_momento.en_curso i {
+        animation: none;
+    }
+}

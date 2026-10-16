@@ -30,6 +30,14 @@ document.addEventListener('DOMContentLoaded', function () {
                     }, 250);
                 }
             });
+
+            // "Jornadas finalizadas" solo se muestra si hay alguna de esa categoría.
+            const subtitulo = document.getElementById('subtitulo-finalizadas');
+            if (subtitulo) {
+                subtitulo.hidden = !Array.from(document.querySelectorAll('.jornada_terminada')).some(function (tarjeta) {
+                    return categoriaElegida === 'todas' || tarjeta.dataset.categoria === categoriaElegida;
+                });
+            }
         });
     });
 

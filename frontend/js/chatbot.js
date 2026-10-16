@@ -84,7 +84,8 @@
     }
 
     async function proximasJornadas() {
-        const jornadas = await consultar("/api/jornadas", true);
+        // Solo las próximas y en curso; las terminadas no sirven para inscribirse.
+        const jornadas = (await consultar("/api/jornadas", true)).filter(j => j.momento !== "finalizada");
         if (!jornadas.length) return "Por ahora no hay jornadas publicadas. Te llegará una notificación cuando haya una nueva.";
         const lineas = jornadas.slice(0, 4).map(j =>
             `• ${j.nombre} — ${fecha(j.fecha_inicio)} en ${j.lugar}` + (j.participo ? " ✅ ya estás inscrito" : ""));

@@ -523,8 +523,13 @@ COLUMNAS_SOLICITUD = (
     "cuenta_email", "cuenta_nombre",
 )
 COLUMNAS_DIRECTORIO = ("id", "grupo", "nombre", "detalle", "telefono", "direccion", "web", "orden")
-COLUMNAS_JORNADA = ("id", "nombre", "categoria", "descripcion", "fecha_inicio", "lugar",
+COLUMNAS_JORNADA = ("id", "nombre", "categoria", "descripcion", "fecha_inicio", "fecha_fin", "lugar",
                     "latitud", "longitud", "estado")
+# Sin fecha_fin (jornadas anteriores a migracion_fin_jornadas.sql), una jornada
+# se da por terminada 12 horas después de empezar.
+DURACION_SIN_FIN = timedelta(hours=12)
+# Las jornadas terminadas se siguen mostrando a la comunidad durante este tiempo.
+MOSTRAR_TERMINADAS = timedelta(days=60)
 
 
 def _iso(valor):
@@ -948,17 +953,40 @@ def _conexion_usuario(usuario_id):
     return conexion
 
 
+def _momento_jornada(jornada, ahora):
+    """'proxima', 'en_curso' o 'finalizada', según las fechas de inicio y fin."""
+    fin = jornada["fecha_fin"] or jornada["fecha_inicio"] + DURACION_SIN_FIN
+    if ahora < jornada["fecha_inicio"]:
+        return "proxima"
+    return "en_curso" if ahora < fin else "finalizada"
+
+
 @administracion_bp.get("/api/jornadas")
 def listar_jornadas():
-    # Por defecto, las próximas publicadas; ?todas=1 incluye pasadas y canceladas (para el panel).
+    # Por defecto, las publicadas: primero las próximas y en curso, y debajo las
+    # finalizadas de los últimos 60 días. ?todas=1 incluye canceladas (para el panel).
     todas = request.args.get("todas") == "1"
-    condicion = "" if todas else "WHERE estado = 'publicada' AND fecha_inicio >= NOW() - INTERVAL '12 hours'"
+    condicion = "" if todas else (
+        "WHERE estado = 'publicada' "
+        "AND coalesce(fecha_fin, fecha_inicio + %(sin_fin)s) >= NOW() - %(mostrar)s"
+    )
     with _conexion_usuario(_usuario_opcional()) as conexion:
         filas = conexion.execute(
             f"SELECT {', '.join(COLUMNAS_JORNADA)} FROM jornadas {condicion} "
-            f"ORDER BY fecha_inicio {'DESC' if todas else 'ASC'} LIMIT 200"
+            f"ORDER BY fecha_inicio {'DESC' if todas else 'ASC'} LIMIT 200",
+            None if todas else {"sin_fin": DURACION_SIN_FIN, "mostrar": MOSTRAR_TERMINADAS}
         ).fetchall()
-        jornadas = [{k: _iso(v) for k, v in zip(COLUMNAS_JORNADA, fila)} for fila in filas]
+        ahora = datetime.now(timezone.utc)
+        jornadas = []
+        for fila in filas:
+            jornada = dict(zip(COLUMNAS_JORNADA, fila))
+            jornada["momento"] = _momento_jornada(jornada, ahora)
+            jornadas.append({k: _iso(v) for k, v in jornada.items()})
+        if not todas:
+            # Próximas y en curso por fecha; las finalizadas al final, la más reciente primero.
+            activas = [j for j in jornadas if j["momento"] != "finalizada"]
+            finalizadas = [j for j in jornadas if j["momento"] == "finalizada"]
+            jornadas = activas + finalizadas[::-1]
         participacion = {}
         try:
             # Punto de guardado: si falta la migración, la lista sigue funcionando.
@@ -1054,11 +1082,27 @@ def _validar_jornada(datos):
     ahora = datetime.now(timezone.utc)
     if not ahora - timedelta(hours=1) <= fecha <= ahora + timedelta(days=366):
         return None, "La fecha debe estar entre hoy y el próximo año"
+
+    # Fin opcional: sin ella, la jornada se da por terminada 12 horas después de empezar.
+    fecha_fin = None
+    if datos.get("fecha_fin"):
+        try:
+            fecha_fin = datetime.fromisoformat(str(datos.get("fecha_fin")))
+            if fecha_fin.tzinfo is None:
+                fecha_fin = fecha_fin.replace(tzinfo=timezone(timedelta(hours=-5)))
+        except ValueError:
+            return None, "La fecha de fin no es válida"
+        if fecha_fin <= fecha:
+            return None, "La fecha de fin debe ser después del inicio"
+        if fecha_fin - fecha > timedelta(days=7):
+            return None, "Una jornada puede durar máximo 7 días"
+
     ok, latitud, longitud = _coordenadas(datos)
     if not ok:
         return None, "La ubicación en el mapa no es válida"
     return {"nombre": nombre, "categoria": categoria, "descripcion": descripcion,
-            "fecha_inicio": fecha, "lugar": lugar, "latitud": latitud, "longitud": longitud}, None
+            "fecha_inicio": fecha, "fecha_fin": fecha_fin, "lugar": lugar,
+            "latitud": latitud, "longitud": longitud}, None
 
 
 @administracion_bp.post("/api/admin/jornadas")
@@ -1073,10 +1117,10 @@ def guardar_jornada(jornada_id=None):
     with _conexion_autoridad(usuario_id) as conexion:
         if jornada_id is None:
             fila = conexion.execute(
-                f"""INSERT INTO jornadas (nombre, categoria, descripcion, fecha_inicio, lugar,
+                f"""INSERT INTO jornadas (nombre, categoria, descripcion, fecha_inicio, fecha_fin, lugar,
                                           latitud, longitud, creada_por)
-                    VALUES (%(nombre)s, %(categoria)s, %(descripcion)s, %(fecha_inicio)s, %(lugar)s,
-                            %(latitud)s, %(longitud)s, %(creada_por)s)
+                    VALUES (%(nombre)s, %(categoria)s, %(descripcion)s, %(fecha_inicio)s, %(fecha_fin)s,
+                            %(lugar)s, %(latitud)s, %(longitud)s, %(creada_por)s)
                     RETURNING {', '.join(COLUMNAS_JORNADA)}""",
                 dict(jornada, creada_por=usuario_id)
             ).fetchone()
@@ -1084,7 +1128,7 @@ def guardar_jornada(jornada_id=None):
             fila = conexion.execute(
                 f"""UPDATE jornadas
                     SET nombre = %(nombre)s, categoria = %(categoria)s, descripcion = %(descripcion)s,
-                        fecha_inicio = %(fecha_inicio)s, lugar = %(lugar)s,
+                        fecha_inicio = %(fecha_inicio)s, fecha_fin = %(fecha_fin)s, lugar = %(lugar)s,
                         latitud = %(latitud)s, longitud = %(longitud)s
                     WHERE id = %(id)s
                     RETURNING {', '.join(COLUMNAS_JORNADA)}""",

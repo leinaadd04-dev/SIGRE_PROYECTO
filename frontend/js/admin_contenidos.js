@@ -330,18 +330,20 @@
                 listaJornadas.innerHTML = `<p class="admin_vacio">Aún no hay jornadas publicadas desde el panel.</p>`;
                 return;
             }
-            const ahora = Date.now();
             listaJornadas.innerHTML = jornadas.map(function (j) {
-                const pasada = new Date(j.fecha_inicio).getTime() < ahora;
+                // momento lo calcula el servidor: proxima, en_curso o finalizada.
+                const pasada = j.momento === "finalizada";
+                const empezada = j.momento !== "proxima";
                 const cancelada = j.estado === "cancelada";
+                const fin = j.fecha_fin ? ` a ${fecha(j.fecha_fin, true)}` : "";
                 return `<article class="admin_centro ${pasada || cancelada ? "cerrado" : ""}">
                     <span class="admin_centro_icono"><i class="fa-solid fa-calendar-check"></i></span>
                     <div class="admin_centro_datos">
                         <div class="admin_centro_cabecera">
                             <h4>${htmlSafe(j.nombre)}</h4>
-                            <span class="admin_chip ${cancelada ? "activo" : pasada ? "cerrado" : "abierto"}">${cancelada ? "Cancelada" : pasada ? "Realizada" : "Publicada"}</span>
+                            <span class="admin_chip ${cancelada ? "activo" : pasada ? "cerrado" : "abierto"}">${cancelada ? "Cancelada" : pasada ? "Finalizada" : empezada ? "En curso" : "Publicada"}</span>
                         </div>
-                        <p class="admin_centro_tipo">${htmlSafe(T.jornada[j.categoria])} · ${htmlSafe(fecha(j.fecha_inicio, true))} · ${htmlSafe(j.lugar)}</p>
+                        <p class="admin_centro_tipo">${htmlSafe(T.jornada[j.categoria])} · ${htmlSafe(fecha(j.fecha_inicio, true) + fin)} · ${htmlSafe(j.lugar)}</p>
                         <p class="admin_centro_tipo">${htmlSafe(j.descripcion)}</p>
                         <p class="admin_centro_tipo"><i class="fa-solid fa-user-group"></i> <strong>${j.participantes || 0}</strong> persona${j.participantes === 1 ? "" : "s"} inscrita${j.participantes === 1 ? "" : "s"}</p>
                         <div class="admin_participantes" id="participantes-jornada-${j.id}" hidden></div>
@@ -349,7 +351,7 @@
                     <div class="admin_centro_acciones">
                         ${j.participantes ? `<button type="button" class="admin_boton_secundario" data-jornada-participantes="${j.id}" aria-expanded="false" aria-controls="participantes-jornada-${j.id}">
                             <i class="fa-solid fa-users"></i> Ver participantes</button>` : ""}
-                        ${pasada ? "" : `<button type="button" class="admin_boton_secundario" data-jornada-editar="${j.id}"><i class="fa-solid fa-pen"></i> Editar</button>`}
+                        ${empezada ? "" : `<button type="button" class="admin_boton_secundario" data-jornada-editar="${j.id}"><i class="fa-solid fa-pen"></i> Editar</button>`}
                         ${pasada ? "" : `<button type="button" class="admin_boton_secundario" data-jornada-estado="${j.id}" data-nuevo="${cancelada ? "publicada" : "cancelada"}">
                             <i class="fa-solid ${cancelada ? "fa-rotate-left" : "fa-ban"}"></i> ${cancelada ? "Publicar de nuevo" : "Cancelar"}</button>`}
                         <button type="button" class="admin_boton_secundario peligro" data-jornada-eliminar="${j.id}"><i class="fa-solid fa-trash"></i> Eliminar</button>
@@ -381,10 +383,12 @@
         jornadaEditando = jornada ? jornada.id : null;
         fijarUbicacionJornada(null);
         formJornada.fecha_inicio.min = fechaLocalColombia(new Date().toISOString());
+        formJornada.fecha_fin.min = formJornada.fecha_inicio.min;
         if (jornada) {
             formJornada.nombre.value = jornada.nombre;
             formJornada.categoria.value = jornada.categoria;
             formJornada.fecha_inicio.value = fechaLocalColombia(jornada.fecha_inicio);
+            formJornada.fecha_fin.value = jornada.fecha_fin ? fechaLocalColombia(jornada.fecha_fin) : "";
             formJornada.lugar.value = jornada.lugar;
             formJornada.descripcion.value = jornada.descripcion;
             if (jornada.latitud != null) {
@@ -410,6 +414,10 @@
     }
 
     document.getElementById("boton-nueva-jornada").addEventListener("click", function () { abrirFormularioJornada(null); });
+    // El fin no puede ser antes del inicio.
+    formJornada.fecha_inicio.addEventListener("change", function () {
+        formJornada.fecha_fin.min = formJornada.fecha_inicio.value;
+    });
     document.getElementById("cancelar-jornada").addEventListener("click", cerrarFormularioJornada);
 
     document.getElementById("ubicar-jornada").addEventListener("click", async function () {
@@ -447,6 +455,8 @@
         Object.keys(datos).forEach(function (k) { datos[k] = String(datos[k]).trim(); });
         if (datos.nombre.length < 3) return mostrarMensaje("mensaje-formulario-jornada", "Escribe el nombre de la jornada.", "error");
         if (!datos.fecha_inicio) return mostrarMensaje("mensaje-formulario-jornada", "Elige la fecha y la hora.", "error");
+        if (datos.fecha_fin && datos.fecha_fin <= datos.fecha_inicio) return mostrarMensaje("mensaje-formulario-jornada", "El fin debe ser después del inicio.", "error");
+        datos.fecha_fin = datos.fecha_fin || null;
         if (datos.lugar.length < 3) return mostrarMensaje("mensaje-formulario-jornada", "Escribe el lugar.", "error");
         if (datos.descripcion.length < 10) return mostrarMensaje("mensaje-formulario-jornada", "Describe la jornada (mínimo 10 caracteres).", "error");
         datos.latitud = datos.latitud || null;

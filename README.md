@@ -26,7 +26,7 @@ Sistema de Gestión de Riesgos y Emergencias. Prototipo académico para registra
 - **Rutas de evacuación:** a pie, en carro o en moto; compara la ruta más corta con la más segura (evita zonas de riesgo).
 - **Centros de acopio y albergues:** mapa, cupos e inventario por categoría (solo lectura). "Necesita" se calcula del inventario.
 - **Solicitar ayuda** (alimentos, salud, alojamiento, ropa, transporte o visita a la vivienda) y seguimiento de "Mis solicitudes".
-- **Jornadas comunitarias:** inscripción, quiénes van, gráfica de participación por categoría y "Mis intereses".
+- **Jornadas comunitarias:** inscripción, quiénes van, gráfica de participación por categoría y "Mis intereses". Las jornadas en curso se marcan "En curso" y las que terminaron quedan al final, bajo "Jornadas finalizadas", sin poder inscribirse.
 - **Desaparecidos:** reportes con foto, comentarios de testigos, cartel PDF y enlace para compartir.
 - **Mi perfil:** foto o animalito, identificación, datos médicos y contacto de emergencia.
 - **Campana de notificaciones**, **chatbot** de preguntas frecuentes y botón **SOS** (llama al 123).
@@ -68,8 +68,8 @@ Sistema de Gestión de Riesgos y Emergencias. Prototipo académico para registra
 **Centros, inventario, directorio y jornadas** (`administracion.py`)
 - `GET /api/centros` y `GET /api/centros/inventario`: centros y su inventario (públicos; requiere `migracion_inventario_centros.sql`).
 - `GET /api/directorio` y `GET /api/directorio/<id>/foto`: directorio de entidades y su foto o logo (requiere `migracion_fotos_directorio.sql`).
-- `GET /api/jornadas` y `GET /api/jornadas/estadisticas`: jornadas publicadas y gráfica por categoría.
-- `POST /api/jornadas/<id>/participar` y `GET /api/jornadas/<id>/participantes`: inscripción y lista de quienes van; correo y teléfono solo para administradores (requiere `migracion_participacion_jornadas.sql`).
+- `GET /api/jornadas` y `GET /api/jornadas/estadisticas`: jornadas publicadas y gráfica por categoría. Cada jornada trae `momento` (`proxima`, `en_curso` o `finalizada`); las finalizadas de los últimos 60 días van al final. Una jornada termina en su `fecha_fin` o, si no tiene, 12 horas después de empezar (requiere `migracion_fin_jornadas.sql`).
+- `POST /api/jornadas/<id>/participar` y `GET /api/jornadas/<id>/participantes`: inscripción (hasta que la jornada termina) y lista de quienes van; correo y teléfono solo para administradores (requiere `migracion_participacion_jornadas.sql`).
 
 **Rutas de evacuación** (`rutas.py`)
 - `GET /api/rutas/estado`, `GET /api/rutas/zonas` y `POST /api/rutas/calcular`: preparan las redes de calles y calculan la ruta más corta y la más segura.
@@ -147,6 +147,7 @@ psql -U postgres -d sigre -f backend\migracion_administracion.sql
 psql -U postgres -d sigre -f backend\migracion_administracion_contenidos.sql
 psql -U postgres -d sigre -f backend\migracion_notificaciones.sql
 psql -U postgres -d sigre -f backend\migracion_participacion_jornadas.sql
+psql -U postgres -d sigre -f backend\migracion_fin_jornadas.sql
 psql -U postgres -d sigre -f backend\migracion_inventario_centros.sql
 psql -U postgres -d sigre -f backend\migracion_fotos_directorio.sql
 psql -U postgres -d sigre -f backend\migracion_perfil_completo.sql

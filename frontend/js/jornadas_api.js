@@ -65,6 +65,21 @@
         });
     }
 
+    // "sábado 18 de octubre, 8:00 a. m. a 12:00 p. m." (o con fecha completa si termina otro día).
+    function rangoFechas(j) {
+        if (!j.fecha_fin) return cuando(j.fecha_inicio, true);
+        const inicio = new Date(j.fecha_inicio);
+        const fin = new Date(j.fecha_fin);
+        const mismoDia = inicio.toDateString() === fin.toDateString();
+        const finTexto = mismoDia
+            ? fin.toLocaleTimeString("es-CO", { hour: "numeric", minute: "2-digit" })
+            : cuando(j.fecha_fin, true);
+        return `${cuando(j.fecha_inicio, true)} a ${finTexto}`;
+    }
+
+    // momento lo calcula el servidor: "proxima", "en_curso" o "finalizada".
+    const terminada = j => j.momento === "finalizada";
+
     function avatar(persona, clase) {
         const animal = ANIMALES[persona.animal];
         if (animal) {
@@ -79,6 +94,11 @@
 
     function textoAsistentes(j) {
         const total = j.participantes || 0;
+        if (terminada(j)) {
+            if (!total) return "Nadie se inscribió";
+            if (j.participo) return total === 1 ? "Participaste" : `Participaste con ${total - 1} persona${total - 1 === 1 ? "" : "s"} más`;
+            return `Participaron ${total} persona${total === 1 ? "" : "s"}`;
+        }
         if (!total) return "Sé la primera persona en inscribirte";
         if (j.participo) {
             return total === 1 ? "Tú vas" : `Tú y ${total - 1} persona${total - 1 === 1 ? "" : "s"} más van`;
@@ -108,23 +128,33 @@
                    <i class="fa-solid fa-location-dot"></i> Ver ubicación
                </button>`
             : "";
-        return `<article class="tarjeta_jornada jornada_publicada" data-categoria="${htmlSafe(j.categoria)}" data-jornada="${j.id}">
+        const fin = terminada(j);
+        const etiqueta = fin
+            ? `<span class="jornada_momento terminada"><i class="fa-solid fa-flag-checkered"></i> Terminada</span>`
+            : j.momento === "en_curso"
+                ? `<span class="jornada_momento en_curso"><i class="fa-solid fa-circle"></i> En curso</span>`
+                : "";
+        const acciones = fin
+            ? `<span class="jornada_cerrada">Ya no recibe inscripciones</span>`
+            : `${botonParticipar(j, "boton_participar_tarjeta")}
+                    <button type="button" class="boton_me_gusta" data-id="sigre-${j.id}" data-nombre="${htmlSafe(j.nombre)}" aria-pressed="false" aria-label="Guardar en mis intereses">
+                        <i class="fa-regular fa-heart"></i>
+                    </button>`;
+        return `<article class="tarjeta_jornada jornada_publicada${fin ? " jornada_terminada" : ""}" data-categoria="${htmlSafe(j.categoria)}" data-jornada="${j.id}" data-momento="${htmlSafe(j.momento || "proxima")}">
             <div class="jornada_icono ${categoria.color}"><i class="fa-solid ${categoria.icono}"></i></div>
             <div class="jornada_contenido">
+                ${etiqueta}
                 <span class="jornada_categoria">${htmlSafe(categoria.texto)}</span>
                 <h3>${htmlSafe(j.nombre)}</h3>
                 <p>${htmlSafe(j.descripcion)}</p>
                 <div class="jornada_datos">
-                    <div><i class="fa-regular fa-calendar"></i><span>Fecha: <strong>${htmlSafe(cuando(j.fecha_inicio, true))}</strong></span></div>
+                    <div><i class="fa-regular fa-calendar"></i><span>Fecha: <strong>${htmlSafe(rangoFechas(j))}</strong></span></div>
                     <div><i class="fa-solid fa-location-dot"></i><span>Lugar: <strong>${htmlSafe(j.lugar)}</strong></span></div>
                 </div>
                 ${bloqueAsistentes(j)}
                 <div class="fila_acciones_tarjeta">
                     ${ubicacion}
-                    ${botonParticipar(j, "boton_participar_tarjeta")}
-                    <button type="button" class="boton_me_gusta" data-id="sigre-${j.id}" data-nombre="${htmlSafe(j.nombre)}" aria-pressed="false" aria-label="Guardar en mis intereses">
-                        <i class="fa-regular fa-heart"></i>
-                    </button>
+                    ${acciones}
                 </div>
             </div>
         </article>`;
@@ -135,9 +165,9 @@
     function pintarDestacada() {
         const seccion = document.getElementById("jornada-destacada");
         if (!seccion) return;
-        // La más próxima que todavía no ha empezado (o la primera de la lista).
-        const ahora = Date.now();
-        const j = jornadas.find(item => new Date(item.fecha_inicio).getTime() >= ahora) || jornadas[0];
+        // La próxima que todavía no empieza; si no hay, la que está en curso. Nunca una terminada.
+        const j = jornadas.find(item => item.momento === "proxima")
+            || jornadas.find(item => item.momento === "en_curso");
         if (!j) {
             seccion.hidden = true;
             return;
@@ -146,7 +176,7 @@
         document.getElementById("destacada-categoria").textContent = categoria.texto;
         document.getElementById("destacada-nombre").textContent = j.nombre;
         document.getElementById("destacada-descripcion").textContent = j.descripcion;
-        document.getElementById("destacada-fecha").textContent = cuando(j.fecha_inicio, true);
+        document.getElementById("destacada-fecha").textContent = rangoFechas(j);
         document.getElementById("destacada-lugar").textContent = j.lugar;
         document.getElementById("destacada-asistentes").textContent = textoAsistentes(j);
         document.getElementById("destacada-acciones").innerHTML =
@@ -157,13 +187,22 @@
     }
 
     function pintarTarjetas() {
+        // El servidor ya las envía en orden: próximas y en curso, y luego las terminadas.
+        const activas = jornadas.filter(j => !terminada(j));
+        const finalizadas = jornadas.filter(terminada);
         const estado = document.getElementById("estado-jornadas");
-        if (estado) estado.textContent = `${jornadas.length} publicada${jornadas.length === 1 ? "" : "s"}`;
-        if (!jornadas.length) {
-            grid.innerHTML = `<p class="jornadas_vacio">Por ahora no hay jornadas publicadas. Cuando una entidad publique una, aparecerá aquí y te llegará una notificación.</p>`;
-        } else {
-            grid.innerHTML = jornadas.map(tarjeta).join("");
+        if (estado) {
+            estado.textContent = `${activas.length} activa${activas.length === 1 ? "" : "s"}` +
+                (finalizadas.length ? ` · ${finalizadas.length} finalizada${finalizadas.length === 1 ? "" : "s"}` : "");
         }
+        let html = activas.length
+            ? activas.map(tarjeta).join("")
+            : `<p class="jornadas_vacio">Por ahora no hay jornadas próximas. Cuando una entidad publique una, aparecerá aquí y te llegará una notificación.</p>`;
+        if (finalizadas.length) {
+            html += `<h3 class="subtitulo_finalizadas" id="subtitulo-finalizadas"><i class="fa-solid fa-flag-checkered"></i> Jornadas finalizadas</h3>` +
+                finalizadas.map(tarjeta).join("");
+        }
+        grid.innerHTML = html;
         // Respeta el filtro elegido y actualiza corazones (js/jornadas.js).
         const chipActivo = document.querySelector(".chip_filtro.activo");
         if (chipActivo) chipActivo.click();
@@ -173,13 +212,13 @@
     function pintarMisParticipaciones() {
         const lista = document.getElementById("lista-participadas");
         if (!lista) return;
-        const mias = jornadas.filter(j => j.participo);
+        const mias = jornadas.filter(j => j.participo && !terminada(j));
         if (!leerToken()) {
             lista.innerHTML = `<p class="aviso_sin_intereses">Inicia sesión para inscribirte en una jornada.</p>`;
             return;
         }
         if (!mias.length) {
-            lista.innerHTML = `<p class="aviso_sin_intereses">Aún no te has inscrito en una jornada.</p>`;
+            lista.innerHTML = `<p class="aviso_sin_intereses">No tienes jornadas próximas inscritas.</p>`;
             return;
         }
         lista.innerHTML = mias.map(j => `<div class="item_lista_jornada">
@@ -274,7 +313,7 @@
 
     async function alternarParticipacion(id, boton) {
         const j = jornadas.find(item => String(item.id) === String(id));
-        if (!j) return;
+        if (!j || terminada(j)) return;
         if (!leerToken()) {
             avisar("Inicia sesión para inscribirte en una jornada.", "error");
             return;
