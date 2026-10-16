@@ -1,0 +1,134 @@
+.verificacion_fondo {
+    position: fixed;
+    inset: 0;
+    z-index: 3000;
+    display: grid;
+    place-items: center;
+    padding: 16px;
+    background: rgba(20, 24, 60, 0.55);
+}
+
+.verificacion_fondo[hidden] {
+    display: none;
+}
+
+.verificacion_ventana {
+    position: relative;
+    width: min(420px, 100%);
+    padding: 32px 24px 24px;
+    border-radius: 20px;
+    background: #ffffff;
+    color: #1b2f55;
+    text-align: center;
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.3);
+}
+
+.verificacion_cerrar {
+    position: absolute;
+    top: 10px;
+    right: 12px;
+    width: 34px;
+    height: 34px;
+    border: 0;
+    border-radius: 50%;
+    background: transparent;
+    color: #667085;
+    font-size: 1.5rem;
+    cursor: pointer;
+}
+
+.verificacion_cerrar:hover {
+    background: #eef1f7;
+}
+
+.verificacion_icono {
+    font-size: 2.4rem;
+}
+
+.verificacion_ventana h2 {
+    margin: 6px 0 8px;
+    font-size: 1.4rem;
+}
+
+.verificacion_ventana p {
+    margin: 0 0 18px;
+    color: #4a5568;
+    line-height: 1.45;
+    overflow-wrap: anywhere;
+}
+
+.codigo_casillas {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    margin-bottom: 14px;
+}
+
+.codigo_casilla {
+    width: 48px;
+    height: 58px;
+    border: 2px solid #d5dce6;
+    border-radius: 12px;
+    font: inherit;
+    font-size: 1.6rem;
+    font-weight: 800;
+    text-align: center;
+    color: #1b2f55;
+}
+
+.codigo_casilla:focus {
+    outline: none;
+    border-color: #5a4fcf;
+    box-shadow: 0 0 0 3px rgba(90, 79, 207, 0.2);
+}
+
+.verificacion_mensaje {
+    min-height: 1.4em;
+    margin: 0 0 12px !important;
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+
+.verificacion_mensaje.error { color: #c53030 !important; }
+.verificacion_mensaje.exito { color: #2e7d32 !important; }
+
+.verificacion_boton {
+    width: 100%;
+    padding: 13px;
+    border: 0;
+    border-radius: 12px;
+    background: #5a4fcf;
+    color: #ffffff;
+    font: inherit;
+    font-weight: 800;
+    cursor: pointer;
+}
+
+.verificacion_boton:disabled,
+.verificacion_reenviar:disabled {
+    opacity: 0.6;
+    cursor: default;
+}
+
+.verificacion_reenviar {
+    margin-top: 10px;
+    border: 0;
+    background: none;
+    color: #5a4fcf;
+    font: inherit;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.verificacion_ayuda {
+    margin: 12px 0 0 !important;
+    font-size: 0.8rem;
+}
+
+@media (max-width: 380px) {
+    .codigo_casilla {
+        width: 40px;
+        height: 52px;
+        font-size: 1.35rem;
+    }
+}

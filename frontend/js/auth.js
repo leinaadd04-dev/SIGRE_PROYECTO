@@ -141,6 +141,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 const datos = await leerJsonSeguro(respuesta);
 
                 if (!respuesta.ok) {
+                    // Correo sin verificar: se abre la ventana del código y, al verificar, entra solo.
+                    if (datos.verificar && window.SigreVerificacion) {
+                        window.SigreVerificacion.abrir(email.toLowerCase(), () => formLogin.requestSubmit());
+                    }
                     throw new Error(datos.error || 'No se pudo iniciar sesión. Inténtalo de nuevo.');
                 }
 
@@ -269,14 +273,19 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
 
                 // El servidor crea las cuentas como ciudadano; los otros roles los asigna un administrador.
+                // La cuenta queda pendiente hasta escribir el código que llegó al correo.
                 exitoMsg.textContent = rol === 'ciudadano'
-                    ? '¡Cuenta creada! Redirigiendo al inicio de sesión...'
-                    : '¡Cuenta creada como ciudadano! El rol de voluntario o autoridad lo asigna un administrador de SIGRE. Redirigiendo...';
+                    ? '¡Cuenta creada! Escribe el código que enviamos a tu correo.'
+                    : '¡Cuenta creada como ciudadano! El rol de voluntario o autoridad lo asigna un administrador de SIGRE. Escribe el código que enviamos a tu correo.';
                 exitoMsg.style.display = 'block';
+                botonRegistro.disabled = false;
 
-                setTimeout(() => {
-                    window.location.href = 'login.html';
-                }, 2500);
+                window.SigreVerificacion.abrir(email.toLowerCase(), () => {
+                    exitoMsg.textContent = '¡Correo verificado! Redirigiendo al inicio de sesión...';
+                    setTimeout(() => {
+                        window.location.href = 'login.html';
+                    }, 1500);
+                });
             } catch (error) {
                 errorMsg.textContent = error instanceof TypeError ? MENSAJE_SIN_SERVIDOR : error.message;
                 errorMsg.style.display = 'block';

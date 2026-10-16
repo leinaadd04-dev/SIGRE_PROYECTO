@@ -168,6 +168,56 @@ def limpiar_texto(valor, limite):
 
     return texto
 
+
+def enviar_correo(destino, asunto, texto):
+    """Envía un correo desde la cuenta de SIGRE. Devuelve True si salió."""
+    remitente = os.getenv("MAIL_USERNAME")
+    clave_aplicacion = os.getenv("MAIL_APP_PASSWORD")
+    if not remitente or not clave_aplicacion:
+        app.logger.error("Falta configurar MAIL_USERNAME o MAIL_APP_PASSWORD.")
+        return False
+    mensaje = EmailMessage()
+    mensaje["Subject"] = asunto
+    mensaje["From"] = f"SIGRE <{remitente}>"
+    mensaje["To"] = destino
+    mensaje.set_content(texto)
+    try:
+        with smtplib.SMTP("smtp.gmail.com", 587, timeout=20) as servidor:
+            servidor.starttls()
+            servidor.login(remitente, clave_aplicacion)
+            servidor.send_message(mensaje)
+        return True
+    except Exception:
+        app.logger.exception("No se pudo enviar un correo.")
+        return False
+
+
+def hash_codigo(email, codigo):
+    # El hash incluye el correo: el mismo código en dos cuentas da hashes distintos.
+    return hashlib.sha256(f"{email}:{codigo}".encode()).hexdigest()
+
+
+def enviar_codigo_verificacion(email):
+    """Crea un código de 6 números y lo envía al correo. No envía nada si la
+    cuenta no existe, ya está verificada o se pidió un código hace menos de un minuto."""
+    codigo = f"{secrets.randbelow(1_000_000):06d}"
+    with obtener_conexion() as conexion:
+        crear = conexion.execute(
+            "SELECT sigre_crear_codigo_verificacion(%s, %s)",
+            (email, hash_codigo(email, codigo))
+        ).fetchone()[0]
+    if not crear:
+        return False
+    return enviar_correo(
+        email,
+        "Tu código de verificación de SIGRE",
+        "Hola,\n\n"
+        f"Tu código para activar tu cuenta de SIGRE es:\n\n    {codigo}\n\n"
+        "Vence en 10 minutos.\n\n"
+        "Si no creaste una cuenta en SIGRE, ignora este correo."
+    )
+
+
 @app.post("/api/auth/registro")
 def registrar_usuario():
     datos = request.get_json(silent=True)
@@ -225,10 +275,50 @@ def registrar_usuario():
     except psycopg.errors.UniqueViolation:
         return jsonify({"error": "Ese email ya está registrado"}), 409
 
+    enviar_codigo_verificacion(email)
     return jsonify({
-        "mensaje": "Cuenta creada. Ya puedes iniciar sesión."
+        "mensaje": "Cuenta creada. Te enviamos un código de 6 números a tu correo.",
+        "verificar": True,
     }), 201
 
+
+@app.post("/api/auth/verificar")
+def verificar_correo():
+    datos = request.get_json(silent=True)
+    if not isinstance(datos, dict):
+        return jsonify({"error": "Envía los datos como JSON"}), 400
+    email = datos.get("email")
+    codigo = datos.get("codigo")
+    if (not isinstance(email, str) or len(email) > 254
+            or not isinstance(codigo, str) or not re.fullmatch(r"\d{6}", codigo)):
+        return jsonify({"error": "Escribe los 6 números del código"}), 400
+    email = email.strip().lower()
+
+    with obtener_conexion() as conexion:
+        resultado = conexion.execute(
+            "SELECT sigre_verificar_correo(%s, %s)", (email, hash_codigo(email, codigo))
+        ).fetchone()[0]
+
+    respuestas = {
+        "ok": ("¡Correo verificado! Ya puedes iniciar sesión.", 200),
+        "ya_verificado": ("Tu correo ya estaba verificado. Ya puedes iniciar sesión.", 200),
+        "invalido": ("El código no es correcto. Revísalo e inténtalo de nuevo.", 400),
+        "expirado": ("El código venció. Pide uno nuevo con «Reenviar código».", 400),
+        "bloqueado": ("Demasiados intentos. Pide un código nuevo con «Reenviar código».", 429),
+    }
+    texto, estado = respuestas.get(resultado, ("No se pudo verificar el código.", 400))
+    return jsonify({"mensaje" if estado == 200 else "error": texto}), estado
+
+
+@app.post("/api/auth/reenviar-codigo")
+def reenviar_codigo():
+    datos = request.get_json(silent=True)
+    email = datos.get("email") if isinstance(datos, dict) else None
+    if not isinstance(email, str) or len(email) > 254:
+        return jsonify({"error": "Escribe un correo válido"}), 400
+    enviar_codigo_verificacion(email.strip().lower())
+    # Respuesta genérica: no revela si la cuenta existe.
+    return jsonify({"mensaje": "Si la cuenta está pendiente de verificar, te enviamos un código nuevo."}), 200
 
 
 @app.post("/api/auth/recuperar")
@@ -335,12 +425,20 @@ def iniciar_sesion():
             (email,)
         )
         usuario = conexion.execute(
-            "SELECT id, password_hash, rol FROM usuarios WHERE email = %s",
+            "SELECT id, password_hash, rol, email_verificado FROM usuarios WHERE email = %s",
             (email,)
         ).fetchone()
 
     if usuario is None or not check_password_hash(usuario[1], password):
         return jsonify({"error": "Email o contraseña incorrectos"}), 401
+
+    if not usuario[3]:
+        # Contraseña correcta pero correo sin verificar: se envía un código nuevo.
+        enviar_codigo_verificacion(email)
+        return jsonify({
+            "error": "Tu correo aún no está verificado. Te enviamos un código de 6 números.",
+            "verificar": True,
+        }), 403
 
     token = create_access_token(
         identity=str(usuario[0]),
