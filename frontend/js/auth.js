@@ -329,7 +329,7 @@ function redirigirSegunRol(rol) {
         case 'autoridad':
             window.location.href = 'dashboard_admin.html';
             break;
-        // Los voluntarios usan por ahora el mismo inicio que la ciudadanía.
+        // Los voluntarios usan el mismo inicio que la ciudadanía.
         case 'ciudadano':
         default:
             window.location.href = 'dashboard.html';

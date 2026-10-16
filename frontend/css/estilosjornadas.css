@@ -1599,7 +1599,7 @@ a {
     font-size: 0.9rem;
 }
 
-/* Fila de avatares: ahora es un botón que abre "Quiénes van" */
+/* Fila de avatares: botón que abre "Quiénes van" */
 .boton_ver_participantes.jornada_asistentes {
     width: 100%;
     padding: 6px 8px;
