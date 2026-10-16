@@ -11,6 +11,7 @@ Sistema de Gestión de Riesgos y Emergencias. Prototipo académico para registra
   - `app.py`: cuentas, perfil, desaparecidos, solicitudes de ayuda y correos.
   - `administracion.py`: panel de administración, centros, inventario, directorio, jornadas y emergencias.
   - `notificaciones.py`: campana de notificaciones.
+  - `push.py`: notificaciones push al celular (llegan con la app cerrada).
   - `rutas.py`: rutas de evacuación sobre las calles de Montería.
   - `migracion_*.sql`: cambios de la base de datos (ver más abajo).
   - `datos_rutas/*.json.gz`: redes de calles de Montería ya preparadas para el servidor.
@@ -29,7 +30,7 @@ Sistema de Gestión de Riesgos y Emergencias. Prototipo académico para registra
 - **Jornadas comunitarias:** inscripción, quiénes van, gráfica de participación por categoría y "Mis intereses". Las jornadas en curso se marcan "En curso" y las que terminaron quedan al final, bajo "Jornadas finalizadas", sin poder inscribirse.
 - **Desaparecidos:** reportes con foto, comentarios de testigos, cartel PDF y enlace para compartir.
 - **Mi perfil:** foto o animalito, identificación, datos médicos y contacto de emergencia.
-- **Campana de notificaciones**, **chatbot** de preguntas frecuentes y botón **SOS** (llama al 123).
+- **Campana de notificaciones** y **avisos push** al celular aunque SIGRE esté cerrada (se activan en el menú ☰), **chatbot** de preguntas frecuentes y botón **SOS** (llama al 123).
 - Navegación igual en todas las páginas: cabecera en computador y barra inferior en celular; menú ☰ con las opciones de la cuenta.
 
 **Para administradores (rol `autoridad`)**
@@ -64,6 +65,7 @@ Sistema de Gestión de Riesgos y Emergencias. Prototipo académico para registra
 **Emergencias y notificaciones**
 - `GET /api/emergencias` (con sesión) y `GET /api/emergencias/activa` (público).
 - `GET /api/notificaciones`, `POST /api/notificaciones/<id>/leida` y `POST /api/notificaciones/leidas`: campana; las notificaciones las crean disparadores en la base (requiere `migracion_notificaciones.sql`).
+- `GET /api/push/clave-publica`, `POST /api/push/suscribir` y `POST /api/push/desuscribir`: inscriben el celular para recibir las mismas notificaciones como push. Después de cada acción (POST/PUT) el servidor envía en segundo plano las notificaciones nuevas (requiere `migracion_push.sql` y las claves VAPID).
 
 **Centros, inventario, directorio y jornadas** (`administracion.py`)
 - `GET /api/centros` y `GET /api/centros/inventario`: centros y su inventario (públicos; requiere `migracion_inventario_centros.sql`).
@@ -131,6 +133,7 @@ FRONTEND_URL=http://127.0.0.1:5500/frontend
 
 - `MAIL_APP_PASSWORD` no es la contraseña normal de Gmail: se crea en https://myaccount.google.com/apppasswords (la cuenta necesita verificación en 2 pasos).
 - `FRONTEND_URL` es la dirección donde abres las páginas; se usa para el enlace del correo de recuperación.
+- Notificaciones push: `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY` y `VAPID_CONTACTO=mailto:correo-del-proyecto@gmail.com`. El par de claves se crea con `python backend\push.py`; sin ellas, SIGRE funciona igual pero sin avisos push. Los avisos push solo funcionan en la versión publicada (HTTPS).
 - Opcional: `JWT_HORAS_SESION=8` (horas que dura la sesión) y `GOOGLE_CLIENT_ID` (inicio de sesión con Google).
 
 Después de crear la base, aplica las migraciones del backend en este orden (todas se pueden volver a ejecutar sin dañar nada):
@@ -153,6 +156,7 @@ psql -U postgres -d sigre -f backend\migracion_fotos_directorio.sql
 psql -U postgres -d sigre -f backend\migracion_perfil_completo.sql
 psql -U postgres -d sigre -f backend\migracion_recuperacion_contrasenas.sql
 psql -U postgres -d sigre -f backend\migracion_verificacion_correo.sql
+psql -U postgres -d sigre -f backend\migracion_push.sql
 psql -U postgres -d sigre -f backend\migracion_reparar_acentos.sql
 ```
 
@@ -198,10 +202,11 @@ Las zonas del mapa son aproximaciones para el prototipo; no son cartografía ofi
 
 - **Base de datos:** PostgreSQL en Neon. Se copió la base local con `pg_dump --no-owner` y se cargó con `psql`, después de crear el rol `sigre_app`. El rol dueño debe tener `BYPASSRLS`.
 - **Servidor:** Render, *Web Service* con **Root Directory** `backend`, **Build** `pip install -r requirements.txt` y **Start** `gunicorn app:app --workers 1 --threads 4 --timeout 120`.
-- **Variables de entorno en Render:** `DB_HOST` (host directo de Neon, sin *-pooler*), `DB_PORT`, `DB_NAME`, `DB_USER=sigre_app`, `DB_PASSWORD`, `DB_SSLMODE=require`, `JWT_SECRET_KEY`, `PYTHON_VERSION=3.12.7`, `FRONTEND_URL=https://sigre.onrender.com`, `MAIL_SCRIPT_URL` y `MAIL_SCRIPT_CLAVE`.
+- **Variables de entorno en Render:** `DB_HOST` (host directo de Neon, sin *-pooler*), `DB_PORT`, `DB_NAME`, `DB_USER=sigre_app`, `DB_PASSWORD`, `DB_SSLMODE=require`, `JWT_SECRET_KEY`, `PYTHON_VERSION=3.12.7`, `FRONTEND_URL=https://sigre.onrender.com`, `MAIL_SCRIPT_URL`, `MAIL_SCRIPT_CLAVE`, `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY` y `VAPID_CONTACTO`.
 - Flask entrega también las páginas de `frontend/`, así que todo queda en una sola dirección HTTPS.
 - `frontend/js/config.js` decide la dirección de la API: en desarrollo (Live Server, puertos 5500/8000) usa el puerto 5000; publicado, usa la misma dirección de la página.
 - SIGRE se instala como app (PWA) con `frontend/manifest.json` y `frontend/service-worker.js`: en Android, Chrome → menú ⋮ → *Instalar aplicación*; en iPhone, Safari → Compartir → *Agregar a inicio*.
+- **Avisos push:** en Android funcionan en Chrome y en la app instalada; en iPhone solo con SIGRE instalada en la pantalla de inicio (iOS 16.4 o más nuevo). Cada persona los activa en el menú ☰ y se desactivan al cerrar sesión.
 - Cada `git push` a `main` publica los cambios solo en unos minutos.
 - **Si agregas una migración nueva, ejecútala también en Neon** (`psql "<cadena de Neon>" -f backend\migracion_nueva.sql`). La base de tu PC y la de internet son distintas: las cuentas y los datos no se comparten.
 - **Plan gratis:** el servidor se duerme tras unos 15 minutos sin visitas y la primera carga tarda cerca de un minuto. Tiene 512 MB de memoria.

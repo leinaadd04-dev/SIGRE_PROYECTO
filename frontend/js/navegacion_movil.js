@@ -89,6 +89,11 @@
         salir.innerHTML = '<i class="fa-solid fa-right-from-bracket" aria-hidden="true"></i><span>Cerrar sesión</span>';
         salir.addEventListener("click", evento => {
             evento.preventDefault();
+            // Mismo cierre que el menú ☰: también apaga los avisos push del dispositivo.
+            if (window.SigreCuenta && window.SigreCuenta.cerrarSesion) {
+                window.SigreCuenta.cerrarSesion();
+                return;
+            }
             try {
                 localStorage.removeItem("sigre_usuario");
                 localStorage.removeItem("sigre_token");

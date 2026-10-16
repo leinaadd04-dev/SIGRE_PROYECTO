@@ -10,6 +10,8 @@ reportlab==5.0.1
 pillow==12.3.0
 google-auth
 gunicorn
+# Notificaciones push al celular (backend/push.py)
+pywebpush==2.5.0
 
 # Módulo de rutas de evacuación (backend/rutas.py). El servidor solo calcula
 # rutas sobre las redes livianas de backend/datos_rutas/*.json.gz.

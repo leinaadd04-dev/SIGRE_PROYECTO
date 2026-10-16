@@ -89,7 +89,9 @@
         }
     }
 
-    function cerrarSesion() {
+    async function cerrarSesion() {
+        // Este dispositivo deja de recibir los avisos push de la cuenta (js/push.js).
+        if (window.SigrePush) await window.SigrePush.desactivar().catch(() => {});
         try {
             localStorage.removeItem("sigre_usuario");
             localStorage.removeItem(CLAVE_TOKEN);
@@ -539,6 +541,7 @@
     /* ---------- API para los módulos ---------- */
 
     window.SigreCuenta = {
+        cerrarSesion: cerrarSesion,
         abrirAvatar: abrirVentanaAvatar,
         recargar: cargarAvatar,
         pintarAvatar: pintarAvatar,

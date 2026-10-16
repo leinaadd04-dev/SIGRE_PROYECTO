@@ -36,6 +36,7 @@ from database import obtener_conexion
 from rutas import rutas_bp
 from administracion import administracion_bp
 from notificaciones import notificaciones_bp
+from push import push_bp
 
 #lee las variables del archivo backend/.env
 load_dotenv(Path(__file__).resolve().parent / ".env")
@@ -61,6 +62,7 @@ jwt= JWTManager(app)
 app.register_blueprint(rutas_bp)
 app.register_blueprint(administracion_bp)
 app.register_blueprint(notificaciones_bp)
+app.register_blueprint(push_bp)
 
 
 def emitir_token(usuario_id, rol):
