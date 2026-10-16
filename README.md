@@ -16,8 +16,35 @@ Sistema de Gestión de Riesgos y Emergencias. Prototipo académico para registra
   - `migracion_*.sql`: cambios de la base de datos (ver más abajo).
   - `datos_rutas/*.json.gz`: redes de calles de Montería ya preparadas para el servidor.
 - `frontend/`: páginas web (HTML, CSS y JavaScript).
+- `database/`: esquema completo de la base de datos (`schema.sql`).
 - `rutas_eva_corregido.ipynb`: notebook para explorar rutas peatonales con OpenStreetMap.
 - `mapa_rutas.html`: mapa generado por el notebook.
+
+## Tecnologías utilizadas
+
+| Capa | Tecnología | Para qué se usa |
+|---|---|---|
+| **Frontend** | HTML5, CSS3 y JavaScript (sin framework) | Todas las páginas, la navegación y la comunicación con la API (`fetch`). |
+| | [Leaflet](https://leafletjs.com/) 1.9.4 | Mapas de rutas, centros, jornadas y emergencias. |
+| | Mapas de OpenStreetMap, OpenTopoMap y Esri | Capas de calles, relieve y satélite de los mapas. |
+| | Font Awesome 6.5 y Lucide | Íconos. |
+| | PWA: `manifest.json` y *service worker* | Instalar SIGRE como app en el celular, funcionar con mala conexión y recibir notificaciones push. |
+| **Backend** | Python 3.12 y [Flask](https://flask.palletsprojects.com/) 3.1 | API REST y entrega de las páginas. Módulos con *Blueprints*. |
+| | Flask-JWT-Extended 4.7 | Sesiones con tokens JWT y roles (ciudadano, voluntario, autoridad). |
+| | Werkzeug | Contraseñas guardadas con *hash* seguro (nunca en texto plano). |
+| | psycopg 3.3 | Conexión a PostgreSQL con consultas parametrizadas. |
+| | NetworkX 3.6 | Cálculo de la ruta más corta y la más segura sobre las calles de Montería. |
+| | OSMnx 2.1, Shapely y scikit-learn (solo en desarrollo) | Descargar las calles de OpenStreetMap y marcar las zonas de riesgo. |
+| | ReportLab 5.0 y Pillow 12.3 | Cartas y carteles en PDF; recorte y compresión de fotos. |
+| | pywebpush 2.5 (VAPID) | Notificaciones push al celular. |
+| | Gunicorn | Servidor de producción en Render. |
+| **Base de datos** | [PostgreSQL](https://www.postgresql.org/) 18 | Persistencia de todos los datos. Usa seguridad por filas (*Row Level Security*), funciones `SECURITY DEFINER`, disparadores (*triggers*) para las notificaciones y restricciones `CHECK`. |
+| **Servicios externos** | Nominatim (OpenStreetMap) | Buscar direcciones dentro de Montería. |
+| | Open-Meteo | Clima actual en el dashboard. |
+| | Gmail y Google Apps Script | Envío de correos (código de verificación y recuperación de contraseña). |
+| **Despliegue y trabajo en equipo** | [Render](https://render.com/) | Servidor publicado, conectado a GitHub (cada *push* a `main` se publica solo). |
+| | Git y GitHub | Control de versiones y trabajo en equipo. |
+| | Visual Studio Code y Live Server | Desarrollo local. |
 
 ## Funciones de la página
 
@@ -221,6 +248,13 @@ El plan gratis de Render bloquea el SMTP de Gmail, así que los correos los env�
 4. *Implementar* → *Nueva implementación* → *Aplicación web*, ejecutar como **Yo** y acceso **Cualquier persona**. Copia la URL que termina en `/exec`.
 5. En Render: `MAIL_SCRIPT_URL` = esa URL y `MAIL_SCRIPT_CLAVE` = la misma clave de `CLAVE_SIGRE`. Si los registros dicen "no autorizado", las dos claves no coinciden.
 
+## Base de datos
+
+- **Motor:** PostgreSQL 18.
+- **Esquema completo:** [`database/schema.sql`](database/schema.sql), generado de la base real con `pg_dump --schema-only`. Incluye las 19 tablas con llaves primarias, llaves foráneas, restricciones, índices, funciones, disparadores y seguridad por filas.
+- **Base nueva desde cero:** crear la base y el usuario de la aplicación (`CREATE DATABASE sigre;` y `CREATE ROLE sigre_app LOGIN PASSWORD '...';`) y cargar el esquema con `psql -U postgres -d sigre -f database/schema.sql`. El encabezado del archivo explica cada paso.
+- **Base que ya existe:** aplicar las migraciones `backend/migracion_*.sql` en el orden de arriba; el esquema es el resultado de aplicarlas todas.
+
 ## Estado
 
-SIGRE está en desarrollo. Falta documentar la creación inicial de la base en una computadora nueva (el rol `sigre_app`, sus permisos y las políticas de seguridad de la tabla `usuarios`); mientras tanto, lo más seguro es copiar una base que ya funcione con `pg_dump`.
+SIGRE está en desarrollo como proyecto académico.
