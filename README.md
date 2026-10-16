@@ -10,7 +10,7 @@ Sistema de Gestión de Riesgos y Emergencias. Prototipo académico para registra
 
 | Nombre | Usuario de GitHub |
 |---|---|
-| Daniel Gómez Urueta | [danielurueta937-a11y](https://github.com/danielurueta937-a11y) y [leinaadd04-dev](https://github.com/leinaadd04-dev) (cuenta dueña del repositorio) |
+| Daniel Gómez Urueta | [danielurueta937-a11y](https://github.com/danielurueta937-a11y) y [leinaadd04-dev](https://github.com/leinaadd04-dev) (cuenta dueña del propietario del repositorio) |
 | Fabian Ernesto Muñoz Padilla | [yvlyvlyvl](https://github.com/yvlyvlyvl) |
 
 ## Componentes
