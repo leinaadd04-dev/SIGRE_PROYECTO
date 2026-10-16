@@ -4,6 +4,14 @@ Sistema de Gestión de Riesgos y Emergencias. Prototipo académico para registra
 
 - **Publicado en:** https://sigre.onrender.com (se puede instalar como app en el celular).
 - **Repositorio:** https://github.com/leinaadd04-dev/SIGRE_PROYECTO
+- **ODS abordado:** ODS 11 · Ciudades y comunidades sostenibles (meta 11.5: reducir las muertes y personas afectadas por desastres).
+
+## Integrantes
+
+| Nombre | Usuario de GitHub |
+|---|---|
+| Daniel Gómez Urueta | [danielurueta937-a11y](https://github.com/danielurueta937-a11y) |
+| Fabian Ernesto Muñoz Padilla | [yvlyvlyvl](https://github.com/yvlyvlyvl) |
 
 ## Componentes
 
@@ -15,7 +23,9 @@ Sistema de Gestión de Riesgos y Emergencias. Prototipo académico para registra
   - `rutas.py`: rutas de evacuación sobre las calles de Montería.
   - `migracion_*.sql`: cambios de la base de datos (ver más abajo).
   - `datos_rutas/*.json.gz`: redes de calles de Montería ya preparadas para el servidor.
+  - `apps_script/correos.gs`: código del Google Apps Script que envía los correos en la versión publicada.
 - `frontend/`: páginas web (HTML, CSS y JavaScript).
+- `.env.example`: nombres de todas las variables de entorno, sin valores reales.
 - `database/`: base de datos: esquema completo (`schema.sql`), datos de demostración (`datos_demo.sql`) y respaldo listo para restaurar (`sigre_demo.sql`).
 - `rutas_eva_corregido.ipynb`: notebook para explorar rutas peatonales con OpenStreetMap.
 - `mapa_rutas.html`: mapa generado por el notebook.
@@ -41,7 +51,8 @@ Sistema de Gestión de Riesgos y Emergencias. Prototipo académico para registra
 | **Base de datos** | [PostgreSQL](https://www.postgresql.org/) 18 | Persistencia de todos los datos. Usa seguridad por filas (*Row Level Security*), funciones `SECURITY DEFINER`, disparadores (*triggers*) para las notificaciones y restricciones `CHECK`. |
 | **Servicios externos** | Nominatim (OpenStreetMap) | Buscar direcciones dentro de Montería. |
 | | Open-Meteo | Clima actual en el dashboard. |
-| | Gmail y Google Apps Script | Envío de correos (código de verificación y recuperación de contraseña). |
+| | [Google Apps Script](https://developers.google.com/apps-script) (`MailApp`) | Envía los correos en la versión publicada (código de verificación y recuperación de contraseña). Render gratis bloquea el SMTP, así que el backend llama al script por HTTPS con una clave secreta. Código en `backend/apps_script/correos.gs`. |
+| | Gmail (SMTP con contraseña de aplicación) | Envío de correos en desarrollo local, y cuenta remitente del proyecto (`sigre.oficial@gmail.com`). |
 | **Despliegue y trabajo en equipo** | [Render](https://render.com/) | Servidor publicado, conectado a GitHub (cada *push* a `main` se publica solo). |
 | | Git y GitHub | Control de versiones y trabajo en equipo. |
 | | Visual Studio Code y Live Server | Desarrollo local. |
@@ -142,21 +153,13 @@ Para **volver a preparar los mapas de rutas** (solo si cambias las zonas de ries
 python -m pip install osmnx==2.1.1 shapely==2.1.2 scikit-learn==1.9.1
 ```
 
-Crea `backend/.env` con la configuración local de tu computadora:
+Crea `backend/.env` a partir de la plantilla [`.env.example`](.env.example), que tiene todas las variables con su explicación, y llena los valores de tu equipo:
 
-```env
-DB_HOST=localhost
-DB_PORT=5432
-DB_NAME=sigre
-DB_USER=sigre_app
-DB_PASSWORD=tu_clave_local
-JWT_SECRET_KEY=tu_clave_secreta_local
-
-# Correos (código de verificación y recuperación de contraseña)
-MAIL_USERNAME=correo-del-proyecto@gmail.com
-MAIL_APP_PASSWORD=contraseña-de-aplicacion-de-gmail-sin-espacios
-FRONTEND_URL=http://127.0.0.1:5500/frontend
+```powershell
+copy .env.example backend\.env
 ```
+
+Las mínimas para arrancar son las de la base de datos (`DB_*`) y `JWT_SECRET_KEY`.
 
 - `MAIL_APP_PASSWORD` no es la contraseña normal de Gmail: se crea en https://myaccount.google.com/apppasswords (la cuenta necesita verificación en 2 pasos).
 - `FRONTEND_URL` es la dirección donde abres las páginas; se usa para el enlace del correo de recuperación.
@@ -242,7 +245,7 @@ Las zonas del mapa son aproximaciones para el prototipo; no son cartografía ofi
 
 El plan gratis de Render bloquea el SMTP de Gmail, así que los correos los envía un Google Apps Script de la cuenta del proyecto (`sigre.oficial@gmail.com`), llamado por HTTPS. Sin `MAIL_SCRIPT_URL` (en tu PC) se usa SMTP con `MAIL_USERNAME` y `MAIL_APP_PASSWORD`. Los correos salen en segundo plano: la página no espera a Gmail.
 
-1. En script.google.com (con la cuenta del proyecto) crea el proyecto **SIGRE correos** con una función `doPost` que lee `{clave, para, asunto, texto}`, comprueba que `clave` sea igual a la propiedad del script `CLAVE_SIGRE` y envía el correo con `MailApp.sendEmail`.
+1. En script.google.com (con la cuenta del proyecto) crea el proyecto **SIGRE correos** y pega el código de [`backend/apps_script/correos.gs`](backend/apps_script/correos.gs): una función `doPost` que lee `{clave, para, asunto, texto}`, comprueba que `clave` sea igual a la propiedad del script `CLAVE_SIGRE` y envía el correo con `MailApp.sendEmail`.
 2. En ⚙️ *Configuración del proyecto* → *Propiedades de las secuencias de comandos*, agrega `CLAVE_SIGRE` con una clave aleatoria (`python -c "import secrets; print(secrets.token_urlsafe(32))"`).
 3. Ejecuta una vez una función de prueba para autorizar el envío de correos.
 4. *Implementar* → *Nueva implementación* → *Aplicación web*, ejecutar como **Yo** y acceso **Cualquier persona**. Copia la URL que termina en `/exec`.
