@@ -1,6 +1,6 @@
 # SIGRE
 
-Sistema de Gestión de Riesgos y Emergencias. Prototipo académico para registrar y consultar emergencias, pedir ayuda, encontrar rutas de evacuación y organizar a la comunidad en Montería, Córdoba. El proyecto forma parte de una iniciativa relacionada con el ODS 11.
+Sistema Integral de Gestión y Respuesta ante Emergencias. Prototipo académico para registrar y consultar emergencias, pedir ayuda, encontrar rutas de evacuación y organizar a la comunidad en Montería, Córdoba. El proyecto forma parte de una iniciativa relacionada con el ODS 11.
 
 - **Publicado en:** https://sigre.onrender.com (se puede instalar como app en el celular).
 - **Repositorio:** https://github.com/leinaadd04-dev/SIGRE_PROYECTO

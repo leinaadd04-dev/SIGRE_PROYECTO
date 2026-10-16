@@ -126,7 +126,7 @@
 
         contenidoCarta.innerHTML = `
             <header class="admin_carta_cabecera">
-                <div><strong>SIGRE</strong><span>Sistema de Gestión de Riesgos y Emergencias · Montería, Córdoba</span></div>
+                <div><strong>SIGRE</strong><span>Sistema Integral de Gestión y Respuesta ante Emergencias · Montería, Córdoba</span></div>
                 <div class="admin_carta_radicado"><strong>Radicado N.° SIGRE-${String(s.id).padStart(5, "0")}</strong><span>${htmlSafe(fecha(s.creada_en, true))}</span></div>
             </header>
             <p>Montería, ${htmlSafe(fechaCarta(s.creada_en))}</p>
