@@ -342,34 +342,29 @@
     });
 
     lista.addEventListener("click", function (evento) {
-    const botonQuitar = evento.target.closest(".sigre_notif_quitar");
-    if (!botonQuitar) return;
+        // ✕: oculta la notificación sin abrirla.
+        const botonQuitar = evento.target.closest(".sigre_notif_quitar");
+        if (botonQuitar) {
+            evento.preventDefault();
+            evento.stopPropagation();
+            const fila = botonQuitar.closest(".sigre_notif_item");
+            const id = fila && fila.querySelector(".sigre_notif_boton")?.dataset.id;
+            if (!id) return;
+            guardarNotificacionOculta(id);
+            notificaciones = notificaciones.filter(function (item) {
+                return String(item.id) !== String(id);
+            });
+            pintarLista();
+            pintarContador(notificaciones.filter(function (item) { return !item.leida; }).length);
+            return;
+        }
 
-    evento.preventDefault();
-    evento.stopPropagation();
-
-    const fila = botonQuitar.closest(".sigre_notif_item");
-    if (!fila) return;
-
-    const botonNotificacion = fila.querySelector(".sigre_notif_boton");
-    const id = botonNotificacion?.dataset.id;
-
-    if (!id) return;
-
-    guardarNotificacionOculta(id);
-
-    notificaciones = notificaciones.filter(function (item) {
-        return String(item.id) !== String(id);
+        // Tocar la notificación: la marca como leída y lleva a su página.
+        const boton = evento.target.closest(".sigre_notif_boton");
+        if (!boton) return;
+        const item = notificaciones.find(function (n) { return String(n.id) === boton.dataset.id; });
+        if (item) abrirNotificacion(item);
     });
-
-    pintarLista();
-
-    pintarContador(
-        notificaciones.filter(function (item) {
-            return !item.leida;
-        }).length
-    );
-});
 
     botonTodas.addEventListener("click", async function () {
         notificaciones.forEach(function (n) { n.leida = true; });

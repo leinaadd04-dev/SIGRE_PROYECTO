@@ -41,6 +41,7 @@ Prototipo académico para registrar y consultar emergencias y explorar rutas en 
 - `POST /api/jornadas/<id>/participar`, `GET /api/jornadas/<id>/participantes` y `GET /api/jornadas/estadisticas`: inscripción en jornadas, lista de quienes van (con correo y teléfono solo para autoridades) y gráfica por categoría (requiere `backend/migracion_participacion_jornadas.sql`).
 - `GET /api/centros/inventario` (público) y `POST /api/admin/inventario`, `/api/admin/inventario/<id>`, `/<id>/cantidad`, `/<id>/eliminar` (solo autoridad): inventario por centro y categoría (requiere `backend/migracion_inventario_centros.sql`).
 - `GET /api/mi-perfil` y `PUT /api/mi-perfil`: identificación, datos médicos y contacto de emergencia de la cuenta autenticada (requiere `backend/migracion_perfil_completo.sql`).
+- `POST /api/auth/recuperar` y `POST /api/auth/restablecer`: recuperar la contraseña con un enlace por correo (requiere `backend/migracion_recuperacion_contrasenas.sql` y las variables `MAIL_USERNAME`, `MAIL_APP_PASSWORD` —contraseña de aplicación de Gmail— y `FRONTEND_URL` en `backend/.env`).
 - `GET /api/directorio` (público) y `POST /api/admin/directorio[/<id>[/eliminar]]`: directorio de entidades.
 - `GET /api/jornadas` (público) y `POST /api/admin/jornadas`, `/<id>/estado`, `/<id>/eliminar`: jornadas comunitarias.
 - `GET /api/emergencias/activa` (público), `GET/POST /api/admin/emergencias` y `POST /api/admin/emergencias/<id>/finalizar`: emergencias.
@@ -110,6 +111,7 @@ psql -U postgres -d sigre -f backend\migracion_notificaciones.sql
 psql -U postgres -d sigre -f backend\migracion_participacion_jornadas.sql
 psql -U postgres -d sigre -f backend\migracion_inventario_centros.sql
 psql -U postgres -d sigre -f backend\migracion_perfil_completo.sql
+psql -U postgres -d sigre -f backend\migracion_recuperacion_contrasenas.sql
 ```
 
 Cada integrante debe usar sus propias claves locales. **No subas `backend/.env` a GitHub ni compartas sus contraseñas.**

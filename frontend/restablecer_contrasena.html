@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Nueva contraseña - SIGRE</title>
+    <link rel="icon" type="image/png" href="imagenes/iconos/icono-192.png">
+
     <style>
         * { box-sizing: border-box; }
         body {
@@ -83,8 +85,9 @@
         <a href="login.html">Volver al inicio de sesión</a>
     </main>
 
+    <script src="js/config.js"></script>
     <script>
-        const API = "http://127.0.0.1:5000";
+        const API = window.SIGRE_API;
 
         document.getElementById("form-restablecer")
             .addEventListener("submit", async (evento) => {

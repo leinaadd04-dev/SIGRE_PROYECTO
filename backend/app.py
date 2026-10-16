@@ -234,20 +234,14 @@ def registrar_usuario():
 @app.post("/api/auth/recuperar")
 def solicitar_recuperacion():
     datos = request.get_json(silent=True)
-
     if not isinstance(datos, dict):
         return jsonify({"error": "Envía los datos como JSON"}), 400
 
     email = datos.get("email")
-
     if not isinstance(email, str):
         return jsonify({"error": "Escribe un correo válido"}), 400
-
     email = email.strip().lower()
-
-    if len(email) > 254 or not re.fullmatch(
-        r"[^@\s]+@[^@\s]+\.[^@\s]+", email
-    ):
+    if len(email) > 254 or not re.fullmatch(r"[^@\s]+@[^@\s]+\.[^@\s]+", email):
         return jsonify({"error": "Escribe un correo válido"}), 400
 
     # Respuesta genérica para no revelar si existe una cuenta.
@@ -255,129 +249,69 @@ def solicitar_recuperacion():
         "mensaje": "Si el correo está registrado, recibirás instrucciones para recuperar tu contraseña."
     }
 
+    token = secrets.token_urlsafe(32)
+    token_hash = hashlib.sha256(token.encode()).hexdigest()
     with obtener_conexion() as conexion:
-        usuario = conexion.execute(
-            "SELECT id FROM usuarios WHERE email = %s",
-            (email,)
-        ).fetchone()
+        enviar = conexion.execute(
+            "SELECT sigre_crear_recuperacion(%s, %s)", (email, token_hash)
+        ).fetchone()[0]
+    if not enviar:
+        return jsonify(respuesta), 200
 
-        if usuario is not None:
-            token = secrets.token_urlsafe(32)
-            token_hash = hashlib.sha256(token.encode()).hexdigest()
+    frontend_url = os.getenv("FRONTEND_URL", "http://127.0.0.1:5500/frontend").rstrip("/")
+    enlace = f"{frontend_url}/restablecer_contrasena.html?token={token}"
+    remitente = os.getenv("MAIL_USERNAME")
+    clave_aplicacion = os.getenv("MAIL_APP_PASSWORD")
+    if not remitente or not clave_aplicacion:
+        app.logger.error("Falta configurar MAIL_USERNAME o MAIL_APP_PASSWORD.")
+        return jsonify(respuesta), 200
 
-            conexion.execute(
-                """
-                INSERT INTO recuperacion_contrasenas
-                    (usuario_id, token_hash, expira_en)
-                VALUES (%s, %s, NOW() + INTERVAL '15 minutes')
-                """,
-                (usuario[0], token_hash)
-            )
-            # Enviar enlace de recuperación por Gmail.
-            frontend_url = os.getenv(
-                "FRONTEND_URL",
-                "http://127.0.0.1:5500/frontend"
-            ).rstrip("/")
+    mensaje_correo = EmailMessage()
+    mensaje_correo["Subject"] = "Restablecer contraseña - SIGRE"
+    mensaje_correo["From"] = remitente
+    mensaje_correo["To"] = email
+    mensaje_correo.set_content(
+        "Hola,\n\n"
+        "Recibimos una solicitud para restablecer tu contraseña de SIGRE.\n\n"
+        f"Abre este enlace para crear una contraseña nueva:\n{enlace}\n\n"
+        "El enlace vence en 15 minutos y solo puede utilizarse una vez.\n\n"
+        "Si no solicitaste este cambio, ignora este correo."
+    )
+    try:
+        # Sin set_debuglevel: imprimiría la clave de Gmail en los registros.
+        with smtplib.SMTP("smtp.gmail.com", 587, timeout=20) as servidor:
+            servidor.starttls()
+            servidor.login(remitente, clave_aplicacion)
+            servidor.send_message(mensaje_correo)
+    except Exception:
+        app.logger.exception("No se pudo enviar el correo de recuperación.")
 
-            enlace = f"{frontend_url}/restablecer_contrasena.html?token={token}"
-
-            remitente = os.getenv("MAIL_USERNAME")
-            clave_aplicacion = os.getenv("MAIL_APP_PASSWORD")
-
-            if not remitente or not clave_aplicacion:
-                app.logger.error(
-                    "Falta configurar MAIL_USERNAME o MAIL_APP_PASSWORD."
-                )
-            else:
-                mensaje_correo = EmailMessage()
-                mensaje_correo["Subject"] = "Restablecer contraseña - SIGRE"
-                mensaje_correo["From"] = remitente
-                mensaje_correo["To"] = email
-                mensaje_correo.set_content(
-                    "Hola,\n\n"
-                    "Recibimos una solicitud para restablecer tu contraseña "
-                    "de SIGRE.\n\n"
-                    f"Abre este enlace para crear una contraseña nueva:\n{enlace}\n\n"
-                    "El enlace vence en 15 minutos y solo puede utilizarse una vez.\n\n"
-                    "Si no solicitaste este cambio, ignora este correo."
-                )
-                try:
-                    with smtplib.SMTP("smtp.gmail.com", 587, timeout=20) as servidor:
-                        servidor.set_debuglevel(1)
-                        servidor.ehlo()
-                        servidor.starttls()
-                        servidor.ehlo()
-                        servidor.login(remitente, clave_aplicacion)
-                        servidor.send_message(mensaje_correo)
-
-                    app.logger.info("Correo de recuperación enviado correctamente.")
-
-                except Exception:
-                    app.logger.exception("No se pudo enviar el correo de recuperación.")
-                
     return jsonify(respuesta), 200
 
 
 @app.post("/api/auth/restablecer")
 def restablecer_contrasena():
     datos = request.get_json(silent=True)
-
     if not isinstance(datos, dict):
         return jsonify({"error": "Envía los datos como JSON"}), 400
 
     token = datos.get("token")
     password = datos.get("password")
-
-    if not isinstance(token, str) or not token:
+    if not isinstance(token, str) or not token or len(token) > 200:
         return jsonify({"error": "El enlace de recuperación no es válido"}), 400
-
     if not isinstance(password, str) or not 12 <= len(password) <= 128:
-        return jsonify({
-            "error": "La contraseña debe tener entre 12 y 128 caracteres"
-        }), 400
+        return jsonify({"error": "La contraseña debe tener entre 12 y 128 caracteres"}), 400
 
     token_hash = hashlib.sha256(token.encode()).hexdigest()
-    password_hash = generate_password_hash(password)
-
     with obtener_conexion() as conexion:
-        recuperacion = conexion.execute(
-            """
-            SELECT id, usuario_id
-            FROM recuperacion_contrasenas
-            WHERE token_hash = %s
-              AND usado = FALSE
-              AND expira_en > NOW()
-            FOR UPDATE
-            """,
-            (token_hash,)
-        ).fetchone()
+        cambiada = conexion.execute(
+            "SELECT sigre_restablecer_contrasena(%s, %s)",
+            (token_hash, generate_password_hash(password))
+        ).fetchone()[0]
 
-        if recuperacion is None:
-            return jsonify({
-                "error": "El enlace ha caducado o ya fue utilizado"
-            }), 400
-
-        conexion.execute(
-            """
-            UPDATE usuarios
-            SET password_hash = %s
-            WHERE id = %s
-            """,
-            (password_hash, recuperacion[1])
-        )
-
-        conexion.execute(
-            """
-            UPDATE recuperacion_contrasenas
-            SET usado = TRUE
-            WHERE id = %s
-            """,
-            (recuperacion[0],)
-        )
-
-    return jsonify({
-        "mensaje": "Contraseña actualizada correctamente. Ya puedes iniciar sesión."
-    }), 200
+    if not cambiada:
+        return jsonify({"error": "El enlace ha caducado o ya fue utilizado"}), 400
+    return jsonify({"mensaje": "Contraseña actualizada correctamente. Ya puedes iniciar sesión."}), 200
 
 
 @app.post("/api/auth/login")
