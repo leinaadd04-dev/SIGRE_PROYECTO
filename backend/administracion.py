@@ -643,7 +643,7 @@ def _carta_pdf(s):
     pdf.setFont("Helvetica-Bold", 16)
     pdf.drawString(margen, y, "SIGRE")
     pdf.setFont("Helvetica", 9)
-    pdf.drawString(margen, y - 13, "Sistema de Gestión de Riesgos y Emergencias · Montería, Córdoba")
+    pdf.drawString(margen, y - 13, "Sistema Integral de Gestión y Respuesta ante Emergencias · Montería, Córdoba")
     pdf.setFont("Helvetica-Bold", 10)
     pdf.drawRightString(ancho - margen, y, f"Radicado N.° SIGRE-{s['id']:05d}")
     pdf.setFont("Helvetica", 9)
