@@ -20,6 +20,8 @@ import unicodedata
 from urllib.parse import urlparse
 
 import requests
+from flask_socketio import SocketIO
+from flask_jwt_extended import decode_token
 
 from dotenv import load_dotenv
 from flask import Flask, jsonify, request, send_file, send_from_directory
@@ -64,6 +66,53 @@ app.register_blueprint(administracion_bp)
 app.register_blueprint(notificaciones_bp)
 app.register_blueprint(push_bp)
 
+socketio = SocketIO(
+    app,
+    cors_allowed_origins=[
+        "http://127.0.0.1:5500",
+        "http://localhost:5500",
+        "http://127.0.0.1:5000",
+        "http://localhost:5000",
+    ],
+    async_mode="threading",
+)
+
+CONECTADOS = {}
+
+@socketio.on("connect")
+def autenticar_socket(auth=None):
+    token = (auth or {}).get("token")
+
+    if not token:
+        print("Socket.IO: conexión rechazada, falta el token JWT")
+        return False
+
+    try:
+        datos = decode_token(token)
+        usuario_id = str(datos.get("sub", ""))
+        rol = datos.get("rol")
+
+        if not usuario_id or rol not in (
+            "ciudadano",
+            "voluntario",
+            "autoridad",
+        ):
+            print("Socket.IO: conexión rechazada, identidad o rol inválido")
+            return False
+
+        CONECTADOS[request.sid] = {
+            "usuario_id": usuario_id,
+            "rol": rol,
+        }
+        print("Socket.IO: autenticación exitosa", usuario_id, rol)
+
+    except Exception as error:
+        print("Socket.IO: token inválido:", type(error).__name__)
+    return False
+
+@socketio.on("disconnect")
+def limpiar_socket():
+    CONECTADOS.pop(request.sid, None)
 
 def emitir_token(usuario_id, rol):
     return create_access_token(
@@ -1705,6 +1754,11 @@ def archivo_frontend(ruta):
 
 
 if __name__ == "__main__":
-    # Solo para tu PC. En Render se usa gunicorn y este bloque no se ejecuta.
-    app.run(host="0.0.0.0", port=5000, debug=os.getenv("FLASK_DEBUG", "1") == "1")
+    socketio.run(
+        app,
+        host="0.0.0.0",
+        port=5000,
+        debug=os.getenv("FLASK_DEBUG", "1") == "1",
+        allow_unsafe_werkzeug=True,
+    )
 
