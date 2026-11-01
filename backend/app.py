@@ -20,7 +20,7 @@ import unicodedata
 from urllib.parse import urlparse
 
 import requests
-from flask_socketio import SocketIO
+from flask_socketio import SocketIO, join_room
 from flask_jwt_extended import decode_token
 
 from dotenv import load_dotenv
@@ -68,51 +68,59 @@ app.register_blueprint(push_bp)
 
 socketio = SocketIO(
     app,
-    cors_allowed_origins=[
+       cors_allowed_origins=[
         "http://127.0.0.1:5500",
         "http://localhost:5500",
         "http://127.0.0.1:5000",
         "http://localhost:5000",
+        "https://sigre.onrender.com",
     ],
+
     async_mode="threading",
 )
 
 CONECTADOS = {}
+ROLES_SOCKET = ("ciudadano", "voluntario", "autoridad")
+
 
 @socketio.on("connect")
 def autenticar_socket(auth=None):
     token = (auth or {}).get("token")
-
     if not token:
-        print("Socket.IO: conexión rechazada, falta el token JWT")
+        app.logger.warning("Socket.IO: conexión rechazada, falta el token.")
         return False
 
     try:
         datos = decode_token(token)
-        usuario_id = str(datos.get("sub", ""))
-        rol = datos.get("rol")
-
-        if not usuario_id or rol not in (
-            "ciudadano",
-            "voluntario",
-            "autoridad",
-        ):
-            print("Socket.IO: conexión rechazada, identidad o rol inválido")
-            return False
-
-        CONECTADOS[request.sid] = {
-            "usuario_id": usuario_id,
-            "rol": rol,
-        }
-        print("Socket.IO: autenticación exitosa", usuario_id, rol)
-
     except Exception as error:
-        print("Socket.IO: token inválido:", type(error).__name__)
-    return False
+        app.logger.warning("Socket.IO: token rechazado (%s).", type(error).__name__)
+        return False
+
+    usuario_id = str(datos.get("sub", ""))
+    rol_token = datos.get("rol")
+    if not usuario_id or rol_token not in ROLES_SOCKET:
+        return False
+
+    # El rol se lee de la base: si un administrador lo cambió, vale el nuevo.
+    with obtener_conexion() as conexion:
+        fijar_contexto_usuario(conexion, usuario_id, rol_token)
+        fila = conexion.execute(
+            "SELECT rol FROM usuarios WHERE id = %s", (usuario_id,)
+        ).fetchone()
+    if fila is None or fila[0] not in ROLES_SOCKET:
+        return False
+
+    CONECTADOS[request.sid] = {"usuario_id": int(usuario_id), "rol": fila[0]}
+    if fila[0] == "autoridad":
+        join_room("operadores")
+    return True
+
 
 @socketio.on("disconnect")
 def limpiar_socket():
     CONECTADOS.pop(request.sid, None)
+
+
 
 def emitir_token(usuario_id, rol):
     return create_access_token(
