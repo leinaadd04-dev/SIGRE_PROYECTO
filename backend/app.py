@@ -39,6 +39,7 @@ from rutas import rutas_bp
 from administracion import administracion_bp
 from notificaciones import notificaciones_bp
 from push import push_bp
+from sos import registrar_eventos_sos
 
 #lee las variables del archivo backend/.env
 load_dotenv(Path(__file__).resolve().parent / ".env")
@@ -120,6 +121,8 @@ def autenticar_socket(auth=None):
 def limpiar_socket():
     CONECTADOS.pop(request.sid, None)
 
+
+registrar_eventos_sos(socketio, CONECTADOS)
 
 
 def emitir_token(usuario_id, rol):

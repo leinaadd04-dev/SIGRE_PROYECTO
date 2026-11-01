@@ -160,8 +160,31 @@ AS $$
       AND sigre_usuario_es_autoridad();
 $$;
 
+-- Aviso en la campana y push a todas las autoridades cuando entra una emergencia.
+-- Así se enteran también las que no tienen el panel abierto.
+CREATE OR REPLACE FUNCTION sigre_notificar_sos()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public, pg_temp
+AS $$
+BEGIN
+    PERFORM sigre_notificar(NULL, 'autoridad', 'emergencia',
+        'Nueva emergencia SOS en vivo',
+        'Una persona pidió ayuda con SOS en vivo y espera en la cola. Ábrela en el panel para atenderla.',
+        'dashboard_admin.html#sos');
+    RETURN NULL;
+END;
+$$;
+
+DROP TRIGGER IF EXISTS trg_notificar_sos ON sesiones_sos;
+CREATE TRIGGER trg_notificar_sos
+    AFTER INSERT ON sesiones_sos
+    FOR EACH ROW EXECUTE FUNCTION sigre_notificar_sos();
+
 REVOKE ALL ON FUNCTION sigre_posicion_cola_sos(BIGINT) FROM PUBLIC;
 REVOKE ALL ON FUNCTION sigre_contacto_sos(BIGINT) FROM PUBLIC;
+REVOKE ALL ON FUNCTION sigre_notificar_sos() FROM PUBLIC;
 
 -- Si tu DB_USER tiene otro nombre, cambia 'sigre_app' en este bloque.
 DO $$
