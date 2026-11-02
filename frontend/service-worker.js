@@ -4,7 +4,7 @@
    - La API (/api/...) nunca se guarda: lleva datos personales.
    - Notificaciones push: las muestra aunque SIGRE esté cerrada y, al tocarlas,
      abre la página que corresponde (backend/push.py las envía). */
-const CACHE = "sigre-v1";
+const CACHE = "sigre-v2";
 
 self.addEventListener("install", () => self.skipWaiting());
 

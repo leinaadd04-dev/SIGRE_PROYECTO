@@ -2384,3 +2384,52 @@ body {
     min-width: 0;
     margin: 0;
 }
+
+/* ============================================================
+   INTRO ANIMADA AL ABRIR LA APP INSTALADA (js/intro.js)
+   ============================================================ */
+.intro_sigre {
+    position: fixed;
+    inset: 0;
+    z-index: 10000;
+    background-color: #010210;
+    opacity: 1;
+    transition: opacity 0.5s ease;
+}
+
+.intro_sigre.saliendo {
+    opacity: 0;
+    pointer-events: none;
+}
+
+.intro_sigre spline-viewer {
+    display: block;
+    width: 100%;
+    height: 100%;
+}
+
+.intro_saltar {
+    position: absolute;
+    right: 16px;
+    bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+    min-width: 44px;
+    min-height: 44px;
+    padding: 10px 22px;
+    border: 2px solid #FFFFFF;
+    border-radius: 999px;
+    background-color: rgba(1, 2, 16, 0.7);
+    color: #FFFFFF;
+    font-family: inherit;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.intro_saltar:hover {
+    background-color: rgba(255, 255, 255, 0.15);
+}
+
+.intro_saltar:focus-visible {
+    outline: 3px solid #F4C95D;
+    outline-offset: 3px;
+}
