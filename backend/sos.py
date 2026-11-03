@@ -10,9 +10,11 @@ fija la cuenta de cada conexión antes de consultarla.
 """
 import logging
 import math
+import os
 
 import psycopg
-from flask import request
+from flask import Blueprint, jsonify, request
+from flask_jwt_extended import jwt_required
 from flask_socketio import emit, join_room, leave_room
 
 from database import obtener_conexion
@@ -21,6 +23,25 @@ from push import enviar_push_pendientes
 registro = logging.getLogger(__name__)
 
 ROLES_CIUDADANO = ("ciudadano", "voluntario")
+
+
+sos_bp = Blueprint("sos", __name__)
+
+
+@sos_bp.get("/api/sos/ice")
+@jwt_required()
+def servidores_ice():
+    # Las credenciales del TURN viven en variables de entorno, no en el frontend.
+    servidores = [{"urls": "stun:stun.l.google.com:19302"}]
+    urls = [url.strip() for url in os.getenv("TURN_URLS", "").split(",") if url.strip()]
+    if urls and os.getenv("TURN_USUARIO") and os.getenv("TURN_CLAVE"):
+        servidores.append({
+            "urls": urls,
+            "username": os.getenv("TURN_USUARIO"),
+            "credential": os.getenv("TURN_CLAVE"),
+        })
+    return jsonify({"iceServers": servidores})
+
 
 
 def _conexion(usuario):
@@ -255,3 +276,32 @@ def registrar_eventos_sos(socketio, conectados):
         if estado == "en_espera":
             join_room("en_espera")
         return {"sesion": sesion, "estado": estado, "posicion": posicion}
+
+    # ---------- Señalización WebRTC ----------
+    def es_participante(usuario, sesion):
+        with _conexion(usuario) as conexion:
+            fila = conexion.execute(
+                "SELECT 1 FROM sesiones_sos WHERE id = %s AND estado = 'en_curso' "
+                "AND %s IN (ciudadano_id, operador_id)",
+                (sesion, usuario["usuario_id"]),
+            ).fetchone()
+        return fila is not None
+
+    def retransmitir(evento):
+        def manejador(datos):
+            usuario = yo()
+            sesion = _id_sesion(datos)
+            if usuario is None or sesion is None or not es_participante(usuario, sesion):
+                return {"error": "No participas en esta emergencia."}
+            mensaje = {"sesion": sesion, "sdp": datos.get("sdp"), "candidato": datos.get("candidato")}
+            emit(evento, mensaje, to=f"sos-{sesion}", include_self=False)
+            return {"ok": True}
+        return manejador
+
+    for evento in ("webrtc:offer", "webrtc:answer", "webrtc:ice"):
+        socketio.on_event(evento, retransmitir(evento))
+
+
+
+
+    
