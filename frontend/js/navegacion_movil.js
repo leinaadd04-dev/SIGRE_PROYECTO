@@ -46,9 +46,10 @@
             elemento = document.createElement("button");
             elemento.type = "button";
             elemento.className = "nav_movil_pestana nav_movil_sos";
-            elemento.setAttribute("aria-label", "SOS: llamar a la línea de emergencias 123");
+            elemento.setAttribute("aria-label", "SOS: pedir ayuda de emergencia");
             elemento.innerHTML = '<i class="fa-solid fa-tower-broadcast" aria-hidden="true"></i><span>SOS</span>';
-            elemento.addEventListener("click", llamarSOS);
+            elemento.addEventListener("click", () => window.SigreSOS());
+
         } else {
             elemento = document.createElement("a");
             elemento.href = opcion.href;

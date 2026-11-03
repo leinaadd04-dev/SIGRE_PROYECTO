@@ -1,0 +1,177 @@
+/* SIGRE · SOS en vivo (js/sos_vivo.js) */
+
+.sos_fondo {
+    position: fixed;
+    inset: 0;
+    z-index: 4000;
+    display: grid;
+    place-items: center;
+    padding: 16px;
+    background: rgba(15, 28, 38, 0.72);
+}
+
+.sos_fondo[hidden] {
+    display: none;
+}
+
+.sos_ventana {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    width: min(440px, 100%);
+    padding: 22px;
+    border-radius: 4px;
+    border-top: 6px solid #5f5fff;
+    background: #ffffff;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+}
+
+.sos_ventana h2 {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: #1b4965;
+    font-size: 1.3rem;
+}
+
+.sos_ventana h2 i {
+    color: #B45309;
+}
+
+.sos_ayuda {
+    color: #667085;
+    font-size: 0.9rem;
+}
+
+.sos_opcion {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    width: 100%;
+    min-height: 64px;
+    padding: 14px 16px;
+    border: 2px solid transparent;
+    border-radius: 14px;
+    font: inherit;
+    text-align: left;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.sos_opcion i {
+    flex-shrink: 0;
+    font-size: 1.4rem;
+}
+
+.sos_opcion strong {
+    display: block;
+    font-size: 1.05rem;
+    margin-bottom: 2px;
+}
+
+.sos_opcion span {
+    font-size: 0.85rem;
+    line-height: 1.35;
+}
+
+.sos_opcion_vivo {
+    background: #7d7dc2;
+    color: #ffffff;
+}
+
+.sos_opcion_vivo:hover {
+    background: #d62839;
+}
+
+.sos_opcion_123 {
+    border-color: #b4530939;
+    background: #ffffff;
+    color: #5f5fff;
+}
+
+.sos_opcion_123:hover {
+    background: #FEF3C7;
+}
+
+.sos_opcion:focus-visible,
+.sos_cancelar:focus-visible {
+    outline: 3px solid #f4c95d;
+    outline-offset: 2px;
+}
+
+.sos_cancelar {
+    align-self: center;
+    min-height: 44px;
+    padding: 8px 20px;
+    border: 0;
+    background: transparent;
+    color: #1b4965;
+    font: inherit;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+/* Ventana de espera */
+
+.sos_espera {
+    align-items: center;
+    text-align: center;
+}
+
+.sos_espera h2 {
+    justify-content: center;
+}
+
+.sos_estado_icono {
+    display: grid;
+    place-items: center;
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    background: #EEEDFB;
+    color: #5A4FCF;
+    font-size: 1.6rem;
+}
+
+.sos_posicion {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    width: 100%;
+    padding: 14px;
+    border-radius: 14px;
+    background: #f4f7f6;
+    color: #667085;
+    font-size: 0.85rem;
+}
+
+.sos_posicion[hidden] {
+    display: none;
+}
+
+.sos_posicion strong {
+    color: #1b4965;
+    font-size: 2.5rem;
+    line-height: 1;
+}
+
+.sos_boton_estado {
+    justify-content: center;
+    min-height: 48px;
+    font-weight: 700;
+}
+
+.sos_boton_estado[hidden] {
+    display: none;
+}
+
+.sos_enlace_123 {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 44px;
+    color: #1b4965;
+    font-weight: 700;
+    text-decoration: none;
+}
+
