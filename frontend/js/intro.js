@@ -5,7 +5,7 @@
 (function () {
     const DURACION = 3000;
     const DESVANECIDO = 500;
-    const VISOR = "https://cdn.spline.design/@splinetool/viewer@2.0.127/build/spline-viewer.webgl.js";
+    const VISOR = "https://cdn.spline.design/@splinetool/viewer@2.0.131/build/spline-viewer.webgl.js";
     const ESCENA = "https://prod.spline.design/oaVv79r-QKIQ3FE8/scene.splinecode";
     const CLAVE = "sigre_intro_vista";
 

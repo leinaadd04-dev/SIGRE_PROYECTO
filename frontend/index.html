@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SIGRE - Tu ciudad, siempre preparada</title>
     <link rel="stylesheet" href="css/estilos.css">
-    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://unpkg.com/lucide@1.67.0/dist/umd/lucide.min.js"></script>
     <!-- App instalable (PWA) y dirección del servidor: van en todas las páginas -->
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#436097">
@@ -29,7 +29,7 @@
                 <li><a href="#inicio">Inicio</a></li>
                 <li><a href="#modulos">Módulos</a></li>
                 <li><a href="#beneficios">Beneficios</a></li>
-                <li><a href="#ods">ODS 11</a></li>
+                <li><a href="#ods" aria-haspopup="dialog">ODS 11</a></li>
             </ul>
 
             <div class="nav_acciones">
@@ -88,7 +88,7 @@
 
                     <p class="splash_info_descripcion">
                         SIGRE conecta a ciudadanos, voluntarios y autoridades para construir
-                        ciudades más seguras, sostenibles y solidarias ante emergencias urbanas
+                        ciudades más seguras, sostenibles y solidarias ante emergencias urbanas y rurales,
                         como inundaciones o sismos.
                     </p>
 
@@ -121,7 +121,7 @@
     <section class="seccion_principal" id="inicio">
         <div class="principal_contenedor">
             <div class="principal_texto">
-                <span class="etiqueta_aviso">🚨 Sistema activo 24/7 · Alineado con el ODS 11</span>
+                <span class="etiqueta_aviso">🚨 Disponible en línea · Alineado con el ODS 11</span>
                 <h1>Respuesta ante <span class="texto_naranja">emergencias</span> para tu ciudad</h1>
                 <p class="principal_descripcion">
                     SIGRE centraliza la información crítica durante situaciones de emergencia:
@@ -135,7 +135,7 @@
             </div>
             <div class="principal_ilustracion">
                 <div class="circulo_con_usuario">
-                    <img src="imagenes/userlanding.png" alt="Usuario" class="usuario_saliente">
+                    <img src="imagenes/userlanding.png" alt="Persona consultando una alerta de emergencia de SIGRE en su celular" class="usuario_saliente">
                 </div>
             </div>
         </div>
@@ -150,9 +150,9 @@
                 <div class="detalle_estadistica">Integrados</div>
             </div>
             <div class="item_estadistica">
-                <div class="numero_estadistica">24/7</div>
+                <div class="numero_estadistica">Web y app</div>
                 <div class="etiqueta_estadistica">Disponible</div>
-                <div class="detalle_estadistica">En emergencias</div>
+                <div class="detalle_estadistica">Instalable en el celular</div>
             </div>
             <div class="item_estadistica">
                 <div class="numero_estadistica">Fácil</div>
@@ -162,7 +162,7 @@
             <div class="item_estadistica destacada">
                 <div class="numero_estadistica">ODS 11</div>
                 <div class="etiqueta_estadistica">Alineado</div>
-                <a href="#ods" class="enlace_estadistica">Ver más →</a>
+                <a href="#ods" class="enlace_estadistica" aria-haspopup="dialog">Ver más →</a>
             </div>
         </div>
     </section>
@@ -174,7 +174,7 @@
                 <div class="lateral_numero">5</div>
                 <div class="lateral_titulo">módulos</div>
                 <div class="lateral_texto">
-                    Rutas · Acopio y albergues · Entregas · Solicitudes · Jornadas
+                    Rutas · Acopio y albergues · Solicitudes · Jornadas · Desaparecidos
                 </div>
                 <div class="lateral_nivel">Plataforma Integral</div>
             </div>
@@ -184,50 +184,52 @@
                     SIGRE (Sistema Integral de Gestión y Respuesta ante Emergencias) es una plataforma
                     que integra cinco módulos para ayudar a los ciudadanos y autoridades durante
                     emergencias urbanas y rurales. Consume datos geoespaciales de OpenStreetMap
-                    y mapas de riesgo oficiales, y no requiere sensores físicos.
+                    y zonas de riesgo aproximadas de Montería.
                 </p>
                 <p>
-                    Alineado con las metas 11.5, 11.b, 11.3 y 11.7 del ODS 11, SIGRE busca salvar vidas
+                    Alineado con las metas 11.5 y 11.b del ODS 11, SIGRE busca salvar vidas
                     y construir ciudades más resilientes, inclusivas y seguras.
                 </p>
-               <button class="boton_oscuro" id="boton-conocer-mas">Conocer más</button>
+                <button class="boton_oscuro" id="boton-conocer-mas" type="button" aria-expanded="false" aria-controls="mision-vision">Conocer más</button>
 
-<!-- Sección de Misión y Visión (oculta por defecto) -->
-<div class="mision-vision" id="mision-vision">
-    <div class="mv-tarjeta">
-        <div class="mv-icono"></div>
-        <h3 class="mv-titulo">Misión</h3>
-        <p class="mv-texto">
-            Proveer a las ciudades una plataforma tecnológica accesible, confiable
-            y en tiempo real que conecte a ciudadanos, voluntarios y autoridades
-            durante emergencias urbanas, facilitando la evacuación segura, la
-            distribución de ayuda y la comunicación efectiva en los momentos
-            más críticos.
-        </p>
-        <p class="mv-texto">
-            Además, SIGRE acompaña a la comunidad en su día a día: permite reportar
-            personas o animales desaparecidos, organizar y consultar jornadas
-            comunitarias como entregas de ayuda, campañas de vacunación y
-            actividades de bienestar, fortaleciendo la solidaridad y la
-            preparación antes de que ocurra una emergencia.
-        </p>
-    </div>
+                <!-- Misión y Visión (ocultas hasta tocar "Conocer más") -->
+                <div class="mision-vision" id="mision-vision" aria-hidden="true" inert>
+                    <div class="mv-tarjeta">
+                        <div class="mv-icono" aria-hidden="true">🎯</div>
+                        <h3 class="mv-titulo">Misión</h3>
+                        <p class="mv-texto">
+                            Proveer a las ciudades una plataforma tecnológica accesible y confiable
+                            que conecte a ciudadanos, voluntarios y autoridades durante emergencias
+                            urbanas y rurales, facilitando la evacuación segura, la ubicación de
+                            centros de ayuda y la comunicación efectiva en los momentos más críticos.
+                        </p>
+                        <p class="mv-texto">
+                            Además, SIGRE acompaña a la comunidad en su día a día: permite reportar
+                            personas o animales desaparecidos, organizar y consultar jornadas
+                            comunitarias como entregas de ayuda, campañas de vacunación y
+                            actividades de bienestar, fortaleciendo la solidaridad y la
+                            preparación antes de que ocurra una emergencia.
+                        </p>
+                    </div>
 
-    <div class="mv-tarjeta">
-        <div class="mv-icono"></div>
-        <h3 class="mv-titulo">Visión</h3>
-        <p class="mv-texto">
-            Consolidar a SIGRE como una herramienta de referencia para las
-            comunidades, integrando tecnología accesible con un enfoque humano,
-            solidario y sostenible. Aspiramos a que las ciudades cuenten con
-            sistemas de información confiables que fortalezcan la resiliencia,
-            la prevención y el bienestar colectivo, contribuyendo al cumplimiento
-            de los Objetivos de Desarrollo Sostenible y a la construcción de
-            comunidades más unidas y preparadas.
-        </p>
-    </div>
-</div>
+                    <div class="mv-tarjeta">
+                        <div class="mv-icono" aria-hidden="true">🔭</div>
+                        <h3 class="mv-titulo">Visión</h3>
+                        <p class="mv-texto">
+                            Consolidar a SIGRE como una herramienta de referencia para las
+                            comunidades, integrando tecnología accesible con un enfoque humano,
+                            solidario y sostenible. Aspiramos a que las ciudades cuenten con
+                            sistemas de información confiables que fortalezcan la resiliencia,
+                            la prevención y el bienestar colectivo, contribuyendo al cumplimiento
+                            de los Objetivos de Desarrollo Sostenible y a la construcción de
+                            comunidades más unidas y preparadas.
+                        </p>
+                    </div>
+                </div>
             </div>
+
+            <!-- Planeta 3D de Spline: lo carga js/planeta.js solo en pantallas anchas -->
+            <div class="acerca_planeta" id="planeta-sigre" aria-hidden="true"></div>
         </div>
     </section>
 
@@ -243,21 +245,21 @@
             <div class="tarjeta_beneficio">
                 <div class="icono_circular"><i data-lucide="building-2"></i></div>
                 <h3>Autoridades</h3>
-                <p>Gestionan centros de acopio, inventarios, entregas de ayuda y solicitudes ciudadanas desde un solo lugar.</p>
+                <p>Publican alertas de emergencia y gestionan centros de acopio, inventarios, solicitudes de ayuda y reportes ciudadanos desde un solo panel.</p>
             </div>
             <div class="tarjeta_beneficio">
                 <div class="icono_circular"><i data-lucide="heart-handshake"></i></div>
                 <h3>Voluntarios</h3>
-                <p>Coordinan el apoyo en jornadas comunitarias y reportan personas o animales desaparecidos.</p>
+                <p>Participan en jornadas comunitarias de apoyo y ayudan a difundir reportes de personas y animales desaparecidos.</p>
             </div>
         </div>
     </section>
 
     <!-- SECCIÓN FINAL -->
-    <section class="final_seccion" id="ods">
+    <section class="final_seccion" id="registro-final">
         <div class="final_contenedor">
             <div class="final_ilustracion">
-                <div class="icono_final"></div>
+                <div class="icono_final" aria-hidden="true">🏙️</div>
             </div>
             <div class="texto_final">
                 <h2>Regístrate ahora y prepárate</h2>
@@ -265,7 +267,7 @@
                 <a href="registro.html" class="boton_blanco">Crear cuenta</a>
             </div>
             <div class="final_ilustracion">
-                <div class="icono_final">🛡️</div>
+                <div class="icono_final" aria-hidden="true">🛡️</div>
             </div>
         </div>
     </section>
@@ -299,7 +301,7 @@
                         <li><a href="#inicio">Inicio</a></li>
                         <li><a href="#modulos">Módulos</a></li>
                         <li><a href="#beneficios">Beneficios</a></li>
-                        <li><a href="#ods">ODS 11</a></li>
+                        <li><a href="#ods" aria-haspopup="dialog">ODS 11</a></li>
                     </ul>
                 </nav>
 
@@ -335,9 +337,50 @@
         </div>
     </footer>
 
-    <script>
-        lucide.createIcons();
-    </script>
+    <!-- VENTANA DEL ODS 11 (la abren los enlaces a #ods) -->
+    <div class="ods_fondo" id="ventana-ods" hidden>
+        <section class="ods_ventana" role="dialog" aria-modal="true" aria-labelledby="titulo-ods">
+            <button type="button" class="ods_cerrar" id="cerrar-ods" aria-label="Cerrar información del ODS 11">
+                <i data-lucide="x"></i>
+            </button>
+
+            <span class="ods_numero">ODS 11</span>
+            <h2 id="titulo-ods">Ciudades y comunidades sostenibles</h2>
+            <p class="ods_objetivo">
+                Es uno de los 17 Objetivos de Desarrollo Sostenible de las Naciones Unidas:
+                lograr que las ciudades y los asentamientos humanos sean inclusivos, seguros,
+                resilientes y sostenibles.
+            </p>
+
+            <h3>Metas con las que se alinea SIGRE</h3>
+            <div class="ods_metas">
+                <div class="ods_meta">
+                    <span class="ods_meta_numero">11.5</span>
+                    <div>
+                        <p><strong>Reducir el impacto de los desastres.</strong> Disminuir las muertes y
+                        las personas afectadas por desastres, incluidos los relacionados con el agua,
+                        como las inundaciones.</p>
+                        <p class="ods_aporte">En SIGRE: rutas de evacuación que evitan zonas de riesgo,
+                        alertas de emergencia y botón SOS.</p>
+                    </div>
+                </div>
+                <div class="ods_meta">
+                    <span class="ods_meta_numero">11.b</span>
+                    <div>
+                        <p><strong>Planes integrados de gestión del riesgo.</strong> Que más ciudades
+                        adopten planes para la resiliencia ante los desastres y la adaptación al
+                        cambio climático.</p>
+                        <p class="ods_aporte">En SIGRE: un solo panel para que las autoridades gestionen
+                        centros de acopio, inventarios, solicitudes de ayuda y reportes ciudadanos.</p>
+                    </div>
+                </div>
+            </div>
+
+            <a class="ods_enlace" href="https://www.un.org/sustainabledevelopment/es/cities/" target="_blank" rel="noopener">
+                Ver el ODS 11 en el sitio de la ONU <i data-lucide="external-link"></i>
+            </a>
+        </section>
+    </div>
 
     <script>
     lucide.createIcons();
@@ -348,13 +391,48 @@
 
     if (botonConocer && seccionMV) {
         botonConocer.addEventListener('click', () => {
-            seccionMV.classList.toggle('activa');
-            botonConocer.textContent = seccionMV.classList.contains('activa')
-                ? 'Ver menos'
-                : 'Conocer más';
+            const abierta = seccionMV.classList.toggle('activa');
+            botonConocer.textContent = abierta ? 'Ver menos' : 'Conocer más';
+            botonConocer.setAttribute('aria-expanded', abierta);
+            // Cerradas no deben leerse ni recibir el foco con Tab.
+            seccionMV.setAttribute('aria-hidden', !abierta);
+            seccionMV.inert = !abierta;
         });
     }
+
+    // Enlaces "ODS 11" -> ventana con las metas del ODS
+    const ventanaOds = document.getElementById('ventana-ods');
+    let enlaceQueAbrio = null;
+
+    function abrirOds(evento) {
+        if (evento) {
+            evento.preventDefault();
+            enlaceQueAbrio = evento.currentTarget;
+        }
+        ventanaOds.hidden = false;
+        document.body.classList.add('ods_abierta');
+        document.getElementById('cerrar-ods').focus();
+    }
+
+    function cerrarOds() {
+        if (ventanaOds.hidden) return;
+        ventanaOds.hidden = true;
+        document.body.classList.remove('ods_abierta');
+        if (enlaceQueAbrio) enlaceQueAbrio.focus();
+    }
+
+    document.querySelectorAll('a[href="#ods"]').forEach(enlace => enlace.addEventListener('click', abrirOds));
+    document.getElementById('cerrar-ods').addEventListener('click', cerrarOds);
+    ventanaOds.addEventListener('click', evento => {
+        if (evento.target === ventanaOds) cerrarOds();
+    });
+    document.addEventListener('keydown', evento => {
+        if (evento.key === 'Escape') cerrarOds();
+    });
+    // Desde otras páginas se llega con index.html#ods.
+    if (window.location.hash === '#ods') abrirOds();
 </script>
+<script src="js/planeta.js"></script>
 
 </body>
 </html>

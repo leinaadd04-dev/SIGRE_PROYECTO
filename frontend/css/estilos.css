@@ -1425,6 +1425,45 @@ body {
     font-weight: 600;
 }
 
+/* Planeta 3D (js/planeta.js): debajo en tablet, a la derecha en escritorio, oculto en celular */
+.acerca_planeta {
+    grid-column: 1 / -1;
+    justify-self: center;
+    width: 360px;
+    height: 360px;
+    background: transparent;
+}
+
+.acerca_planeta spline-viewer {
+    display: block;
+    width: 100%;
+    height: 100%;
+}
+
+@media (min-width: 1025px) {
+    .acerca_contenedor {
+        max-width: 1240px;
+        grid-template-columns: 280px 1fr 360px;
+        gap: 2.5rem;
+        align-items: center;
+    }
+
+    .acerca_planeta {
+        grid-column: auto;
+    }
+
+    /* Con Misión y Visión abiertas, la tarjeta y el planeta se quedan arriba */
+    .acerca_contenedor:has(.mision-vision.activa) {
+        align-items: start;
+    }
+}
+
+@media (max-width: 767px) {
+    .acerca_planeta {
+        display: none;
+    }
+}
+
 .acerca_contenido h2 {
     font-size: 2rem;
     color: #1A365D;
@@ -1642,6 +1681,151 @@ body {
 
 .mv-texto:last-child {
     margin-bottom: 0;
+}
+
+/* ============================================================
+   VENTANA DEL ODS 11 (la abren los enlaces a #ods)
+   ============================================================ */
+.ods_fondo {
+    position: fixed;
+    inset: 0;
+    z-index: 3500;
+    display: grid;
+    place-items: center;
+    padding: 1rem;
+    background-color: rgba(15, 30, 61, 0.65);
+}
+
+.ods_fondo[hidden] {
+    display: none;
+}
+
+body.ods_abierta {
+    overflow: hidden;
+}
+
+.ods_ventana {
+    position: relative;
+    width: min(620px, 100%);
+    max-height: 90vh;
+    overflow-y: auto;
+    padding: 2rem;
+    border-radius: 18px;
+    border-top: 6px solid #FD9D24;
+    background-color: #FFFFFF;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
+}
+
+.ods_cerrar {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    display: grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    border: 0;
+    border-radius: 50%;
+    background-color: #F7FAFC;
+    color: #1A365D;
+    cursor: pointer;
+}
+
+.ods_cerrar:hover {
+    background-color: #EDF2F7;
+}
+
+.ods_numero {
+    display: inline-block;
+    padding: 0.35rem 0.85rem;
+    border-radius: 999px;
+    background-color: #FD9D24;
+    color: #1A365D;
+    font-size: 0.8rem;
+    font-weight: 800;
+    letter-spacing: 1px;
+}
+
+.ods_ventana h2 {
+    margin: 0.75rem 3rem 0.75rem 0;
+    color: #1A365D;
+    font-size: 1.5rem;
+}
+
+.ods_objetivo {
+    color: #4A5568;
+    line-height: 1.6;
+    margin-bottom: 1.5rem;
+}
+
+.ods_ventana h3 {
+    color: #1A365D;
+    font-size: 1rem;
+    margin-bottom: 0.85rem;
+}
+
+.ods_metas {
+    display: flex;
+    flex-direction: column;
+    gap: 0.85rem;
+    margin-bottom: 1.5rem;
+}
+
+.ods_meta {
+    display: flex;
+    gap: 1rem;
+    padding: 1rem;
+    border-radius: 12px;
+    background-color: #F7FAFC;
+    border-left: 4px solid #5A4FCF;
+}
+
+.ods_meta_numero {
+    flex-shrink: 0;
+    color: #5A4FCF;
+    font-size: 1.25rem;
+    font-weight: 800;
+}
+
+.ods_meta p {
+    color: #4A5568;
+    font-size: 0.92rem;
+    line-height: 1.55;
+}
+
+.ods_meta strong {
+    color: #1A365D;
+}
+
+.ods_meta .ods_aporte {
+    margin-top: 0.5rem;
+    color: #5A4FCF;
+    font-weight: 600;
+}
+
+.ods_enlace {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    color: #1A365D;
+    font-weight: 700;
+    font-size: 0.9rem;
+}
+
+.ods_enlace svg {
+    width: 16px;
+    height: 16px;
+}
+
+@media (max-width: 520px) {
+    .ods_ventana {
+        padding: 1.5rem 1.25rem;
+    }
+
+    .ods_meta {
+        flex-direction: column;
+        gap: 0.35rem;
+    }
 }
 
 /* ============================================================
