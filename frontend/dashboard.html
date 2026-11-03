@@ -24,6 +24,12 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-title" content="SIGRE">
     <script src="js/config.js"></script>
+    <script>
+        // Sin sesión, al login antes de dibujar el panel (evita ver "Bienvenido, Usuario").
+        try {
+            if (!localStorage.getItem('sigre_usuario')) window.location.replace('login.html');
+        } catch (error) { /* dashboard.js vuelve a revisar la sesión */ }
+    </script>
 </head>
 
 <body class="dashboard_body">
