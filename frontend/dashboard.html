@@ -117,7 +117,7 @@
                     </div>
 
                     <div class="acciones_emergencia">
-                        <button class="boton_mas_info" type="button">
+                        <button class="boton_mas_info" id="boton-mas-info" type="button" aria-haspopup="dialog">
                             Más Info
                         </button>
                         <button class="boton_sos_tarjeta" id="boton-sos-tarjeta" type="button" aria-label="Enviar alerta SOS">
@@ -338,6 +338,43 @@
                 <i class="fa-solid fa-circle-info"></i>
                 Antes de ir a un centro de salud, llama para confirmar su horario y los servicios que ofrece.
             </p>
+        </section>
+    </div>
+
+
+    <!-- =========================================================
+         DETALLES DE LA EMERGENCIA ACTIVA (lo llena js/dashboard.js)
+    ========================================================== -->
+    <div class="directorio_fondo" id="ventana-emergencia" hidden>
+        <section class="directorio_ventana emergencia_ventana" role="dialog" aria-modal="true" aria-labelledby="titulo-detalle-emergencia">
+            <div class="directorio_cabecera">
+                <div>
+                    <span class="emergencia_nivel" id="detalle-nivel" hidden></span>
+                    <h2 id="titulo-detalle-emergencia"><i class="fa-solid fa-triangle-exclamation"></i> <span id="detalle-tipo">Emergencia activa</span></h2>
+                    <p>Información publicada por las autoridades en SIGRE.</p>
+                </div>
+                <button type="button" class="directorio_cerrar" id="cerrar-emergencia" aria-label="Cerrar detalles de la emergencia">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <div class="emergencia_detalle_cuerpo">
+                <p class="emergencia_detalle_descripcion" id="detalle-descripcion"></p>
+
+                <dl class="emergencia_datos" id="detalle-datos"></dl>
+
+                <div class="emergencia_recomendaciones">
+                    <h3><i class="fa-solid fa-list-check"></i> Qué hacer ahora</h3>
+                    <ul id="detalle-recomendaciones"></ul>
+                </div>
+
+                <div class="emergencia_enlaces">
+                    <a href="rutas.html"><i class="fa-solid fa-person-running"></i> Rutas de evacuación</a>
+                    <a href="centros.html"><i class="fa-solid fa-house-flag"></i> Albergues y centros</a>
+                    <a href="solicitar_ayuda.html"><i class="fa-solid fa-hand-holding-heart"></i> Solicitar ayuda</a>
+                    <a href="tel:123" class="emergencia_enlace_llamar"><i class="fa-solid fa-phone"></i> Llamar al 123</a>
+                </div>
+            </div>
         </section>
     </div>
 
