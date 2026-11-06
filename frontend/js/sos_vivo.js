@@ -49,6 +49,14 @@
                 <strong id="sos-posicion-numero"></strong>
             </div>
 
+            <div class="sos_video" id="sos-video" hidden>
+                <video id="sos-video-remoto" autoplay playsinline></video>
+                <video id="sos-video-local" autoplay playsinline muted></video>
+            </div>
+
+
+
+
             <button type="button" class="sos_opcion sos_opcion_123 sos_boton_estado" id="sos-boton-estado"></button>
             <a class="sos_enlace_123" href="tel:123"><i class="fa-solid fa-phone" aria-hidden="true"></i> Llamar al 123</a>
         </section>`;
@@ -59,6 +67,12 @@
     let sesionActual = null;
     let estado = null;      // ubicando, enviando, en_espera, en_curso o error
     let intento = 0;        // invalida la ubicación que llegue después de cerrar
+    let conexion = null;            // RTCPeerConnection con el operador
+    let medios = null;              // cámara y micrófono del ciudadano
+    let videoIniciado = false;
+    let candidatosPendientes = [];  // candidatos que llegan antes de la answer
+
+
 
     function abrirSelector() {
         // Si ya hay un SOS abierto, se muestra ese en vez de pedir otro.
@@ -91,6 +105,8 @@
         const boton = document.getElementById("sos-boton-estado");
         boton.hidden = nuevoEstado === "enviando" || nuevoEstado === "en_curso";
         boton.textContent = nuevoEstado === "en_espera" ? "Cancelar SOS" : "Cerrar";
+        document.getElementById("sos-video").hidden = nuevoEstado !== "en_curso";
+
 
         espera.hidden = false;
     }
@@ -103,6 +119,7 @@
     }
 
     function terminar() {
+        detenerVideo();
         intento++;
         sesionActual = null;
         estado = null;
@@ -139,6 +156,30 @@
         socket.on("sos:aceptada", datos => {
             if (datos.sesion === sesionActual) mostrarAtendido();
         });
+                socket.on("webrtc:answer", async datos => {
+            if (!conexion || datos.sesion !== sesionActual || !datos.sdp) return;
+            try {
+                await conexion.setRemoteDescription(datos.sdp);
+                // Los candidatos que llegaron antes de la answer se agregan ahora.
+                for (const candidato of candidatosPendientes) await conexion.addIceCandidate(candidato);
+                candidatosPendientes = [];
+            } catch (error) {
+                console.error("SOS en vivo: answer no válida", error);
+            }
+        });
+        socket.on("webrtc:ice", async datos => {
+            if (!conexion || datos.sesion !== sesionActual || !datos.candidato) return;
+            if (!conexion.remoteDescription) {
+                candidatosPendientes.push(datos.candidato);
+                return;
+            }
+            try {
+                await conexion.addIceCandidate(datos.candidato);
+            } catch (error) {
+                console.error("SOS en vivo: candidato ICE no válido", error);
+            }
+        });
+
         return socket;
     }
 
@@ -156,8 +197,12 @@
 
     function mostrarAtendido() {
         mostrarEstado("en_curso", "fa-user-shield", "Un operador te está atendiendo",
-            "Ya vio tu ubicación. En un momento se abrirá la videollamada.");
+            "Conectando la videollamada… Por favor permite el uso de la cámara y el micrófono.");
+        iniciarVideo();
     }
+
+
+   
 
     function pedirPosicion() {
         if (estado !== "en_espera") return;
@@ -174,6 +219,87 @@
             else terminar();
         });
     }
+
+        /* ---------- Videollamada (WebRTC) ---------- */
+    async function pedirCamara() {
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) return null;
+        try {
+            return await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" }, audio: true });
+        } catch (error) {
+            // Sin permiso de cámara se intenta solo con el micrófono.
+            try {
+                return await navigator.mediaDevices.getUserMedia({ audio: true });
+            } catch (otroError) {
+                return null;
+            }
+        }
+    }
+
+    async function iniciarVideo() {
+        if (videoIniciado) return;
+        videoIniciado = true;
+        const sesion = sesionActual;
+        const texto = document.getElementById("sos-estado-texto");
+
+        try {
+            medios = await pedirCamara();
+            const respuesta = await fetch(`${window.SIGRE_API}/api/sos/ice`, {
+                headers: { Authorization: `Bearer ${localStorage.getItem("sigre_token")}` }
+            });
+            const { iceServers } = respuesta.ok ? await respuesta.json() : { iceServers: [] };
+            if (sesion !== sesionActual) return;   // terminó mientras tanto
+
+            conexion = new RTCPeerConnection({ iceServers });
+
+            // Lo que el ciudadano envía (si dio permiso) y lo que espera recibir del operador.
+            if (medios) {
+                medios.getTracks().forEach(pista => conexion.addTrack(pista, medios));
+                document.getElementById("sos-video-local").srcObject = medios;
+            }
+            if (!medios || !medios.getAudioTracks().length) conexion.addTransceiver("audio", { direction: "recvonly" });
+            if (!medios || !medios.getVideoTracks().length) conexion.addTransceiver("video", { direction: "recvonly" });
+            if (!medios) texto.textContent = "Sin cámara ni micrófono: el operador ve tu ubicación. Si puedes, llama al 123.";
+
+            conexion.onicecandidate = evento => {
+                if (evento.candidate) socket.emit("webrtc:ice", { sesion, candidato: evento.candidate.toJSON() });
+            };
+            conexion.ontrack = evento => {
+                document.getElementById("sos-video-remoto").srcObject = evento.streams[0];
+            };
+            conexion.onconnectionstatechange = () => {
+                if (!conexion) return;
+                const mensajes = {
+                    connected: "Estás en videollamada con un operador.",
+                    disconnected: "Se cortó el video. Intentando reconectar…",
+                    failed: "No se pudo conectar el video. El operador sigue viendo tu ubicación; si estás en peligro, llama al 123."
+                };
+                if (mensajes[conexion.connectionState]) texto.textContent = mensajes[conexion.connectionState];
+            };
+
+            const oferta = await conexion.createOffer();
+            await conexion.setLocalDescription(oferta);
+            socket.emit("webrtc:offer", { sesion, sdp: { type: oferta.type, sdp: oferta.sdp } });
+        } catch (error) {
+            console.error("SOS en vivo: no se pudo iniciar el video", error);
+            texto.textContent = "No se pudo iniciar el video. El operador sigue viendo tu ubicación; si estás en peligro, llama al 123.";
+        }
+    }
+
+    function detenerVideo() {
+        videoIniciado = false;
+        candidatosPendientes = [];
+        if (conexion) {
+            conexion.close();
+            conexion = null;
+        }
+        if (medios) {
+            medios.getTracks().forEach(pista => pista.stop());   // apaga la luz de la cámara
+            medios = null;
+        }
+        document.getElementById("sos-video-local").srcObject = null;
+        document.getElementById("sos-video-remoto").srcObject = null;
+    }
+
 
     /* ---------- Pedir SOS en vivo ---------- */
     function iniciarSosVivo() {

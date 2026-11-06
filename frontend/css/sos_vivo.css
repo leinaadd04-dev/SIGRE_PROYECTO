@@ -175,3 +175,39 @@
     text-decoration: none;
 }
 
+/* Videollamada */
+
+.sos_video {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 3 / 4;
+    max-height: 55vh;
+    overflow: hidden;
+    border-radius: 14px;
+    background: #0f1c26;
+}
+
+.sos_video[hidden] {
+    display: none;
+}
+
+#sos-video-remoto {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+#sos-video-local {
+    position: absolute;
+    right: 10px;
+    bottom: 10px;
+    width: 30%;
+    aspect-ratio: 3 / 4;
+    object-fit: cover;
+    border: 2px solid #ffffff;
+    border-radius: 10px;
+    background: #1b4965;
+    transform: scaleX(-1);   /* efecto espejo, como en las videollamadas */
+}
+
+
