@@ -6,6 +6,12 @@ Uso:
 """
 import getpass
 import sys
+import time
+from pathlib import Path
+
+import jwt
+from dotenv import dotenv_values
+
 
 import requests
 import socketio
@@ -40,7 +46,19 @@ if respuesta.status_code != 200:
 # El token se queda en memoria; nunca se imprime.
 token = respuesta.json()["access_token"]
 
+# Token vencido: firmado con la clave real del servidor local, pero con fecha
+# de vencimiento en el pasado. Solo sirve contra el servidor local, porque
+# usa la JWT_SECRET_KEY de backend/.env.
+clave_jwt = dotenv_values(Path(__file__).resolve().parent.parent / "backend" / ".env").get("JWT_SECRET_KEY")
+ahora = int(time.time())
+token_vencido = jwt.encode({
+    "sub": "1", "rol": "ciudadano", "type": "access", "fresh": False,
+    "jti": "prueba-vencido", "iat": ahora - 7200, "nbf": ahora - 7200, "exp": ahora - 3600,
+}, clave_jwt, algorithm="HS256")
+
+
 for transporte in ("polling", "websocket"):
     intentar("sin token", None, transporte)
     intentar("token falso", {"token": "abc.def.ghi"}, transporte)
+    intentar("token vencido", {"token": token_vencido}, transporte)
     intentar("token válido", {"token": token}, transporte)
