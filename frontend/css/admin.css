@@ -1229,3 +1229,103 @@ body.admin_modal_abierto { overflow: hidden; }
     font-size: 0.75rem;
     font-weight: 700;
 }
+
+/* ---------- SOS en vivo (js/admin_sos.js) ---------- */
+.admin_sos_contador {
+    min-width: 20px;
+    padding: 1px 7px;
+    border-radius: 20px;
+    background: #e53e3e;
+    color: #ffffff;
+    font-size: 0.75rem;
+    font-weight: 800;
+}
+
+.admin_sos_atencion {
+    margin-bottom: 16px;
+    padding: 16px;
+    border: 2px solid #e53e3e;
+    border-radius: 14px;
+    background: #fff5f5;
+}
+
+.admin_sos_atencion h4 {
+    margin: 0 0 8px;
+    color: #c53030;
+}
+
+.admin_sos_contacto p {
+    margin: 4px 0;
+}
+
+.admin_sos_contacto a {
+    color: #2c7da0;
+    font-weight: 700;
+    text-decoration: none;
+}
+
+.admin_sos_video {
+    position: relative;
+    max-width: 640px;
+    margin-top: 12px;
+    aspect-ratio: 16 / 9;
+    overflow: hidden;
+    border-radius: 12px;
+    background: #0f1d2b;
+}
+
+#sos-op-remoto {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+#sos-op-local {
+    position: absolute;
+    right: 10px;
+    bottom: 10px;
+    width: 26%;
+    border: 2px solid #ffffff;
+    border-radius: 10px;
+    background: #000000;
+    object-fit: cover;
+}
+
+.admin_sos_estado_video {
+    margin: 8px 0 0;
+    color: #475467;
+    font-size: 0.9rem;
+}
+
+.admin_sos_atencion_cabecera {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px 14px;
+    margin-bottom: 8px;
+}
+
+.admin_sos_atencion_cabecera h4 {
+    margin: 0;
+}
+
+.admin_sos_duracion {
+    padding: 4px 10px;
+    border-radius: 20px;
+    background: #ffffff;
+    color: #c53030;
+    font-weight: 800;
+    font-variant-numeric: tabular-nums;
+}
+
+.admin_sos_finalizar {
+    margin-left: auto;
+    background: #e53e3e;
+}
+
+.admin_sos_finalizar:hover {
+    background: #c53030;
+}
+
+
+

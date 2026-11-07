@@ -81,6 +81,12 @@
                 <button type="button" role="tab" class="admin_pestana activa" data-seccion="resumen" aria-selected="true">
                     <i class="fa-solid fa-chart-pie"></i> Resumen
                 </button>
+
+                 <button type="button" role="tab" class="admin_pestana" data-seccion="sos" aria-selected="false">
+                    <i class="fa-solid fa-tower-broadcast"></i> SOS en vivo
+                    <span class="admin_sos_contador" id="contador-sos" hidden>0</span>
+                </button>
+
                 <button type="button" role="tab" class="admin_pestana" data-seccion="usuarios" aria-selected="false">
                     <i class="fa-solid fa-users"></i> Usuarios
                 </button>
@@ -524,6 +530,42 @@
                 </div>
             </section>
 
+                        <!-- SOS EN VIVO (js/admin_sos.js) -->
+            <section class="admin_seccion" id="seccion-sos" role="tabpanel" hidden>
+                <div class="admin_tarjeta">
+                    <div class="admin_titulo_seccion">
+                        <div>
+                            <h3>SOS en vivo</h3>
+                            <p>Emergencias de la comunidad esperando atención, en orden de llegada. Atiende la primera.</p>
+                        </div>
+                    </div>
+                    <p class="admin_mensaje" id="mensaje-sos" role="status" aria-live="polite"></p>
+
+                    <!-- Emergencia que estás atendiendo -->
+                    <div class="admin_sos_atencion" id="sos-atencion" hidden>
+                        <div class="admin_sos_atencion_cabecera">
+                            <h4><i class="fa-solid fa-headset"></i> Atendiendo <span id="sos-atencion-titulo"></span></h4>
+                            <span class="admin_sos_duracion"><i class="fa-regular fa-clock"></i> <span id="sos-duracion">00:00</span></span>
+                            <button type="button" class="admin_boton admin_sos_finalizar" id="sos-finalizar">
+                                <i class="fa-solid fa-phone-slash"></i> Finalizar llamada
+                            </button>
+                        </div>
+
+                        
+                        <div class="admin_sos_contacto" id="sos-contacto"></div>
+                        <div class="admin_sos_video">
+                            <video id="sos-op-remoto" autoplay playsinline></video>
+                            <video id="sos-op-local" autoplay playsinline muted></video> 
+                        </div>
+                        <p class="admin_sos_estado_vivo" id="sos-estado-video">Esperando el vídeo del  ciudadano...</p>
+                    </div>
+
+                    <div class="admin_lista_centros" id="lista-sos-cola"></div>
+                </div>
+            </section>
+
+
+
             <!-- DIRECTORIO -->
             <section class="admin_seccion" id="seccion-directorio" role="tabpanel" hidden>
                 <div class="admin_tarjeta">
@@ -635,5 +677,8 @@
     <script src="js/admin.js"></script>
     <script src="js/admin_contenidos.js"></script>
     <script src="js/admin_inventario.js"></script>
+    <script src="https://cdn.socket.io/4.8.1/socket.io.min.js"></script>
+    <script src="js/admin_sos.js"></script>
+
 </body>
 </html>

@@ -54,8 +54,13 @@
                 <video id="sos-video-local" autoplay playsinline muted></video>
             </div>
 
-
-
+            
+            <div class="sos_llamada" id="sos-llamada" hidden>
+                <span class="sos_duracion"><i class="fa-regular fa-clock" aria-hidden="true"></i> <span id="sos-duracion">00:00</span></span>
+                <button type="button" class="sos_colgar" id="sos-colgar">
+                    <i class="fa-solid fa-phone-slash" aria-hidden="true"></i> Colgar
+                </button>
+            </div>
 
             <button type="button" class="sos_opcion sos_opcion_123 sos_boton_estado" id="sos-boton-estado"></button>
             <a class="sos_enlace_123" href="tel:123"><i class="fa-solid fa-phone" aria-hidden="true"></i> Llamar al 123</a>
@@ -71,6 +76,8 @@
     let medios = null;              // cámara y micrófono del ciudadano
     let videoIniciado = false;
     let candidatosPendientes = [];  // candidatos que llegan antes de la answer
+    let cronometro = null;          // reloj de la duración de la llamada
+
 
 
 
@@ -106,6 +113,8 @@
         boton.hidden = nuevoEstado === "enviando" || nuevoEstado === "en_curso";
         boton.textContent = nuevoEstado === "en_espera" ? "Cancelar SOS" : "Cerrar";
         document.getElementById("sos-video").hidden = nuevoEstado !== "en_curso";
+        document.getElementById("sos-llamada").hidden = nuevoEstado !== "en_curso";
+
 
 
         espera.hidden = false;
@@ -120,6 +129,7 @@
 
     function terminar() {
         detenerVideo();
+        detenerCronometro();
         intento++;
         sesionActual = null;
         estado = null;
@@ -154,7 +164,7 @@
         });
         socket.on("cola:actualizar", pedirPosicion);
         socket.on("sos:aceptada", datos => {
-            if (datos.sesion === sesionActual) mostrarAtendido();
+            if (datos.sesion === sesionActual) mostrarAtendido(datos.atendida_en);
         });
                 socket.on("webrtc:answer", async datos => {
             if (!conexion || datos.sesion !== sesionActual || !datos.sdp) return;
@@ -167,7 +177,7 @@
                 console.error("SOS en vivo: answer no válida", error);
             }
         });
-        socket.on("webrtc:ice", async datos => {
+                socket.on("webrtc:ice", async datos => {
             if (!conexion || datos.sesion !== sesionActual || !datos.candidato) return;
             if (!conexion.remoteDescription) {
                 candidatosPendientes.push(datos.candidato);
@@ -180,6 +190,14 @@
             }
         });
 
+        // El operador finalizó la atención.
+        socket.on("sos:finalizada", datos => {
+            if (datos.sesion !== sesionActual) return;
+            mostrarFinalizada(`El operador finalizó la atención · duración ${formatoDuracion(datos.duracion)}. Si vuelves a necesitar ayuda, pide otro SOS o llama al 123.`);
+        });
+
+        
+
         return socket;
     }
 
@@ -187,7 +205,7 @@
         sesionActual = respuesta.sesion;
         guardarSesion(sesionActual);
         if (respuesta.estado === "en_curso") {
-            mostrarAtendido();
+            mostrarAtendido(respuesta.atendida_en);
             return;
         }
         mostrarEstado("en_espera", "fa-hourglass-half", "Buscando un operador",
@@ -195,11 +213,55 @@
             respuesta.posicion);
     }
 
-    function mostrarAtendido() {
+        function mostrarAtendido(atendidaEn) {
         mostrarEstado("en_curso", "fa-user-shield", "Un operador te está atendiendo",
             "Conectando la videollamada… Por favor permite el uso de la cámara y el micrófono.");
+        iniciarCronometro(atendidaEn);
         iniciarVideo();
     }
+
+    // "125" segundos -> "02:05"
+    function formatoDuracion(segundos) {
+        const s = Math.max(0, Math.floor(segundos));
+        return `${String(Math.floor(s / 60)).padStart(2, "0")}:${String(s % 60).padStart(2, "0")}`;
+    }
+
+    // Cuenta desde que el operador aceptó (hora del servidor).
+    function iniciarCronometro(desde) {
+        detenerCronometro();
+        const inicio = desde ? new Date(desde).getTime() : Date.now();
+        const pintar = () => {
+            document.getElementById("sos-duracion").textContent = formatoDuracion((Date.now() - inicio) / 1000);
+        };
+        pintar();
+        cronometro = setInterval(pintar, 1000);
+    }
+
+    function detenerCronometro() {
+        clearInterval(cronometro);
+        cronometro = null;
+    }
+
+    // La llamada terminó (colgó el ciudadano o el operador).
+    function mostrarFinalizada(texto) {
+        detenerVideo();
+        detenerCronometro();
+        sesionActual = null;
+        guardarSesion(null);
+        mostrarEstado("finalizada", "fa-circle-check", "La atención terminó", texto);
+    }
+
+    function colgar() {
+        if (!sesionActual || !window.confirm("¿Colgar la llamada con el operador?")) return;
+        socket.emit("sos:finalizar", { sesion: sesionActual }, respuesta => {
+            if (respuesta && respuesta.ok) {
+                mostrarFinalizada(`Colgaste la llamada · duración ${formatoDuracion(respuesta.duracion)}. Si vuelves a necesitar ayuda, pide otro SOS o llama al 123.`);
+            }
+        });
+    }
+
+
+    
 
 
    
@@ -352,6 +414,8 @@
     document.getElementById("sos-en-vivo").addEventListener("click", iniciarSosVivo);
     document.getElementById("sos-cerrar-selector").addEventListener("click", cerrarSelector);
     document.getElementById("sos-boton-estado").addEventListener("click", botonEstado);
+    document.getElementById("sos-colgar").addEventListener("click", colgar);
+
     selector.addEventListener("click", evento => {
         if (evento.target === selector) cerrarSelector();
     });

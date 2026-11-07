@@ -80,6 +80,25 @@ def _fecha(valor):
     return valor.isoformat() if valor else None
 
 
+    
+
+def _contacto(conexion, sesion):
+    """Datos del ciudadano para el operador que lo atiende (o None)."""
+    fila = conexion.execute(
+        "SELECT nombre, telefono, contacto_emergencia_nombre, contacto_emergencia_telefono "
+        "FROM sigre_contacto_sos(%s)", (sesion,)
+    ).fetchone()
+    if not fila:
+        return None
+    return {
+        "nombre": fila[0],
+        "telefono": fila[1],
+        "contacto_emergencia_nombre": fila[2],
+        "contacto_emergencia_telefono": fila[3],
+    }
+
+
+
 def registrar_eventos_sos(socketio, conectados):
 
     def yo():
@@ -199,6 +218,7 @@ def registrar_eventos_sos(socketio, conectados):
             "precision": fila[4],
         } for fila in filas]}
 
+
     @socketio.on("sos:aceptar")
     def sos_aceptar(datos):
         usuario = yo()
@@ -214,36 +234,61 @@ def registrar_eventos_sos(socketio, conectados):
             tomada = conexion.execute(
                 "UPDATE sesiones_sos SET estado = 'en_curso', operador_id = %s, atendida_en = NOW() "
                 "WHERE id = %s AND estado = 'en_espera' AND operador_id IS NULL "
-                "RETURNING ciudadano_id",
+                "RETURNING ciudadano_id, atendida_en",
                 (usuario["usuario_id"], sesion),
             ).fetchone()
-            contacto = None
-            if tomada is not None:
-                fila = conexion.execute(
-                    "SELECT nombre, telefono, contacto_emergencia_nombre, contacto_emergencia_telefono "
-                    "FROM sigre_contacto_sos(%s)", (sesion,)
-                ).fetchone()
-                if fila:
-                    contacto = {
-                        "nombre": fila[0],
-                        "telefono": fila[1],
-                        "contacto_emergencia_nombre": fila[2],
-                        "contacto_emergencia_telefono": fila[3],
-                    }
+            contacto = _contacto(conexion, sesion) if tomada is not None else None
 
         if tomada is None:
             return {"error": "Esta emergencia ya fue tomada por otro operador."}
 
+        atendida_en = _fecha(tomada[1])
         sala = f"sos-{sesion}"
         join_room(sala)
         for sid in sids_de(tomada[0]):
             leave_room("en_espera", sid=sid)
             join_room(sala, sid=sid)
-        emit("sos:aceptada", {"sesion": sesion}, to=sala)
+        emit("sos:aceptada", {"sesion": sesion, "atendida_en": atendida_en}, to=sala)
         emit("sos:retirada", {"sesion": sesion, "motivo": "tomada"}, to="operadores")
         avisar_cola()
-        return {"ok": True, "sesion": sesion, "contacto": contacto}
+        return {"ok": True, "sesion": sesion, "contacto": contacto, "atendida_en": atendida_en}
 
+    
+    @socketio.on("sos:finalizar")
+    def sos_finalizar(datos):
+        """Cuelga la videollamada y cierra la emergencia. Lo puede hacer el
+        operador que la atiende o el ciudadano que la pidió."""
+        usuario = yo()
+        sesion = _id_sesion(datos)
+        if usuario is None or sesion is None:
+            return {"error": "Emergencia no válida."}
+        es_operador = usuario["rol"] == "autoridad"
+        participante = "operador_id" if es_operador else "ciudadano_id"
+        motivo = "Finalizada por el operador" if es_operador else "Finalizada por el ciudadano"
+
+        with _conexion(usuario) as conexion:
+            fila = conexion.execute(
+                "UPDATE sesiones_sos SET estado = 'finalizada', finalizada_en = NOW(), motivo_cierre = %s "
+                f"WHERE id = %s AND {participante} = %s AND estado = 'en_curso' "
+                "RETURNING atendida_en, finalizada_en",
+                (motivo, sesion, usuario["usuario_id"]),
+            ).fetchone()
+        if fila is None:
+            return {"error": "Esta emergencia ya no está en curso."}
+
+        duracion = int((fila[1] - fila[0]).total_seconds())
+        sala = f"sos-{sesion}"
+        emit("sos:finalizada", {
+            "sesion": sesion,
+            "por": "operador" if es_operador else "ciudadano",
+            "duracion": duracion,
+        }, to=sala)
+        socketio.close_room(sala)   # nadie queda en la sala de una emergencia cerrada
+        return {"ok": True, "duracion": duracion}
+
+
+
+   
     # ---------- Ambos ----------
 
     @socketio.on("sos:retomar")
@@ -259,23 +304,31 @@ def registrar_eventos_sos(socketio, conectados):
             condicion = "ciudadano_id = %s AND estado IN ('en_espera', 'en_curso')"
         with _conexion(usuario) as conexion:
             fila = conexion.execute(
-                f"SELECT id, estado FROM sesiones_sos WHERE {condicion} "
+                f"SELECT id, estado, atendida_en FROM sesiones_sos WHERE {condicion} "
                 "ORDER BY creada_en DESC LIMIT 1",
                 (usuario["usuario_id"],),
             ).fetchone()
             if fila is None:
                 return {"sesion": None}
-            sesion, estado = fila
+            sesion, estado, atendida_en = fila
             posicion = None
             if estado == "en_espera":
                 posicion = conexion.execute(
                     "SELECT sigre_posicion_cola_sos(%s)", (sesion,)
                 ).fetchone()[0]
+            # Al operador se le reenvía el contacto (por ejemplo, tras recargar el panel).
+            contacto = _contacto(conexion, sesion) if usuario["rol"] == "autoridad" else None
 
         join_room(f"sos-{sesion}")
         if estado == "en_espera":
             join_room("en_espera")
-        return {"sesion": sesion, "estado": estado, "posicion": posicion}
+        return {
+            "sesion": sesion,
+            "estado": estado,
+            "posicion": posicion,
+            "atendida_en": _fecha(atendida_en),
+            "contacto": contacto,
+        }
 
     # ---------- Señalización WebRTC ----------
     def es_participante(usuario, sesion):

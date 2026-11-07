@@ -210,4 +210,41 @@
     transform: scaleX(-1);   /* efecto espejo, como en las videollamadas */
 }
 
+.sos_llamada {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-top: 12px;
+}
+
+.sos_llamada[hidden] {
+    display: none;
+}
+
+.sos_duracion {
+    color: #1b4965;
+    font-weight: 800;
+    font-variant-numeric: tabular-nums;
+}
+
+.sos_colgar {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 18px;
+    border: 0;
+    border-radius: 999px;
+    background: #e53e3e;
+    color: #ffffff;
+    font: inherit;
+    font-weight: 800;
+    cursor: pointer;
+}
+
+.sos_colgar:hover {
+    background: #c53030;
+}
+
+
 
