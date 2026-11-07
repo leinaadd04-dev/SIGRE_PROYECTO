@@ -558,13 +558,22 @@
                             <video id="sos-op-local" autoplay playsinline muted></video> 
                         </div>
                         <p class="admin_sos_estado_vivo" id="sos-estado-video">Esperando el vídeo del  ciudadano...</p>
+
+                            <div class="admin_sos_mapa_cabecera">
+                        <strong><i class="fa-solid fa-location-dot"></i> Ubicación del ciudadano</strong>
+                        <a id="sos-ubicacion-enlace" target="_blank" rel="noopener noreferrer" hidden>
+                            Abrir en Google Maps
+                        </a>
+                    </div>
+                    <div class="admin_sos_mapa" id="sos-mapa"></div>
+                    <p class="admin_sos_ubicacion" id="sos-ubicacion-texto">
+                        Esperando la ubicación…
+                    </p>
                     </div>
 
                     <div class="admin_lista_centros" id="lista-sos-cola"></div>
                 </div>
             </section>
-
-
 
             <!-- DIRECTORIO -->
             <section class="admin_seccion" id="seccion-directorio" role="tabpanel" hidden>

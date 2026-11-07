@@ -11,6 +11,7 @@ fija la cuenta de cada conexión antes de consultarla.
 import logging
 import math
 import os
+import time
 
 import psycopg
 from flask import Blueprint, jsonify, request
@@ -97,7 +98,23 @@ def _contacto(conexion, sesion):
         "contacto_emergencia_telefono": fila[3],
     }
 
+def _ultima_ubicacion(conexion, sesion):
+    """Último punto GPS de la emergencia (o None)."""
+    fila = conexion.execute(
+        "SELECT latitud, longitud, precision_m, registrada_en FROM ubicaciones_sos "
+        "WHERE sesion_id = %s ORDER BY registrada_en DESC, id DESC LIMIT 1",
+        (sesion,),
+    ).fetchone()
 
+    if not fila:
+        return None
+
+    return {
+        "lat": fila[0],
+        "lng": fila[1],
+        "precision": fila[2],
+        "registrada_en": _fecha(fila[3])
+    }
 
 def registrar_eventos_sos(socketio, conectados):
 
@@ -190,6 +207,59 @@ def registrar_eventos_sos(socketio, conectados):
         avisar_cola()
         return {"ok": True}
 
+    @socketio.on("sos:ubicacion")
+    def sos_ubicacion(datos):
+        """Guarda y transmite la ubicación GPS del ciudadano."""
+        usuario = yo()
+        sesion = _id_sesion(datos)
+
+        if usuario is None or usuario["rol"] not in ROLES_CIUDADANO or sesion is None:
+            return {"error": "No permitido."}
+
+        ubicacion = _ubicacion(datos or {})
+        if ubicacion is None:
+            return {"error": "No llegó una ubicación válida."}
+
+        # Como máximo un punto cada 3 segundos por conexión.
+        ahora = time.monotonic()
+        if ahora - usuario.get("ultimo_punto", 0) < 3:
+            return {"error": "Demasiado seguido."}
+
+        usuario["ultimo_punto"] = ahora
+
+        lat, lng, precision = ubicacion
+
+        try:
+            with _conexion(usuario) as conexion:
+                registrada_en = conexion.execute(
+                    "INSERT INTO ubicaciones_sos "
+                    "(sesion_id, latitud, longitud, precision_m) "
+                    "VALUES (%s, %s, %s, %s) RETURNING registrada_en",
+                    (sesion, lat, lng, precision),
+                ).fetchone()[0]
+
+                estado = conexion.execute(
+                    "SELECT estado FROM sesiones_sos WHERE id = %s",
+                    (sesion,)
+                ).fetchone()[0]
+
+        except psycopg.errors.InsufficientPrivilege:
+            return {"error": "La emergencia ya no está abierta."}
+
+        punto = {
+            "sesion": sesion,
+            "lat": lat,
+            "lng": lng,
+            "precision": precision,
+            "registrada_en": _fecha(registrada_en)
+        }
+
+        destino = f"sos-{sesion}" if estado == "en_curso" else "operadores"
+
+        emit("sos:ubicacion", punto, to=destino, include_self=False)
+
+        return {"ok": True}
+
     # ---------- Operador ----------
 
     @socketio.on("sos:cola")
@@ -238,6 +308,7 @@ def registrar_eventos_sos(socketio, conectados):
                 (usuario["usuario_id"], sesion),
             ).fetchone()
             contacto = _contacto(conexion, sesion) if tomada is not None else None
+            ubicacion = _ultima_ubicacion(conexion, sesion) if tomada is not None else None
 
         if tomada is None:
             return {"error": "Esta emergencia ya fue tomada por otro operador."}
@@ -251,7 +322,13 @@ def registrar_eventos_sos(socketio, conectados):
         emit("sos:aceptada", {"sesion": sesion, "atendida_en": atendida_en}, to=sala)
         emit("sos:retirada", {"sesion": sesion, "motivo": "tomada"}, to="operadores")
         avisar_cola()
-        return {"ok": True, "sesion": sesion, "contacto": contacto, "atendida_en": atendida_en}
+        return {
+            "ok": True,
+            "sesion": sesion,
+            "contacto": contacto,
+            "atendida_en": atendida_en,
+            "ubicacion": ubicacion
+        }
 
     
     @socketio.on("sos:finalizar")
@@ -296,6 +373,7 @@ def registrar_eventos_sos(socketio, conectados):
         """Tras recargar la página o recuperar la conexión, vuelve a unir la
         cuenta a su emergencia abierta, si tiene una."""
         usuario = yo()
+
         if usuario is None:
             return {"error": "No permitido."}
         if usuario["rol"] == "autoridad":
@@ -318,6 +396,7 @@ def registrar_eventos_sos(socketio, conectados):
                 ).fetchone()[0]
             # Al operador se le reenvía el contacto (por ejemplo, tras recargar el panel).
             contacto = _contacto(conexion, sesion) if usuario["rol"] == "autoridad" else None
+            ubicacion = _ultima_ubicacion(conexion, sesion) if usuario["rol"] == "autoridad" else None
 
         join_room(f"sos-{sesion}")
         if estado == "en_espera":
@@ -328,6 +407,7 @@ def registrar_eventos_sos(socketio, conectados):
             "posicion": posicion,
             "atendida_en": _fecha(atendida_en),
             "contacto": contacto,
+            "ubicacion": ubicacion,
         }
 
     # ---------- Señalización WebRTC ----------
@@ -354,8 +434,3 @@ def registrar_eventos_sos(socketio, conectados):
     for evento in ("webrtc:offer", "webrtc:answer", "webrtc:ice", "webrtc:pedir_oferta"):
 
         socketio.on_event(evento, retransmitir(evento))
-
-
-
-
-    

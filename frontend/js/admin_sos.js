@@ -1,5 +1,5 @@
-/* SIGRE · Panel de administración: SOS en vivo (lado del operador).
-   Paso 1: cola de emergencias en tiempo real y botón "Atender".
+﻿/* SIGRE Â· Panel de administraciÃ³n: SOS en vivo (lado del operador).
+   Paso 1: cola de emergencias en tiempo real y botÃ³n "Atender".
    Usa Socket.IO (el mismo servidor que js/sos_vivo.js) y las utilidades
    de js/admin.js (window.SigreAdmin). */
 (() => {
@@ -13,16 +13,19 @@
 
     let socket = null;
     let cola = [];             // emergencias en espera, en orden de llegada
-    let sesionAtendida = null; // la que está atendiendo este operador
-    
+    let sesionAtendida = null; // la que estÃ¡ atendiendo este operador
+
     // Videollamada (Paso 2)
     let conexion = null;            // RTCPeerConnection con el ciudadano
-    let medios = null;              // cámara y micrófono del operador
+    let medios = null;              // cÃ¡mara y micrÃ³fono del operador
     let candidatosPendientes = [];  // candidatos ICE que llegan antes de poder usarlos
-    let ofertaPendiente = null;     // offer que llegó antes de terminar de "Atender"
-    let cronometro = null;          // reloj de la duración de la llamada
+    let ofertaPendiente = null;     // offer que llegÃ³ antes de terminar de "Atender"
+    let cronometro = null;          // reloj de la duraciÃ³n de la llamada
 
-
+    let mapa = null;
+    let marcador = null;
+    let circulo = null;
+    let recorrido = null;
 
     /* ---------- Pintar ---------- */
 
@@ -33,17 +36,18 @@
             lista.innerHTML = `<p class="admin_vacio">No hay emergencias en espera.</p>`;
             return;
         }
+
         lista.innerHTML = cola.map((sos, indice) => {
             const ubicacion = sos.lat != null
                 ? `<i class="fa-solid fa-location-dot"></i> ${sos.lat.toFixed(5)}, ${sos.lng.toFixed(5)}` +
-                  (sos.precision ? ` (±${Math.round(sos.precision)} m)` : "")
-                : `<i class="fa-solid fa-triangle-exclamation"></i> Sin ubicación`;
+                  (sos.precision ? ` (Â±${Math.round(sos.precision)} m)` : "")
+                : `<i class="fa-solid fa-triangle-exclamation"></i> Sin ubicaciÃ³n`;
             return `<article class="admin_centro">
                 <span class="admin_centro_icono rojo"><i class="fa-solid fa-tower-broadcast"></i></span>
                 <div class="admin_centro_datos">
                     <div class="admin_centro_cabecera">
                         <h4>SOS #${sos.sesion}</h4>
-                        <span class="admin_chip activo">${indice === 0 ? "Siguiente" : `En espera · ${indice + 1}°`}</span>
+                        <span class="admin_chip activo">${indice === 0 ? "Siguiente" : `En espera Â· ${indice + 1}Â°`}</span>
                     </div>
                     <p class="admin_centro_tipo">Recibida ${htmlSafe(fecha(sos.creada_en, true))}</p>
                     <p class="admin_centro_meta">${ubicacion}</p>
@@ -57,16 +61,17 @@
         }).join("");
     }
 
-        // "125" segundos -> "02:05"
+    // "125" segundos -> "02:05"
     function formatoDuracion(segundos) {
         const s = Math.max(0, Math.floor(segundos));
         return `${String(Math.floor(s / 60)).padStart(2, "0")}:${String(s % 60).padStart(2, "0")}`;
     }
 
-    // Cuenta desde que se aceptó la emergencia (hora del servidor), así no se
-    // reinicia si se recarga la página.
+    // Cuenta desde que se aceptÃ³ la emergencia (hora del servidor), asÃ­ no se
+    // reinicia si se recarga la pÃ¡gina.
     function iniciarCronometro(desde) {
         detenerCronometro();
+        limpiarMapa();
         const inicio = desde ? new Date(desde).getTime() : Date.now();
         const pintar = () => {
             document.getElementById("sos-duracion").textContent = formatoDuracion((Date.now() - inicio) / 1000);
@@ -80,7 +85,7 @@
         cronometro = null;
     }
 
-    // Cierra la atención en el panel (la colgó el operador o el ciudadano).
+    // Cierra la atenciÃ³n en el panel (la colgÃ³ el operador o el ciudadano).
     function terminarAtencion(texto) {
         detenerVideo();
         detenerCronometro();
@@ -90,8 +95,6 @@
         pintarCola();   // los botones "Atender" se vuelven a activar
     }
 
-
-
     function mostrarAtencion(respuesta) {
         sesionAtendida = respuesta.sesion;
         const c = respuesta.contacto || {};
@@ -100,22 +103,99 @@
             <p><strong>${htmlSafe(c.nombre || "Ciudadano sin nombre")}</strong></p>
             ${c.telefono ? `<p><a href="tel:${htmlSafe(c.telefono)}"><i class="fa-solid fa-phone"></i> ${htmlSafe(c.telefono)}</a></p>` : ""}
             ${c.contacto_emergencia_nombre ? `<p>Contacto de emergencia: ${htmlSafe(c.contacto_emergencia_nombre)}
-                ${c.contacto_emergencia_telefono ? ` · <a href="tel:${htmlSafe(c.contacto_emergencia_telefono)}">${htmlSafe(c.contacto_emergencia_telefono)}</a>` : ""}</p>` : ""}`;
+                ${c.contacto_emergencia_telefono ? ` Â· <a href="tel:${htmlSafe(c.contacto_emergencia_telefono)}">${htmlSafe(c.contacto_emergencia_telefono)}</a>` : ""}</p>` : ""}`;
         atencion.hidden = false;
         iniciarCronometro(respuesta.atendida_en);
 
-        pintarCola();   // mientras atiende, los demás botones "Atender" quedan desactivados
-                // Si la offer del ciudadano llegó antes, se responde ahora.
+        limpiarMapa();
+        prepararMapa();
+
+        setTimeout(() => {
+            if (mapa) mapa.invalidateSize();
+        }, 100);
+
+        pintarUbicacion(respuesta.ubicacion);
+
+        pintarCola();   // mientras atiende, los demÃ¡s botones "Atender" quedan desactivados
+        // Si la offer del ciudadano llegÃ³ antes, se responde ahora.
         if (ofertaPendiente && ofertaPendiente.sesion === respuesta.sesion) {
             responderOferta(ofertaPendiente);
             ofertaPendiente = null;
         }
-
-
-        
     }
 
-        /* ---------- Videollamada (WebRTC) ---------- */
+    /* ---------- Videollamada (WebRTC) ---------- */
+
+    /* ---------- Mapa con ubicaciÃ³n en vivo ---------- */
+
+    function prepararMapa() {
+        if (mapa || !window.L) return;
+
+        mapa = L.map("sos-mapa").setView([8.757, -75.884], 13);
+
+        L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+            attribution: "&copy; OpenStreetMap",
+            maxZoom: 19
+        }).addTo(mapa);
+    }
+
+    function pintarUbicacion(punto) {
+        if (!punto || punto.lat == null || punto.lng == null) return;
+
+        prepararMapa();
+        if (!mapa) return;
+
+        const posicion = [punto.lat, punto.lng];
+
+        if (!marcador) {
+            marcador = L.marker(posicion).addTo(mapa);
+            circulo = L.circle(posicion, {
+                radius: punto.precision || 0,
+                color: "#e53e3e",
+                weight: 1,
+                fillOpacity: 0.12
+            }).addTo(mapa);
+
+            recorrido = L.polyline([posicion], {
+                color: "#e53e3e",
+                weight: 3,
+                opacity: 0.6
+            }).addTo(mapa);
+
+            mapa.setView(posicion, 17);
+        } else {
+            marcador.setLatLng(posicion);
+            circulo.setLatLng(posicion).setRadius(punto.precision || 0);
+            recorrido.addLatLng(posicion);
+            mapa.panTo(posicion);
+        }
+
+        const hora = punto.registrada_en
+            ? new Date(punto.registrada_en).toLocaleTimeString("es-CO")
+            : "";
+
+        document.getElementById("sos-ubicacion-texto").textContent =
+            `${punto.lat.toFixed(5)}, ${punto.lng.toFixed(5)}` +
+            (punto.precision ? ` Â· Â±${Math.round(punto.precision)} m` : "") +
+            (hora ? ` Â· actualizada ${hora}` : "");
+
+        const enlace = document.getElementById("sos-ubicacion-enlace");
+        enlace.href = `https://www.google.com/maps?q=${punto.lat},${punto.lng}`;
+        enlace.hidden = false;
+    }
+
+    function limpiarMapa() {
+        [marcador, circulo, recorrido].forEach(capa => {
+            if (capa) capa.remove();
+        });
+
+        marcador = circulo = recorrido = null;
+
+        document.getElementById("sos-ubicacion-texto").textContent =
+            "Esperando la ubicaciÃ³nâ€¦";
+
+        document.getElementById("sos-ubicacion-enlace").hidden = true;
+    }
 
     function estadoVideo(texto) {
         document.getElementById("sos-estado-video").textContent = texto;
@@ -126,11 +206,11 @@
         try {
             return await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
         } catch (error) {
-            // Sin cámara se intenta solo con el micrófono.
+            // Sin cÃ¡mara se intenta solo con el micrÃ³fono.
             try {
                 return await navigator.mediaDevices.getUserMedia({ audio: true });
             } catch (otroError) {
-                return null;   // sin cámara ni micrófono: igual ve y oye al ciudadano
+                return null;   // sin cÃ¡mara ni micrÃ³fono: igual ve y oye al ciudadano
             }
         }
     }
@@ -142,27 +222,27 @@
             });
             if (respuesta.ok) return (await respuesta.json()).iceServers;
         } catch (error) {
-            // Si falla, se usa solo el STUN público.
+            // Si falla, se usa solo el STUN pÃºblico.
         }
         return [{ urls: "stun:stun.l.google.com:19302" }];
     }
 
-    // El ciudadano envía la offer; el operador responde con la answer.
+    // El ciudadano envÃ­a la offer; el operador responde con la answer.
     async function responderOferta(datos) {
         const sesion = datos.sesion;
-        if (conexion) {        // si quedaba una llamada anterior (el ciudadano recargó)
+        if (conexion) {        // si quedaba una llamada anterior (el ciudadano recargÃ³)
             conexion.close();
             conexion = null;
         }
-        estadoVideo("Conectando la videollamada…");
+        estadoVideo("Conectando la videollamadaâ€¦");
         try {
             const iceServers = await servidoresIce();
             if (!medios) medios = await pedirCamara();
-            if (sesion !== sesionAtendida) return;   // se cerró mientras tanto
+            if (sesion !== sesionAtendida) return;   // se cerrÃ³ mientras tanto
 
             conexion = new RTCPeerConnection({ iceServers });
 
-            // Lo que el operador envía (si dio permiso).
+            // Lo que el operador envÃ­a (si dio permiso).
             if (medios) {
                 medios.getTracks().forEach(pista => conexion.addTrack(pista, medios));
                 document.getElementById("sos-op-local").srcObject = medios;
@@ -178,14 +258,14 @@
                 if (!conexion) return;
                 const mensajes = {
                     connected: "En videollamada con el ciudadano.",
-                    disconnected: "Se cortó el video. Intentando reconectar…",
-                    failed: "No se pudo conectar el video. Llama al ciudadano por teléfono."
+                    disconnected: "Se cortÃ³ el video. Intentando reconectarâ€¦",
+                    failed: "No se pudo conectar el video. Llama al ciudadano por telÃ©fono."
                 };
                 if (mensajes[conexion.connectionState]) estadoVideo(mensajes[conexion.connectionState]);
             };
 
             await conexion.setRemoteDescription(datos.sdp);
-            // Los candidatos que llegaron mientras se preparaba la conexión se agregan ahora.
+            // Los candidatos que llegaron mientras se preparaba la conexiÃ³n se agregan ahora.
             for (const candidato of candidatosPendientes) await conexion.addIceCandidate(candidato);
             candidatosPendientes = [];
 
@@ -194,11 +274,11 @@
             socket.emit("webrtc:answer", { sesion, sdp: { type: respuesta.type, sdp: respuesta.sdp } });
         } catch (error) {
             console.error("SOS en vivo: no se pudo responder la videollamada", error);
-            estadoVideo("No se pudo conectar el video. Llama al ciudadano por teléfono.");
+            estadoVideo("No se pudo conectar el video. Llama al ciudadano por telÃ©fono.");
         }
     }
 
-    // Se usará en el Paso 4 al cerrar el caso.
+    // Se usarÃ¡ en el Paso 4 al cerrar el caso.
     function detenerVideo() {
         candidatosPendientes = [];
         ofertaPendiente = null;
@@ -207,14 +287,12 @@
             conexion = null;
         }
         if (medios) {
-            medios.getTracks().forEach(pista => pista.stop());   // apaga la luz de la cámara
+            medios.getTracks().forEach(pista => pista.stop());   // apaga la luz de la cÃ¡mara
             medios = null;
         }
         document.getElementById("sos-op-local").srcObject = null;
         document.getElementById("sos-op-remoto").srcObject = null;
     }
-
-
 
     /* ---------- Servidor ---------- */
 
@@ -233,75 +311,96 @@
             transports: ["websocket"]
         });
 
-        // También corre al reconectarse: vuelve a pedir la cola completa.
-            socket.on("connect", () => {
+        // TambiÃ©n corre al reconectarse: vuelve a pedir la cola completa.
+        socket.on("connect", () => {
             mostrarMensaje("mensaje-sos", "");
-                        socket.emit("sos:retomar", {}, respuesta => {
+
+            socket.emit("sos:retomar", {}, respuesta => {
+                console.log("Respuesta de sos:retomar:", respuesta);
+
+                if (respuesta && respuesta.error) {
+                    mostrarMensaje("mensaje-sos", respuesta.error, "error");
+                    return;
+                }
+
                 if (respuesta && respuesta.sesion) {
                     mostrarAtencion(respuesta);
-                    // Al volver, se le pide al ciudadano una offer nueva para rearmar el video.
-                    socket.emit("webrtc:pedir_oferta", { sesion: respuesta.sesion });
+
+                    socket.emit("webrtc:pedir_oferta", {
+                        sesion: respuesta.sesion
+                    });
                 } else if (sesionAtendida) {
-                    // Mientras estaba desconectado, la emergencia se cerró.
-                    terminarAtencion(`El SOS #${sesionAtendida} ya no está en curso.`);
+                    terminarAtencion(
+                        `El SOS #${sesionAtendida} ya no estÃ¡ en curso.`
+                    );
                 }
             });
 
-          
             cargarCola();
         });
 
         socket.on("connect_error", () => {
-            mostrarMensaje("mensaje-sos", "Sin conexión con el servidor de SOS. Reintentando...", "error");
+            mostrarMensaje("mensaje-sos", "Sin conexiÃ³n con el servidor de SOS. Reintentando...", "error");
         });
 
-        // Llegó una emergencia nueva: se agrega al final de la cola.
+        // LlegÃ³ una emergencia nueva: se agrega al final de la cola.
         socket.on("sos:nueva", sos => {
             if (!cola.some(item => item.sesion === sos.sesion)) cola.push(sos);
             pintarCola();
         });
 
-        // La canceló el ciudadano o la tomó otro operador: sale de la cola.
+        // La cancelÃ³ el ciudadano o la tomÃ³ otro operador: sale de la cola.
         socket.on("sos:retirada", datos => {
             cola = cola.filter(item => item.sesion !== datos.sesion);
             pintarCola();
         });
-        
-        // El ciudadano envió su offer: el operador responde.
+
+        // El ciudadano enviÃ³ su offer: el operador responde.
         socket.on("webrtc:offer", datos => {
             if (!datos.sdp) return;
             if (sesionAtendida === null) {
-                ofertaPendiente = datos;   // llegó antes de terminar "Atender"
+                ofertaPendiente = datos;   // llegÃ³ antes de terminar "Atender"
                 return;
             }
             if (datos.sesion === sesionAtendida) responderOferta(datos);
         });
 
-                // Candidatos ICE del ciudadano.
+        // Candidatos ICE del ciudadano.
         socket.on("webrtc:ice", async datos => {
             if (!datos.candidato) return;
             if (!conexion || !conexion.remoteDescription) {
-                candidatosPendientes.push(datos.candidato);   // todavía no se pueden usar
+                candidatosPendientes.push(datos.candidato);   // todavÃ­a no se pueden usar
                 return;
             }
             if (datos.sesion !== sesionAtendida) return;
             try {
                 await conexion.addIceCandidate(datos.candidato);
             } catch (error) {
-                console.error("SOS en vivo: candidato ICE no válido", error);
+                console.error("SOS en vivo: candidato ICE no vÃ¡lido", error);
             }
         });
 
-        // El ciudadano colgó.
+        // El ciudadano colgÃ³.
         socket.on("sos:finalizada", datos => {
             if (datos.sesion !== sesionAtendida) return;
-            terminarAtencion(`El ciudadano colgó la llamada. SOS #${datos.sesion} finalizado · duración ${formatoDuracion(datos.duracion)}.`);
+            terminarAtencion(`El ciudadano colgÃ³ la llamada. SOS #${datos.sesion} finalizado Â· duraciÃ³n ${formatoDuracion(datos.duracion)}.`);
         });
 
+        // Recibir la ubicaciÃ³n GPS que envÃ­a el ciudadano.
+        socket.on("sos:ubicacion", punto => {
+            if (punto.sesion === sesionAtendida) {
+                pintarUbicacion(punto);
+            }
 
-       
+          const enCola = cola.find(item => item.sesion === punto.sesion);
 
-
+            if (enCola) {
+                enCola.lat = punto.lat;
+                enCola.lng = punto.lng;
+                enCola.precision = punto.precision;
+                pintarCola();
+            }
+        });
     }
 
     /* ---------- Atender ---------- */
@@ -312,36 +411,32 @@
         boton.disabled = true;
         socket.emit("sos:aceptar", { sesion: Number(boton.dataset.atender) }, respuesta => {
             if (respuesta.error) {
-                // Otro operador la tomó primero (asignación atómica del servidor).
+                // Otro operador la tomÃ³ primero (asignaciÃ³n atÃ³mica del servidor).
                 mostrarMensaje("mensaje-sos", respuesta.error, "error");
                 boton.disabled = false;
                 cargarCola();
                 return;
             }
-            mostrarMensaje("mensaje-sos", `Estás atendiendo el SOS #${respuesta.sesion}.`, "exito");
+            mostrarMensaje("mensaje-sos", `EstÃ¡s atendiendo el SOS #${respuesta.sesion}.`, "exito");
             mostrarAtencion(respuesta);
         });
     });
-   
 
     /* ---------- Finalizar llamada ---------- */
 
     document.getElementById("sos-finalizar").addEventListener("click", () => {
         if (!sesionAtendida) return;
-        if (!window.confirm(`¿Desea finalizar la llamada y cerrar el SOS #${sesionAtendida}?`)) return;
+        if (!window.confirm(`Â¿Desea finalizar la llamada y cerrar el SOS #${sesionAtendida}?`)) return;
         const sesion = sesionAtendida;
         socket.emit("sos:finalizar", { sesion }, respuesta => {
             if (respuesta && respuesta.ok) {
-                terminarAtencion(`SOS #${sesion} finalizado · duración ${formatoDuracion(respuesta.duracion)}.`);
+                terminarAtencion(`SOS #${sesion} finalizado Â· duraciÃ³n ${formatoDuracion(respuesta.duracion)}.`);
             } else {
                 mostrarMensaje("mensaje-sos", (respuesta && respuesta.error) || "No se pudo finalizar.", "error");
             }
         });
     });
 
-
-
-
-    // La conexión se abre la primera vez que el operador entra a la pestaña.
+    // La conexiÃ³n se abre la primera vez que el operador entra a la pestaÃ±a.
     A.registrarSeccion("sos", conectar);
 })();

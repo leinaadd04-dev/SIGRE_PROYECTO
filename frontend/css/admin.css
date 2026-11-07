@@ -1327,5 +1327,33 @@ body.admin_modal_abierto { overflow: hidden; }
     background: #c53030;
 }
 
+.admin_sos_mapa_cabecera {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    max-width: 640px;
+    margin-top: 16px;
+}
 
+.admin_sos_mapa {
+    max-width: 640px;
+    height: 260px;
+    margin-top: 8px;
+    overflow: hidden;
+    border-radius: 12px;
+    z-index: 0;
+}
+
+.admin_sos_ubicacion {
+    margin: 6px 0 0;
+    color: #475467;
+    font-size: 0.85rem;
+}
+
+#sos-ubicacion-enlace {
+    color: #2c7da0;
+    font-weight: 700;
+    text-decoration: none;
+}
 

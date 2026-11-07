@@ -78,7 +78,9 @@
     let candidatosPendientes = [];  // candidatos que llegan antes de la answer
     let cronometro = null;          // reloj de la duración de la llamada
 
-
+    let rastreo = null;
+    let relojUbicacion = null;
+    let ultimaPosicion = null;
 
 
     function abrirSelector() {
@@ -130,6 +132,7 @@
     function terminar() {
         detenerVideo();
         detenerCronometro();
+        detenerRastreo();
         intento++;
         sesionActual = null;
         estado = null;
@@ -139,6 +142,50 @@
             socket.disconnect();
             socket = null;
         }
+    }
+
+    /* ---------- Ubicación GPS en vivo ---------- */
+
+    function iniciarRastreo() {
+        if (rastreo !== null || !("geolocation" in navigator)) return;
+
+        rastreo = navigator.geolocation.watchPosition(
+            posicion => {
+                ultimaPosicion = posicion.coords;
+            },
+            error => {
+                console.warn("SOS: no se pudo actualizar la ubicación GPS", error);
+            },
+            {
+                enableHighAccuracy: true,
+                maximumAge: 5000,
+                timeout: 20000
+            }
+        );
+
+        relojUbicacion = setInterval(enviarUbicacion, 5000);
+    }
+
+    function enviarUbicacion() {
+        if (!socket || !sesionActual || !ultimaPosicion) return;
+
+        socket.emit("sos:ubicacion", {
+            sesion: sesionActual,
+            lat: ultimaPosicion.latitude,
+            lng: ultimaPosicion.longitude,
+            precision: ultimaPosicion.accuracy
+        });
+    }
+
+    function detenerRastreo() {
+        if (rastreo !== null) {
+            navigator.geolocation.clearWatch(rastreo);
+        }
+
+        rastreo = null;
+        clearInterval(relojUbicacion);
+        relojUbicacion = null;
+        ultimaPosicion = null;
     }
 
     /* ---------- Conexión con el servidor ---------- */
@@ -213,6 +260,7 @@
     function ponerEnCola(respuesta) {
         sesionActual = respuesta.sesion;
         guardarSesion(sesionActual);
+        iniciarRastreo();
         if (respuesta.estado === "en_curso") {
             // Al retomar (recargó o volvió la conexión) se rearma el video desde cero.
             if (videoIniciado) detenerVideo();
@@ -258,6 +306,7 @@
     function mostrarFinalizada(texto) {
         detenerVideo();
         detenerCronometro();
+        detenerRastreo();
         sesionActual = null;
         guardarSesion(null);
         mostrarEstado("finalizada", "fa-circle-check", "La atención terminó", texto);
