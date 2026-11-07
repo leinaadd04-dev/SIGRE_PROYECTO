@@ -1,46 +1,8 @@
--- =====================================================================
--- SIGRE · Esquema completo de la base de datos (PostgreSQL 18)
--- =====================================================================
--- Generado de la base real con:
---   pg_dump -U postgres -d sigre --schema-only --no-owner -f database/schema.sql
--- Contiene solo la estructura, sin datos: 19 tablas con sus llaves primarias,
--- llaves foráneas y restricciones (CHECK, UNIQUE, NOT NULL), índices, funciones
--- (SECURITY DEFINER), disparadores de notificaciones, seguridad por filas
--- (Row Level Security) y permisos del usuario de la aplicación.
---
--- Es el resultado de aplicar, en orden, las migraciones backend/migracion_*.sql.
--- Si cambias una migración, vuelve a generar este archivo con el comando de arriba.
---
--- Para crear una base nueva desde cero:
---   1. Crear la base y el usuario de la aplicación (con el usuario postgres):
---        CREATE DATABASE sigre;
---        CREATE ROLE sigre_app LOGIN PASSWORD 'una-clave-segura';
---   2. Cargar este archivo:
---        psql -U postgres -d sigre -f database/schema.sql
---   3. En backend/.env: DB_USER=sigre_app y DB_PASSWORD=la-clave-de-arriba.
---
--- Tablas principales:
---   usuarios                      cuentas, rol, perfil médico, correo verificado
---   emergencias                   emergencias publicadas por las autoridades
---   solicitudes_ayuda             pedidos de ayuda y de visita a la vivienda
---   reportes_desaparecidos        personas y animales desaparecidos
---   comentarios_desaparecidos     comentarios de testigos (+ contactos y avisos)
---   centros_ayuda                 centros de acopio y albergues
---   inventario_centros            productos de cada centro por categoría
---   jornadas                      jornadas comunitarias (+ participaciones)
---   directorio_entidades          directorio de entidades y líneas de atención
---   rutas_guardadas               rutas de evacuación guardadas por cada cuenta
---   notificaciones                campana (+ leídas y suscripciones push)
---   avatares_usuario              foto o animalito de cada cuenta
---   recuperacion_contrasenas      enlaces para restablecer la contraseña
---   codigos_verificacion          códigos de 6 números para verificar el correo
--- =====================================================================
-
 --
 -- PostgreSQL database dump
 --
 
-\restrict 1GTnYN6Eu5V8t6JLm4Pejv7I9J865SqJbInc84ZlTmTbzlpZdYnIfQSk7Fk3OZW
+\restrict rKZc4t4FzF5iWaJD4qLvti7QAyPPQF2tUZy6zn4gzFuv1072ClDXYrpvIbIYbpW
 
 -- Dumped from database version 18.6
 -- Dumped by pg_dump version 18.6
@@ -463,6 +425,23 @@ CREATE FUNCTION public.sigre_borrar_suscripcion_push(p_endpoint text) RETURNS vo
     DELETE FROM suscripciones_push
     WHERE endpoint = p_endpoint
       AND usuario_id = NULLIF(current_setting('app.user_id', true), '')::BIGINT;
+$$;
+
+
+--
+-- Name: sigre_contacto_sos(bigint); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.sigre_contacto_sos(p_sesion bigint) RETURNS TABLE(nombre text, telefono text, contacto_emergencia_nombre text, contacto_emergencia_telefono text)
+    LANGUAGE sql STABLE SECURITY DEFINER
+    SET search_path TO 'public', 'pg_temp'
+    AS $$
+    SELECT u.nombre, u.telefono, u.contacto_emergencia_nombre, u.contacto_emergencia_telefono
+    FROM sesiones_sos s
+    JOIN usuarios u ON u.id = s.ciudadano_id
+    WHERE s.id = p_sesion
+      AND s.operador_id = NULLIF(current_setting('app.user_id', true), '')::BIGINT
+      AND sigre_usuario_es_autoridad();
 $$;
 
 
@@ -912,6 +891,44 @@ BEGIN
     END IF;
     RETURN NULL;
 END;
+$$;
+
+
+--
+-- Name: sigre_notificar_sos(); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.sigre_notificar_sos() RETURNS trigger
+    LANGUAGE plpgsql SECURITY DEFINER
+    SET search_path TO 'public', 'pg_temp'
+    AS $$
+BEGIN
+    PERFORM sigre_notificar(NULL, 'autoridad', 'emergencia',
+        'Nueva emergencia SOS en vivo',
+        'Una persona pidió ayuda con SOS en vivo y espera en la cola. Ábrela en el panel para atenderla.',
+        'dashboard_admin.html#sos');
+    RETURN NULL;
+END;
+$$;
+
+
+--
+-- Name: sigre_posicion_cola_sos(bigint); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.sigre_posicion_cola_sos(p_sesion bigint) RETURNS integer
+    LANGUAGE sql STABLE SECURITY DEFINER
+    SET search_path TO 'public', 'pg_temp'
+    AS $$
+    SELECT (
+        SELECT COUNT(*)::INTEGER FROM sesiones_sos otra
+        WHERE otra.estado = 'en_espera'
+          AND (otra.creada_en, otra.id) <= (propia.creada_en, propia.id)
+    )
+    FROM sesiones_sos propia
+    WHERE propia.id = p_sesion
+      AND propia.estado = 'en_espera'
+      AND propia.ciudadano_id = NULLIF(current_setting('app.user_id', true), '')::BIGINT;
 $$;
 
 
@@ -1542,6 +1559,43 @@ ALTER TABLE public.rutas_guardadas ALTER COLUMN id ADD GENERATED ALWAYS AS IDENT
 
 
 --
+-- Name: sesiones_sos; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.sesiones_sos (
+    id bigint NOT NULL,
+    ciudadano_id bigint NOT NULL,
+    operador_id bigint,
+    estado text DEFAULT 'en_espera'::text NOT NULL,
+    creada_en timestamp with time zone DEFAULT now() NOT NULL,
+    atendida_en timestamp with time zone,
+    finalizada_en timestamp with time zone,
+    motivo_cierre text,
+    CONSTRAINT sesiones_sos_atencion_valida CHECK (((atendida_en IS NULL) OR (atendida_en >= creada_en))),
+    CONSTRAINT sesiones_sos_cierre_valido CHECK (((finalizada_en IS NULL) OR (finalizada_en >= creada_en))),
+    CONSTRAINT sesiones_sos_estado_check CHECK ((estado = ANY (ARRAY['en_espera'::text, 'en_curso'::text, 'finalizada'::text, 'cancelada'::text]))),
+    CONSTRAINT sesiones_sos_estado_coherente CHECK ((((estado = 'en_espera'::text) AND (atendida_en IS NULL) AND (finalizada_en IS NULL)) OR ((estado = 'en_curso'::text) AND (atendida_en IS NOT NULL) AND (finalizada_en IS NULL)) OR ((estado = ANY (ARRAY['finalizada'::text, 'cancelada'::text])) AND (finalizada_en IS NOT NULL)))),
+    CONSTRAINT sesiones_sos_motivo_cierre_check CHECK (((motivo_cierre IS NULL) OR (char_length(motivo_cierre) <= 300)))
+);
+
+ALTER TABLE ONLY public.sesiones_sos FORCE ROW LEVEL SECURITY;
+
+
+--
+-- Name: sesiones_sos_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+ALTER TABLE public.sesiones_sos ALTER COLUMN id ADD GENERATED ALWAYS AS IDENTITY (
+    SEQUENCE NAME public.sesiones_sos_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
+
+--
 -- Name: solicitudes_ayuda; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -1628,6 +1682,39 @@ CREATE TABLE public.suscripciones_push (
 
 ALTER TABLE public.suscripciones_push ALTER COLUMN id ADD GENERATED ALWAYS AS IDENTITY (
     SEQUENCE NAME public.suscripciones_push_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
+
+--
+-- Name: ubicaciones_sos; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.ubicaciones_sos (
+    id bigint NOT NULL,
+    sesion_id bigint NOT NULL,
+    latitud double precision NOT NULL,
+    longitud double precision NOT NULL,
+    precision_m double precision,
+    registrada_en timestamp with time zone DEFAULT now() NOT NULL,
+    CONSTRAINT ubicaciones_sos_latitud_check CHECK (((latitud >= ('-90'::integer)::double precision) AND (latitud <= (90)::double precision))),
+    CONSTRAINT ubicaciones_sos_longitud_check CHECK (((longitud >= ('-180'::integer)::double precision) AND (longitud <= (180)::double precision))),
+    CONSTRAINT ubicaciones_sos_precision_m_check CHECK (((precision_m IS NULL) OR ((precision_m >= (0)::double precision) AND (precision_m <= (100000)::double precision))))
+);
+
+ALTER TABLE ONLY public.ubicaciones_sos FORCE ROW LEVEL SECURITY;
+
+
+--
+-- Name: ubicaciones_sos_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+ALTER TABLE public.ubicaciones_sos ALTER COLUMN id ADD GENERATED ALWAYS AS IDENTITY (
+    SEQUENCE NAME public.ubicaciones_sos_id_seq
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -1828,6 +1915,14 @@ ALTER TABLE ONLY public.rutas_guardadas
 
 
 --
+-- Name: sesiones_sos sesiones_sos_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.sesiones_sos
+    ADD CONSTRAINT sesiones_sos_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: solicitudes_ayuda solicitudes_ayuda_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -1849,6 +1944,14 @@ ALTER TABLE ONLY public.suscripciones_push
 
 ALTER TABLE ONLY public.suscripciones_push
     ADD CONSTRAINT suscripciones_push_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: ubicaciones_sos ubicaciones_sos_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.ubicaciones_sos
+    ADD CONSTRAINT ubicaciones_sos_pkey PRIMARY KEY (id);
 
 
 --
@@ -1973,6 +2076,27 @@ CREATE INDEX idx_rutas_guardadas_usuario_fecha ON public.rutas_guardadas USING b
 
 
 --
+-- Name: idx_sesiones_sos_cola; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_sesiones_sos_cola ON public.sesiones_sos USING btree (creada_en, id) WHERE (estado = 'en_espera'::text);
+
+
+--
+-- Name: idx_sesiones_sos_operador; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_sesiones_sos_operador ON public.sesiones_sos USING btree (operador_id);
+
+
+--
+-- Name: idx_sesiones_sos_una_abierta; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX idx_sesiones_sos_una_abierta ON public.sesiones_sos USING btree (ciudadano_id) WHERE (estado = ANY (ARRAY['en_espera'::text, 'en_curso'::text]));
+
+
+--
 -- Name: idx_solicitudes_ayuda_estado_urgencia; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -1998,6 +2122,13 @@ CREATE INDEX idx_solicitudes_ayuda_usuario_fecha ON public.solicitudes_ayuda USI
 --
 
 CREATE INDEX idx_suscripciones_push_usuario ON public.suscripciones_push USING btree (usuario_id);
+
+
+--
+-- Name: idx_ubicaciones_sos_sesion; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_ubicaciones_sos_sesion ON public.ubicaciones_sos USING btree (sesion_id, registrada_en);
 
 
 --
@@ -2054,6 +2185,13 @@ CREATE TRIGGER trg_notificar_rol AFTER UPDATE OF rol ON public.usuarios FOR EACH
 --
 
 CREATE TRIGGER trg_notificar_solicitud AFTER INSERT OR UPDATE OF estado ON public.solicitudes_ayuda FOR EACH ROW EXECUTE FUNCTION public.sigre_notificar_solicitud();
+
+
+--
+-- Name: sesiones_sos trg_notificar_sos; Type: TRIGGER; Schema: public; Owner: -
+--
+
+CREATE TRIGGER trg_notificar_sos AFTER INSERT ON public.sesiones_sos FOR EACH ROW EXECUTE FUNCTION public.sigre_notificar_sos();
 
 
 --
@@ -2225,6 +2363,22 @@ ALTER TABLE ONLY public.rutas_guardadas
 
 
 --
+-- Name: sesiones_sos sesiones_sos_ciudadano_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.sesiones_sos
+    ADD CONSTRAINT sesiones_sos_ciudadano_id_fkey FOREIGN KEY (ciudadano_id) REFERENCES public.usuarios(id) ON DELETE CASCADE;
+
+
+--
+-- Name: sesiones_sos sesiones_sos_operador_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.sesiones_sos
+    ADD CONSTRAINT sesiones_sos_operador_id_fkey FOREIGN KEY (operador_id) REFERENCES public.usuarios(id) ON DELETE SET NULL;
+
+
+--
 -- Name: solicitudes_ayuda solicitudes_ayuda_usuario_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -2238,6 +2392,14 @@ ALTER TABLE ONLY public.solicitudes_ayuda
 
 ALTER TABLE ONLY public.suscripciones_push
     ADD CONSTRAINT suscripciones_push_usuario_id_fkey FOREIGN KEY (usuario_id) REFERENCES public.usuarios(id) ON DELETE CASCADE;
+
+
+--
+-- Name: ubicaciones_sos ubicaciones_sos_sesion_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.ubicaciones_sos
+    ADD CONSTRAINT ubicaciones_sos_sesion_id_fkey FOREIGN KEY (sesion_id) REFERENCES public.sesiones_sos(id) ON DELETE CASCADE;
 
 
 --
@@ -2543,6 +2705,33 @@ CREATE POLICY rutas_guardadas_propias ON public.rutas_guardadas USING ((usuario_
 
 
 --
+-- Name: sesiones_sos; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.sesiones_sos ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: sesiones_sos sesiones_sos_actualizar; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY sesiones_sos_actualizar ON public.sesiones_sos FOR UPDATE USING (((ciudadano_id = (NULLIF(current_setting('app.user_id'::text, true), ''::text))::bigint) OR (public.sigre_usuario_es_autoridad() AND ((operador_id IS NULL) OR (operador_id = (NULLIF(current_setting('app.user_id'::text, true), ''::text))::bigint))))) WITH CHECK (((ciudadano_id = (NULLIF(current_setting('app.user_id'::text, true), ''::text))::bigint) OR (public.sigre_usuario_es_autoridad() AND (operador_id = (NULLIF(current_setting('app.user_id'::text, true), ''::text))::bigint))));
+
+
+--
+-- Name: sesiones_sos sesiones_sos_crear; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY sesiones_sos_crear ON public.sesiones_sos FOR INSERT WITH CHECK (((ciudadano_id = (NULLIF(current_setting('app.user_id'::text, true), ''::text))::bigint) AND (estado = 'en_espera'::text) AND (operador_id IS NULL)));
+
+
+--
+-- Name: sesiones_sos sesiones_sos_ver; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY sesiones_sos_ver ON public.sesiones_sos FOR SELECT USING (((ciudadano_id = (NULLIF(current_setting('app.user_id'::text, true), ''::text))::bigint) OR public.sigre_usuario_es_autoridad()));
+
+
+--
 -- Name: solicitudes_ayuda; Type: ROW SECURITY; Schema: public; Owner: -
 --
 
@@ -2567,6 +2756,30 @@ CREATE POLICY solicitudes_ayuda_ver ON public.solicitudes_ayuda FOR SELECT USING
 --
 
 ALTER TABLE public.suscripciones_push ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: ubicaciones_sos; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.ubicaciones_sos ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: ubicaciones_sos ubicaciones_sos_crear; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY ubicaciones_sos_crear ON public.ubicaciones_sos FOR INSERT WITH CHECK ((EXISTS ( SELECT 1
+   FROM public.sesiones_sos s
+  WHERE ((s.id = ubicaciones_sos.sesion_id) AND (s.ciudadano_id = (NULLIF(current_setting('app.user_id'::text, true), ''::text))::bigint) AND (s.estado = ANY (ARRAY['en_espera'::text, 'en_curso'::text]))))));
+
+
+--
+-- Name: ubicaciones_sos ubicaciones_sos_ver; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY ubicaciones_sos_ver ON public.ubicaciones_sos FOR SELECT USING ((EXISTS ( SELECT 1
+   FROM public.sesiones_sos s
+  WHERE ((s.id = ubicaciones_sos.sesion_id) AND ((s.ciudadano_id = (NULLIF(current_setting('app.user_id'::text, true), ''::text))::bigint) OR public.sigre_usuario_es_autoridad())))));
+
 
 --
 -- Name: usuarios; Type: ROW SECURITY; Schema: public; Owner: -
@@ -2740,6 +2953,14 @@ GRANT ALL ON FUNCTION public.sigre_borrar_suscripcion_push(p_endpoint text) TO s
 
 
 --
+-- Name: FUNCTION sigre_contacto_sos(p_sesion bigint); Type: ACL; Schema: public; Owner: -
+--
+
+REVOKE ALL ON FUNCTION public.sigre_contacto_sos(p_sesion bigint) FROM PUBLIC;
+GRANT ALL ON FUNCTION public.sigre_contacto_sos(p_sesion bigint) TO sigre_app;
+
+
+--
 -- Name: FUNCTION sigre_crear_codigo_verificacion(p_email text, p_codigo_hash text); Type: ACL; Schema: public; Owner: -
 --
 
@@ -2824,6 +3045,21 @@ GRANT ALL ON FUNCTION public.sigre_mis_notificaciones(p_limite integer) TO sigre
 --
 
 REVOKE ALL ON FUNCTION public.sigre_notificar(p_destinatario_id bigint, p_rol_destino text, p_tipo text, p_titulo text, p_mensaje text, p_enlace text) FROM PUBLIC;
+
+
+--
+-- Name: FUNCTION sigre_notificar_sos(); Type: ACL; Schema: public; Owner: -
+--
+
+REVOKE ALL ON FUNCTION public.sigre_notificar_sos() FROM PUBLIC;
+
+
+--
+-- Name: FUNCTION sigre_posicion_cola_sos(p_sesion bigint); Type: ACL; Schema: public; Owner: -
+--
+
+REVOKE ALL ON FUNCTION public.sigre_posicion_cola_sos(p_sesion bigint) FROM PUBLIC;
+GRANT ALL ON FUNCTION public.sigre_posicion_cola_sos(p_sesion bigint) TO sigre_app;
 
 
 --
@@ -3076,10 +3312,24 @@ GRANT SELECT,INSERT,DELETE ON TABLE public.rutas_guardadas TO sigre_app;
 
 
 --
+-- Name: TABLE sesiones_sos; Type: ACL; Schema: public; Owner: -
+--
+
+GRANT SELECT,INSERT,UPDATE ON TABLE public.sesiones_sos TO sigre_app;
+
+
+--
 -- Name: TABLE solicitudes_ayuda; Type: ACL; Schema: public; Owner: -
 --
 
 GRANT SELECT,INSERT ON TABLE public.solicitudes_ayuda TO sigre_app;
+
+
+--
+-- Name: TABLE ubicaciones_sos; Type: ACL; Schema: public; Owner: -
+--
+
+GRANT SELECT,INSERT ON TABLE public.ubicaciones_sos TO sigre_app;
 
 
 --
@@ -3142,5 +3392,5 @@ GRANT SELECT,USAGE ON SEQUENCE public.usuarios_id_seq TO sigre_app;
 -- PostgreSQL database dump complete
 --
 
-\unrestrict 1GTnYN6Eu5V8t6JLm4Pejv7I9J865SqJbInc84ZlTmTbzlpZdYnIfQSk7Fk3OZW
+\unrestrict rKZc4t4FzF5iWaJD4qLvti7QAyPPQF2tUZy6zn4gzFuv1072ClDXYrpvIbIYbpW
 
