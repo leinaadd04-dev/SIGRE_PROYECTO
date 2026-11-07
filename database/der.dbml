@@ -201,6 +201,18 @@ Table rutas_guardadas [note: 'Rutas de evacuación guardadas por cada cuenta'] {
   modo text [not null]
 }
 
+Table sesiones_sos [note: 'SOS en vivo: emergencia en cola, atendida por videollamada'] {
+  id bigint [pk, increment]
+  ciudadano_id bigint [not null]
+  operador_id bigint
+  estado text [not null, note: 'en_espera, en_curso, finalizada o cancelada']
+  creada_en timestamptz [not null]
+  atendida_en timestamptz
+  finalizada_en timestamptz
+  motivo_cierre text
+}
+
+
 Table solicitudes_ayuda [note: 'Pedidos de ayuda y de visita a la vivienda'] {
   id bigint [pk, increment]
   usuario_id bigint [not null]
@@ -235,6 +247,16 @@ Table suscripciones_push [note: 'Celulares inscritos para avisos push'] {
   auth text [not null]
   creada_en timestamptz [not null]
 }
+
+Table ubicaciones_sos [note: 'Ubicación GPS del ciudadano durante el SOS'] {
+  id bigint [pk, increment]
+  sesion_id bigint [not null]
+  latitud float [not null]
+  longitud float [not null]
+  precision_m float
+  registrada_en timestamptz [not null]
+}
+
 
 Table usuarios [note: 'Cuentas: rol, perfil médico y correo verificado'] {
   id bigint [pk, increment]
@@ -280,5 +302,8 @@ Ref: participaciones_jornadas.usuario_id > usuarios.id [delete: cascade]
 Ref: recuperacion_contrasenas.usuario_id > usuarios.id [delete: cascade]
 Ref: reportes_desaparecidos.publicado_por > usuarios.id [delete: set null]
 Ref: rutas_guardadas.usuario_id > usuarios.id [delete: cascade]
+Ref: sesiones_sos.ciudadano_id > usuarios.id [delete: cascade]
+Ref: sesiones_sos.operador_id > usuarios.id [delete: set null]
 Ref: solicitudes_ayuda.usuario_id > usuarios.id [delete: cascade]
 Ref: suscripciones_push.usuario_id > usuarios.id [delete: cascade]
+Ref: ubicaciones_sos.sesion_id > sesiones_sos.id [delete: cascade]
