@@ -197,6 +197,15 @@
         });
 
         
+        // El operador volvió (recargó o se reconectó) y pide una offer nueva.
+        socket.on("webrtc:pedir_oferta", datos => {
+            if (datos.sesion !== sesionActual || estado !== "en_curso") return;
+            detenerVideo();
+            iniciarVideo();
+        });
+
+
+        
 
         return socket;
     }
@@ -205,9 +214,12 @@
         sesionActual = respuesta.sesion;
         guardarSesion(sesionActual);
         if (respuesta.estado === "en_curso") {
+            // Al retomar (recargó o volvió la conexión) se rearma el video desde cero.
+            if (videoIniciado) detenerVideo();
             mostrarAtendido(respuesta.atendida_en);
             return;
         }
+
         mostrarEstado("en_espera", "fa-hourglass-half", "Buscando un operador",
             "Tu emergencia está en la cola. No cierres SIGRE: te atenderán en orden de llegada.",
             respuesta.posicion);

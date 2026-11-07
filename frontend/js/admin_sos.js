@@ -236,10 +236,18 @@
         // También corre al reconectarse: vuelve a pedir la cola completa.
             socket.on("connect", () => {
             mostrarMensaje("mensaje-sos", "");
-            socket.emit("sos:retomar", {}, respuesta => {
-                if (respuesta && respuesta.sesion) mostrarAtencion(respuesta);
-
+                        socket.emit("sos:retomar", {}, respuesta => {
+                if (respuesta && respuesta.sesion) {
+                    mostrarAtencion(respuesta);
+                    // Al volver, se le pide al ciudadano una offer nueva para rearmar el video.
+                    socket.emit("webrtc:pedir_oferta", { sesion: respuesta.sesion });
+                } else if (sesionAtendida) {
+                    // Mientras estaba desconectado, la emergencia se cerró.
+                    terminarAtencion(`El SOS #${sesionAtendida} ya no está en curso.`);
+                }
             });
+
+          
             cargarCola();
         });
 

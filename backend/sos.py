@@ -351,7 +351,8 @@ def registrar_eventos_sos(socketio, conectados):
             return {"ok": True}
         return manejador
 
-    for evento in ("webrtc:offer", "webrtc:answer", "webrtc:ice"):
+    for evento in ("webrtc:offer", "webrtc:answer", "webrtc:ice", "webrtc:pedir_oferta"):
+
         socketio.on_event(evento, retransmitir(evento))
 
 
