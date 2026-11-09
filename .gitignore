@@ -23,3 +23,7 @@ Thumbs.db
 # al servidor se suben las versiones livianas (*.json.gz) que crea
 # "python backend/rutas.py".
 backend/datos_rutas/*.graphml
+
+docs/evidencias/
+
+docs/evidencias/
