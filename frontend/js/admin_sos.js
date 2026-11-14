@@ -10,6 +10,7 @@
     const lista = document.getElementById("lista-sos-cola");
     const contador = document.getElementById("contador-sos");
     const atencion = document.getElementById("sos-atencion");
+    const cierre = document.getElementById("sos-cierre");
 
     let socket = null;
     let cola = [];             // emergencias en espera, en orden de llegada
@@ -91,6 +92,7 @@
         detenerCronometro();
         sesionAtendida = null;
         atencion.hidden = true;
+        cierre.hidden = true;
         mostrarMensaje("mensaje-sos", texto, "exito");
         pintarCola();   // los botones "Atender" se vuelven a activar
     }
@@ -306,6 +308,7 @@
 
     function conectar() {
         if (socket) return;
+        cargarEstadisticas();
         socket = io(window.SIGRE_API, {
             auth: { token: A.leerToken() },
             transports: ["websocket"]
@@ -422,20 +425,132 @@
         });
     });
 
+    /* ---------- Estadísticas ---------- */
+
+    // 125 -> "02:05"; 5400 -> "1 h 30 min"; 200000 -> "2 d 7 h"
+    function duracionLarga(segundos) {
+        const s = Math.max(0, Math.floor(Number(segundos) || 0));
+        if (s < 3600) return formatoDuracion(s);
+        const h = Math.floor(s / 3600);
+        if (h < 48) return `${h} h ${String(Math.floor((s % 3600) / 60)).padStart(2, "0")} min`;
+        return `${Math.floor(h / 24)} d ${h % 24} h`;
+    }
+
+    const DIAS_SEMANA = ["dom", "lun", "mar", "mié", "jue", "vie", "sáb"];
+
+    function graficaEstados(e) {
+        const partes = [
+            ["Finalizadas", e.finalizadas, "#2e9b62"],
+            ["Canceladas", e.canceladas, "#8d99ae"],
+            ["Abiertas", e.abiertas, "#e4a900"]
+        ];
+        const total = partes.reduce((suma, p) => suma + p[1], 0);
+        let acumulado = 0;
+        const tramos = partes.map(p => {
+            const desde = acumulado;
+            acumulado += total ? p[1] * 100 / total : 0;
+            return `${p[2]} ${desde}% ${acumulado}%`;
+        });
+        const fondo = total ? `conic-gradient(${tramos.join(", ")})` : "#e3eaf1";
+        return `<div class="admin_sos_grafico">
+            <h4>Estado de los SOS</h4>
+            <div class="sos_donut_fila">
+                <div class="sos_donut" style="background:${fondo}"><strong>${total}</strong></div>
+                <ul class="sos_leyenda">${partes.map(p =>
+                    `<li><i style="background:${p[2]}"></i>${p[0]} <b>${p[1]}</b></li>`).join("")}</ul>
+            </div>
+        </div>`;
+    }
+
+    function graficaPorDia(e) {
+        const dias = e.por_dia || [];
+        const maximo = Math.max(1, ...dias.map(d => d.cantidad));
+        return `<div class="admin_sos_grafico">
+            <h4>SOS por día (últimos 7 días)</h4>
+            <div class="sos_columnas">${dias.map(d => {
+                const fecha = new Date(d.dia + "T12:00:00");
+                return `<div class="sos_columna"><b>${d.cantidad}</b>` +
+                    `<i style="height:${Math.max(4, Math.round(d.cantidad * 100 / maximo))}%"></i>` +
+                    `<span>${DIAS_SEMANA[fecha.getDay()]} ${fecha.getDate()}</span></div>`;
+            }).join("")}</div>
+        </div>`;
+    }
+
+    const ETIQUETAS_RESULTADO = {
+        atendida: "Atendida", falsa_alarma: "Falsa alarma", derivada: "Derivada",
+        sin_respuesta: "Sin respuesta", sin_clasificar: "Sin clasificar"
+    };
+
+    async function cargarEstadisticas() {
+        const kpis = document.getElementById("sos-kpis");
+        try {
+            const e = await A.llamarApi("/api/admin/sos/estadisticas");
+            kpis.innerHTML = [
+                ["Total de SOS", e.total],
+                ["Finalizadas", e.finalizadas],
+                ["Canceladas", e.canceladas],
+                ["Espera promedio", duracionLarga(e.espera_promedio)],
+                ["Duración promedio", duracionLarga(e.duracion_promedio)]
+            ].map(([titulo, valor]) =>
+                `<div class="admin_sos_kpi"><strong>${htmlSafe(String(valor))}</strong><span>${titulo}</span></div>`
+            ).join("");
+
+            document.getElementById("sos-graficos").innerHTML = graficaEstados(e) + graficaPorDia(e);
+
+            const maximo = Math.max(1, ...e.resultados.map(r => r.cantidad));
+            document.getElementById("sos-resultados").innerHTML =
+                "<h4>Resultado de las atenciones</h4>" +
+                (e.resultados.length
+                    ? e.resultados.map(r =>
+                        `<div class="admin_sos_barra"><span>${htmlSafe(ETIQUETAS_RESULTADO[r.resultado] || r.resultado)}</span>` +
+                        `<div><i style="width:${Math.round(r.cantidad * 100 / maximo)}%"></i></div><b>${r.cantidad}</b></div>`
+                    ).join("")
+                    : "<p>Aún no hay atenciones cerradas.</p>");
+
+            document.getElementById("sos-recientes").innerHTML =
+                "<h4>Últimas atenciones</h4>" +
+                (e.recientes.length
+                    ? `<table class="admin_sos_tabla"><thead><tr><th>SOS</th><th>Fecha</th><th>Espera</th><th>Duración</th><th>Resultado</th><th>Nota</th></tr></thead><tbody>` +
+                      e.recientes.map(f =>
+                        `<tr><td>#${f.id}</td><td>${htmlSafe(fecha(f.creada_en, true))}</td><td>${duracionLarga(f.espera)}</td>` +
+                        `<td>${duracionLarga(f.duracion)}</td><td>${htmlSafe(ETIQUETAS_RESULTADO[f.resultado] || "Sin clasificar")}</td>` +
+                        `<td>${htmlSafe(f.nota || "—")}</td></tr>`
+                      ).join("") + "</tbody></table>"
+                    : "<p>Todavía no hay atenciones registradas.</p>");
+        } catch (error) {
+            kpis.textContent = "No se pudieron cargar las estadísticas.";
+        }
+    }
+
+
     /* ---------- Finalizar llamada ---------- */
 
     document.getElementById("sos-finalizar").addEventListener("click", () => {
         if (!sesionAtendida) return;
-        if (!window.confirm(`¿Desea finalizar la llamada y cerrar el SOS #${sesionAtendida}?`)) return;
+        cierre.hidden = false;
+        cierre.scrollIntoView({ behavior: "smooth", block: "center" });
+    });
+
+    document.getElementById("sos-cierre-cancelar").addEventListener("click", () => {
+        cierre.hidden = true;
+    });
+
+    document.getElementById("sos-cierre-confirmar").addEventListener("click", () => {
+        if (!sesionAtendida) return;
         const sesion = sesionAtendida;
-        socket.emit("sos:finalizar", { sesion }, respuesta => {
+        const resultado = document.getElementById("sos-cierre-resultado").value;
+        const nota = document.getElementById("sos-cierre-nota").value.trim();
+        socket.emit("sos:finalizar", { sesion, resultado, nota }, respuesta => {
             if (respuesta && respuesta.ok) {
+                document.getElementById("sos-cierre-nota").value = "";
                 terminarAtencion(`SOS #${sesion} finalizado · duración ${formatoDuracion(respuesta.duracion)}.`);
+                cargarEstadisticas();
             } else {
                 mostrarMensaje("mensaje-sos", (respuesta && respuesta.error) || "No se pudo finalizar.", "error");
             }
         });
     });
+
 
     // La conexión se abre la primera vez que el operador entra a la pestaña.
     A.registrarSeccion("sos", conectar);

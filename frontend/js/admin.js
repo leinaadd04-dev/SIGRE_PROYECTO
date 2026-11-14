@@ -96,6 +96,8 @@
             pestana.setAttribute("aria-selected", activa ? "true" : "false");
             document.getElementById("seccion-" + pestana.dataset.seccion).hidden = !activa;
         });
+        const cuerpo = document.getElementById("admin-cuerpo");
+        if (cuerpo) cuerpo.classList.toggle("con_lateral", nombre === "resumen");
         history.replaceState(null, "", "#" + nombre);
         if (!cargadas[nombre]) {
             cargadas[nombre] = true;
@@ -120,27 +122,104 @@
 
     function renderizarResumen(r) {
         const tarjetas = [
-            { seccion: "usuarios", icono: "fa-users", color: "morado", valor: r.usuarios_total, titulo: "Usuarios registrados",
+            { seccion: "usuarios", color: "morado", icono: "fa-users", decoracion: "fa-people-group",
+              valor: r.usuarios_total, titulo: "Usuarios registrados",
+              insignia: "Comunidad", iconoInsignia: "fa-arrow-trend-up", iconoDetalle: "fa-user",
               detalle: `${r.ciudadanos} ciudadanos · ${r.voluntarios} voluntarios · ${r.autoridades} autoridades` },
-            { seccion: "desaparecidos", icono: "fa-person-circle-question", color: "rojo", valor: r.desaparecidos_activos, titulo: "Desaparecidos activos",
+            { seccion: "desaparecidos", color: "rojo", icono: "fa-person-circle-question", decoracion: "fa-magnifying-glass",
+              valor: r.desaparecidos_activos, titulo: "Desaparecidos activos",
+              insignia: `${r.desaparecidos_activos} en búsqueda`, iconoInsignia: "fa-triangle-exclamation", iconoDetalle: "fa-circle-check",
               detalle: `${r.desaparecidos_encontrados} marcados como encontrados` },
-            { seccion: "centros", icono: "fa-house-chimney", color: "verde", valor: r.centros_abiertos, titulo: "Centros abiertos",
+            { seccion: "centros", color: "verde", icono: "fa-house-chimney", decoracion: "fa-house-flag",
+              valor: r.centros_abiertos, titulo: "Centros abiertos",
+              insignia: r.centros_abiertos > 0 ? "En línea" : "Sin abrir", iconoInsignia: "fa-circle", iconoDetalle: "fa-location-dot",
               detalle: `${r.centros_total} registrados en total` },
-            { seccion: "solicitudes", icono: "fa-hand-holding-heart", color: "naranja", valor: r.solicitudes_pendientes, titulo: "Solicitudes de ayuda pendientes",
+            { seccion: "solicitudes", color: "naranja", icono: "fa-hand-holding-heart", decoracion: "fa-clipboard-list",
+              valor: r.solicitudes_pendientes, titulo: "Solicitudes de ayuda pendientes",
+              insignia: r.solicitudes_pendientes > 0 ? "Activas" : "Al día", iconoInsignia: "fa-circle", iconoDetalle: "fa-clock",
               detalle: "Enviadas desde el módulo Solicitar ayuda" }
         ];
         const contenedor = document.getElementById("admin-estadisticas");
         contenedor.innerHTML = tarjetas.map(function (t) {
-            const etiqueta = t.seccion ? "button" : "div";
-            return `<${etiqueta} ${t.seccion ? `type="button" data-ir="${t.seccion}"` : ""} class="admin_estadistica ${t.color}">
-                <span class="admin_estadistica_icono"><i class="fa-solid ${t.icono}"></i></span>
-                <strong>${Number(t.valor).toLocaleString("es-CO")}</strong>
-                <span class="admin_estadistica_titulo">${t.titulo}</span>
-                <small>${htmlSafe(t.detalle)}</small>
-            </${etiqueta}>`;
+            return `<button type="button" data-ir="${t.seccion}" class="res_tarjeta ${t.color}">
+                <span class="res_cabecera">
+                    <span class="res_icono"><i class="fa-solid ${t.icono}"></i></span>
+                    <span class="res_insignia"><i class="fa-solid ${t.iconoInsignia}"></i> ${htmlSafe(t.insignia)}</span>
+                </span>
+                <strong class="res_numero">${Number(t.valor).toLocaleString("es-CO")}</strong>
+                <span class="res_titulo">${t.titulo}</span>
+                <span class="res_detalle"><i class="fa-solid ${t.iconoDetalle}"></i> ${htmlSafe(t.detalle)}</span>
+                <span class="res_ver">Ver detalle <i class="fa-solid fa-arrow-right"></i></span>
+                <i class="fa-solid ${t.decoracion} res_decoracion" aria-hidden="true"></i>
+            </button>`;
         }).join("");
         contenedor.querySelectorAll("[data-ir]").forEach(function (boton) {
             boton.addEventListener("click", function () { abrirSeccion(boton.dataset.ir); });
+        });
+        renderizarLateral(r);
+    }
+
+    function mmss(segundos) {
+        const s = Math.max(0, Math.floor(Number(segundos) || 0));
+        if (s >= 3600) {
+            const h = Math.floor(s / 3600);
+            return h < 48 ? `${h} h ${String(Math.floor((s % 3600) / 60)).padStart(2, "0")} min` : `${Math.floor(h / 24)} d ${h % 24} h`;
+        }
+        return `${String(Math.floor(s / 60)).padStart(2, "0")}:${String(s % 60).padStart(2, "0")}`;
+    }
+
+    function renderizarLateral(r) {
+        const lateral = document.getElementById("res-lateral");
+        if (!lateral) return;
+        const fechaHoy = new Date().toLocaleDateString("es-CO", { weekday: "long", day: "numeric", month: "long" });
+        const hoy = fechaHoy.charAt(0).toUpperCase() + fechaHoy.slice(1);
+        lateral.innerHTML = `
+            <div class="res_bienvenida">
+                <img src="imagenes/emergenciass.png" alt="">
+                <strong>Resumen del día</strong>
+                <span>${htmlSafe(hoy)}</span>
+            </div>
+            <section class="res_widget" id="res-sos">
+                <h3><i class="fa-solid fa-tower-broadcast"></i> SOS en vivo</h3>
+                <p class="res_nota">Cargando...</p>
+            </section>
+            <section class="res_widget">
+                <h3><i class="fa-solid fa-bell"></i> Pendientes</h3>
+                <button type="button" class="res_fila" data-ir="solicitudes">
+                    <i class="fa-solid fa-hand-holding-heart"></i> Solicitudes de ayuda <strong>${r.solicitudes_pendientes}</strong>
+                </button>
+                <button type="button" class="res_fila" data-ir="desaparecidos">
+                    <i class="fa-solid fa-person-circle-question"></i> Desaparecidos activos <strong>${r.desaparecidos_activos}</strong>
+                </button>
+            </section>
+            <section class="res_widget">
+                <h3><i class="fa-solid fa-bolt"></i> Accesos rápidos</h3>
+                <div class="res_accesos">
+                    <button type="button" class="res_acceso" data-ir="centros"><i class="fa-solid fa-house-chimney"></i> Centros</button>
+                    <button type="button" class="res_acceso" data-ir="jornadas"><i class="fa-solid fa-calendar-check"></i> Jornadas</button>
+                    <button type="button" class="res_acceso" data-ir="inventario"><i class="fa-solid fa-boxes-stacked"></i> Inventario</button>
+                    <button type="button" class="res_acceso" data-ir="usuarios"><i class="fa-solid fa-users"></i> Usuarios</button>
+                </div>
+            </section>`;
+        lateral.onclick = function (evento) {
+            const boton = evento.target.closest("[data-ir]");
+            if (boton) abrirSeccion(boton.dataset.ir);
+        };
+        llamarApi("/api/admin/sos/estadisticas").then(function (e) {
+            const sos = document.getElementById("res-sos");
+            if (!sos) return;
+            sos.innerHTML = `
+                <h3><i class="fa-solid fa-tower-broadcast"></i> SOS en vivo</h3>
+                <div class="res_kpis">
+                    <div><strong>${e.abiertas}</strong><span>Abiertas ahora</span></div>
+                    <div><strong>${e.finalizadas}</strong><span>Atendidas</span></div>
+                    <div><strong>${mmss(e.espera_promedio)}</strong><span>Espera media</span></div>
+                    <div><strong>${mmss(e.duracion_promedio)}</strong><span>Duración media</span></div>
+                </div>
+                <button type="button" class="admin_boton res_boton" data-ir="sos">Ver SOS en vivo</button>`;
+        }).catch(function () {
+            const nota = document.querySelector("#res-sos .res_nota");
+            if (nota) nota.textContent = "No se pudieron cargar los datos de SOS.";
         });
     }
 

@@ -15,7 +15,7 @@ import time
 
 import psycopg
 from flask import Blueprint, jsonify, request
-from flask_jwt_extended import jwt_required
+from flask_jwt_extended import get_jwt, get_jwt_identity, jwt_required
 from flask_socketio import emit, join_room, leave_room
 
 from database import obtener_conexion
@@ -24,6 +24,8 @@ from push import enviar_push_pendientes
 registro = logging.getLogger(__name__)
 
 ROLES_CIUDADANO = ("ciudadano", "voluntario")
+RESULTADOS_CIERRE = ("atendida", "falsa_alarma", "derivada", "sin_respuesta")
+
 
 
 sos_bp = Blueprint("sos", __name__)
@@ -43,6 +45,53 @@ def servidores_ice():
         })
     return jsonify({"iceServers": servidores})
 
+@sos_bp.get("/api/admin/sos/estadisticas")
+@jwt_required()
+def estadisticas_sos():
+    if get_jwt().get("rol") != "autoridad":
+        return jsonify({"error": "No permitido."}), 403
+    usuario = {"usuario_id": int(get_jwt_identity()), "rol": "autoridad"}
+    with _conexion(usuario) as conexion:
+        r = conexion.execute(
+            "SELECT count(*), "
+            "count(*) FILTER (WHERE estado = 'finalizada'), "
+            "count(*) FILTER (WHERE estado = 'cancelada'), "
+            "count(*) FILTER (WHERE estado IN ('en_espera', 'en_curso')), "
+            "COALESCE(ROUND(AVG(EXTRACT(EPOCH FROM atendida_en - creada_en))), 0), "
+            "COALESCE(ROUND(AVG(EXTRACT(EPOCH FROM finalizada_en - atendida_en)) "
+            "FILTER (WHERE estado = 'finalizada')), 0) "
+            "FROM sesiones_sos"
+        ).fetchone()
+        resultados = conexion.execute(
+            "SELECT COALESCE(resultado_cierre, 'sin_clasificar'), count(*) "
+            "FROM sesiones_sos WHERE estado = 'finalizada' GROUP BY 1 ORDER BY 2 DESC"
+        ).fetchall()
+        por_dia = conexion.execute(
+            "SELECT d::date, count(s.id) "
+            "FROM generate_series((now() AT TIME ZONE 'America/Bogota')::date - 6, "
+            "(now() AT TIME ZONE 'America/Bogota')::date, interval '1 day') AS d "
+            "LEFT JOIN sesiones_sos s ON (s.creada_en AT TIME ZONE 'America/Bogota')::date = d::date "
+            "GROUP BY d ORDER BY d"
+        ).fetchall()
+        recientes = conexion.execute(
+            "SELECT id, creada_en, "
+            "EXTRACT(EPOCH FROM atendida_en - creada_en), "
+            "EXTRACT(EPOCH FROM finalizada_en - atendida_en), "
+            "resultado_cierre, nota_cierre "
+            "FROM sesiones_sos WHERE estado = 'finalizada' "
+            "ORDER BY finalizada_en DESC LIMIT 10"
+        ).fetchall()
+    return jsonify({
+        "total": r[0], "finalizadas": r[1], "canceladas": r[2], "abiertas": r[3],
+        "espera_promedio": int(r[4]), "duracion_promedio": int(r[5]),
+        "resultados": [{"resultado": f[0], "cantidad": f[1]} for f in resultados],
+        "por_dia": [{"dia": f[0].isoformat(), "cantidad": f[1]} for f in por_dia],
+        "recientes": [{
+            "id": f[0], "creada_en": _fecha(f[1]),
+            "espera": int(f[2] or 0), "duracion": int(f[3] or 0),
+            "resultado": f[4], "nota": f[5],
+        } for f in recientes],
+    })
 
 
 def _conexion(usuario):
@@ -342,13 +391,20 @@ def registrar_eventos_sos(socketio, conectados):
         es_operador = usuario["rol"] == "autoridad"
         participante = "operador_id" if es_operador else "ciudadano_id"
         motivo = "Finalizada por el operador" if es_operador else "Finalizada por el ciudadano"
+        resultado = None
+        nota = None
+        if es_operador:
+            pedido = (datos or {}).get("resultado")
+            resultado = pedido if pedido in RESULTADOS_CIERRE else "atendida"
+            nota = str((datos or {}).get("nota") or "").strip()[:500] or None
 
         with _conexion(usuario) as conexion:
             fila = conexion.execute(
-                "UPDATE sesiones_sos SET estado = 'finalizada', finalizada_en = NOW(), motivo_cierre = %s "
+                "UPDATE sesiones_sos SET estado = 'finalizada', finalizada_en = NOW(), motivo_cierre = %s, "
+                "resultado_cierre = %s, nota_cierre = %s "
                 f"WHERE id = %s AND {participante} = %s AND estado = 'en_curso' "
                 "RETURNING atendida_en, finalizada_en",
-                (motivo, sesion, usuario["usuario_id"]),
+                (motivo, resultado, nota, sesion, usuario["usuario_id"]),
             ).fetchone()
         if fila is None:
             return {"error": "Esta emergencia ya no está en curso."}

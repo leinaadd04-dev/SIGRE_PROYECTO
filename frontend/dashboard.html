@@ -13,6 +13,7 @@
     <link rel="stylesheet" href="css/cuenta_sigre.css">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
     <link rel="stylesheet" href="css/dashboard_resumen.css">
+    <link rel="stylesheet" href="css/tarjetas_resumen.css">
     <link rel="stylesheet" href="css/chatbot.css">
     <link rel="stylesheet" href="css/sos_vivo.css">
 
@@ -260,21 +261,27 @@
 
             <!-- RESUMEN: USUARIOS REGISTRADOS Y DIRECTORIO -->
             <section class="resumen_comunidad" aria-label="Resumen de la comunidad">
-                <article class="resumen_tarjeta resumen_usuarios">
-                    <span class="resumen_icono"><i class="fa-solid fa-users"></i></span>
-                    <div class="resumen_texto">
-                        <strong id="total-usuarios" aria-live="polite">…</strong>
-                        <span id="texto-usuarios">Usuarios registrados</span>
-                    </div>
+                <article class="res_tarjeta morado resumen_usuarios">
+                    <span class="res_cabecera">
+                        <span class="res_icono"><i class="fa-solid fa-users"></i></span>
+                        <span class="res_insignia"><i class="fa-solid fa-arrow-trend-up"></i> Comunidad</span>
+                    </span>
+                    <strong class="res_numero" id="total-usuarios" aria-live="polite">…</strong>
+                    <span class="res_titulo" id="texto-usuarios">Usuarios registrados</span>
+                    <span class="res_detalle"><i class="fa-solid fa-user"></i> Personas que ya usan SIGRE</span>
+                    <i class="fa-solid fa-people-group res_decoracion" aria-hidden="true"></i>
                 </article>
 
-                <button type="button" class="resumen_tarjeta resumen_directorio" id="boton-directorio" aria-haspopup="dialog">
-                    <span class="resumen_icono"><i class="fa-solid fa-address-book"></i></span>
-                    <div class="resumen_texto">
-                        <strong>Directorio</strong>
-                        <span>Entidades y líneas</span>
-                    </div>
-                    <i class="fa-solid fa-chevron-right resumen_flecha"></i>
+                <button type="button" class="res_tarjeta rojo resumen_directorio" id="boton-directorio" aria-haspopup="dialog">
+                    <span class="res_cabecera">
+                        <span class="res_icono"><i class="fa-solid fa-address-book"></i></span>
+                        <span class="res_insignia"><i class="fa-solid fa-phone"></i> Contactos</span>
+                    </span>
+                    <strong class="res_numero res_numero_texto">Directorio</strong>
+                    <span class="res_titulo">Entidades y líneas</span>
+                    <span class="res_detalle"><i class="fa-solid fa-circle-info"></i> Líneas de atención y entidades</span>
+                    <span class="res_ver">Abrir directorio <i class="fa-solid fa-arrow-right"></i></span>
+                    <i class="fa-solid fa-address-book res_decoracion" aria-hidden="true"></i>
                 </button>
             </section>
 

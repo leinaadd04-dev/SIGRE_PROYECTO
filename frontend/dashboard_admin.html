@@ -9,6 +9,7 @@
     <link rel="stylesheet" href="css/notificaciones.css">
     <link rel="stylesheet" href="css/cuenta_sigre.css">
     <link rel="stylesheet" href="css/admin.css">
+    <link rel="stylesheet" href="css/tarjetas_resumen.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
     <!-- App instalable (PWA) y dirección del servidor: van en todas las páginas -->
@@ -60,6 +61,9 @@
     </header>
 
     <main class="admin_contenido">
+
+        <div class="admin_cuerpo" id="admin-cuerpo">
+        <div class="admin_col_principal">
 
         <section class="admin_encabezado">
             <div>
@@ -559,6 +563,24 @@
                         </div>
                         <p class="admin_sos_estado_vivo" id="sos-estado-video">Esperando el vídeo del  ciudadano...</p>
 
+                        
+                        <div class="admin_sos_cierre" id="sos-cierre" hidden>
+                            <label for="sos-cierre-resultado">Resultado de la atención</label>
+                            <select id="sos-cierre-resultado">
+                                <option value="atendida">Atendida</option>
+                                <option value="falsa_alarma">Falsa alarma</option>
+                                <option value="derivada">Derivada a otra entidad</option>
+                                <option value="sin_respuesta">Sin respuesta del ciudadano</option>
+                            </select>
+                            <label for="sos-cierre-nota">Nota (opcional)</label>
+                            <textarea id="sos-cierre-nota" maxlength="500" rows="3"></textarea>
+                            <div class="admin_sos_cierre_botones">
+                                <button type="button" class="admin_boton" id="sos-cierre-confirmar">Cerrar SOS</button>
+                                <button type="button" class="admin_boton" id="sos-cierre-cancelar">Volver</button>
+                            </div>
+                        </div>
+
+
                             <div class="admin_sos_mapa_cabecera">
                         <strong><i class="fa-solid fa-location-dot"></i> Ubicación del ciudadano</strong>
                         <a id="sos-ubicacion-enlace" target="_blank" rel="noopener noreferrer" hidden>
@@ -573,6 +595,20 @@
 
                     <div class="admin_lista_centros" id="lista-sos-cola"></div>
                 </div>
+                
+                <div class="admin_tarjeta" id="sos-estadisticas">
+                    <div class="admin_titulo_seccion">
+                        <div>
+                            <h3>Estadísticas de SOS</h3>
+                            <p>Resumen de las emergencias atendidas por la plataforma.</p>
+                        </div>
+                    </div>
+                    <div class="admin_sos_kpis" id="sos-kpis"></div>
+                    <div class="admin_sos_graficos" id="sos-graficos"></div>
+                    <div id="sos-resultados"></div>
+                    <div id="sos-recientes"></div>
+                </div>
+
             </section>
 
             <!-- DIRECTORIO -->
@@ -648,6 +684,9 @@
                     <div class="admin_lista_centros" id="lista-directorio-admin"></div>
                 </div>
             </section>
+        </div>
+        </div>
+        <aside class="res_lateral" id="res-lateral" aria-label="Resumen del día"></aside>
         </div>
     </main>
 

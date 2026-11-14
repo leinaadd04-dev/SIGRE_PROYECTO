@@ -1,0 +1,53 @@
+/* SIGRE · Modo oscuro (se activa con el botón de la luna, js/config.js).
+   Invierte los colores de toda la página y deja las imágenes, los videos
+   y el encabezado ilustrado tal como son. */
+
+.tema_boton {
+    position: fixed;
+    left: 14px;
+    bottom: 18px;
+    z-index: 2000;
+    width: 44px;
+    height: 44px;
+    border: 1px solid #cfd8e3;
+    border-radius: 50%;
+    background: #ffffff;
+    color: #1b4965;
+    font-size: 1.05rem;
+    cursor: pointer;
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.18);
+}
+
+@media (max-width: 991px) {
+    body.con_nav_movil .tema_boton {
+        bottom: 84px;
+    }
+}
+
+html[data-tema="oscuro"] {
+    background: #ffffff;
+    filter: invert(0.9) hue-rotate(180deg);
+}
+
+html[data-tema="oscuro"] img:not(.leaflet-tile),
+html[data-tema="oscuro"] video,
+html[data-tema="oscuro"] iframe,
+html[data-tema="oscuro"] .admin_encabezado,
+html[data-tema="oscuro"] .cabecera_dashboard,
+html[data-tema="oscuro"] .seccion_emergencia,
+html[data-tema="oscuro"] .jornada_destacada,
+html[data-tema="oscuro"] .encabezado_ayuda,
+html[data-tema="oscuro"] .encabezado_desaparecidos,
+html[data-tema="oscuro"] .centros_hero,
+html[data-tema="oscuro"] .seccion_cartel_busqueda {
+    filter: invert(1) hue-rotate(180deg);
+}
+
+html[data-tema="oscuro"] .cabecera_dashboard img,
+html[data-tema="oscuro"] .centros_hero img,
+html[data-tema="oscuro"] .encabezado_desaparecidos img,
+html[data-tema="oscuro"] .encabezado_ayuda img,
+html[data-tema="oscuro"] .jornada_destacada img,
+html[data-tema="oscuro"] .seccion_emergencia img {
+    filter: none;
+}

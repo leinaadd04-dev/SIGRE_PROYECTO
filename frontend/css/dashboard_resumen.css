@@ -704,3 +704,7 @@ body.directorio_abierto {
         grid-template-columns: 1fr;
     }
 }
+
+.resumen_comunidad .res_tarjeta { min-height: 235px; }
+.resumen_comunidad .res_tarjeta > .res_decoracion { right: 10px; bottom: 12px; font-size: 3.4rem; opacity: .22; filter: none; }
+.resumen_comunidad .res_detalle { max-width: 100%; }

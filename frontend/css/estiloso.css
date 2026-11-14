@@ -350,6 +350,8 @@ body.dashboard_body {
     border: 1px solid var(--border-color);
     cursor: pointer;
     transition: transform 0.3s;
+    text-decoration: none;
+    color: inherit;
 }
 
 .tarjeta_campanas:hover {
@@ -372,6 +374,7 @@ body.dashboard_body {
 .campanas_contenido h2 {
     font-size: 1.05rem;
     margin-bottom: 3px;
+    color: var(--text-main);
 }
 
 .campanas_contenido p {

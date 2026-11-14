@@ -1,0 +1,18 @@
+.res_tarjeta { --tono: #5A4FCF; --tono-suave: #ece9fb; position: relative; overflow: hidden; display: flex; flex-direction: column; align-items: flex-start; gap: 4px; min-height: 215px; padding: 20px; border: 1px solid #e6ebf2; border-left: 4px solid var(--tono); border-radius: 20px; background: #ffffff; color: #2b2d42; font: inherit; text-align: left; cursor: pointer; box-shadow: 0 10px 28px rgba(27, 73, 101, .09); transition: transform .15s, box-shadow .15s; }
+.res_tarjeta::before { content: ""; position: absolute; left: -10%; right: -10%; bottom: -38%; height: 62%; background: var(--tono-suave); border-radius: 50% 50% 0 0; opacity: .85; }
+.res_tarjeta > * { position: relative; }
+.res_tarjeta:hover { transform: translateY(-4px); box-shadow: 0 16px 34px rgba(27, 73, 101, .16); }
+.res_tarjeta.morado { --tono: #5A4FCF; --tono-suave: #ece9fb; }
+.res_tarjeta.rojo { --tono: #d62839; --tono-suave: #fde8e8; }
+.res_tarjeta.verde { --tono: #1f7a6f; --tono-suave: #e3f4f1; }
+.res_tarjeta.naranja { --tono: #d9682b; --tono-suave: #fdeee3; }
+.res_cabecera { display: flex; justify-content: space-between; align-items: center; width: 100%; margin-bottom: 6px; }
+.res_icono { display: grid; place-items: center; width: 46px; height: 46px; border-radius: 14px; background: var(--tono-suave); color: var(--tono); font-size: 1.25rem; }
+.res_insignia { display: inline-flex; gap: 6px; align-items: center; padding: 4px 10px; border-radius: 999px; background: var(--tono-suave); color: var(--tono); font-size: .78rem; font-weight: 700; }
+.res_numero { font-size: 2.4rem; line-height: 1.1; color: #1b2a41; }
+.res_titulo { font-weight: 800; color: #1b2a41; }
+.res_detalle { display: flex; gap: 6px; align-items: flex-start; max-width: 78%; font-size: .8rem; color: #566573; }
+.res_detalle i { margin-top: 2px; color: var(--tono); }
+.res_ver { margin-top: auto; padding-top: 14px; font-weight: 800; font-size: .9rem; color: var(--tono); }
+.res_tarjeta > .res_decoracion { position: absolute; right: 16px; bottom: 14px; font-size: 3.4rem; color: var(--tono); opacity: .8; filter: drop-shadow(0 6px 8px rgba(0, 0, 0, .12)); }
+.res_numero_texto { font-size: 1.6rem; }
