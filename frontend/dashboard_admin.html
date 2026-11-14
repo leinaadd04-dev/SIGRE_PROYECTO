@@ -545,6 +545,16 @@
                     </div>
                     <p class="admin_mensaje" id="mensaje-sos" role="status" aria-live="polite"></p>
 
+                    <div class="admin_sos_panico" id="sos-panico-aviso" role="alert" hidden>
+                        <i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i>
+                        <div>
+                            <strong id="sos-panico-titulo"></strong>
+                            <span id="sos-panico-detalle"></span>
+                            <a id="sos-panico-enlace" target="_blank" rel="noopener noreferrer" hidden>Abrir ubicación en Google Maps</a>
+                        </div>
+                        <button type="button" class="admin_boton" id="sos-panico-cerrar">Entendido</button>
+                    </div>
+
                     <!-- Emergencia que estás atendiendo -->
                     <div class="admin_sos_atencion" id="sos-atencion" hidden>
                         <div class="admin_sos_atencion_cabecera">
@@ -564,6 +574,13 @@
                         <p class="admin_sos_estado_vivo" id="sos-estado-video">Esperando el vídeo del  ciudadano...</p>
 
                         
+                        <div class="admin_sos_chat">
+                            <ul class="admin_sos_chat_lista" id="sos-chat-lista" aria-live="polite"></ul>
+                            <form class="admin_sos_chat_form" id="sos-chat-form">
+                                <input type="text" id="sos-chat-texto" maxlength="300" placeholder="Escribe un mensaje al ciudadano" autocomplete="off">
+                                <button type="submit" aria-label="Enviar mensaje"><i class="fa-solid fa-paper-plane"></i></button>
+                            </form>
+                        </div>
                         <div class="admin_sos_cierre" id="sos-cierre" hidden>
                             <label for="sos-cierre-resultado">Resultado de la atención</label>
                             <select id="sos-cierre-resultado">

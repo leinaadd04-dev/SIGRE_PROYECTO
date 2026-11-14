@@ -1419,3 +1419,18 @@ body.admin_modal_abierto { overflow: hidden; }
 .sos_columna i { display: block; width: 100%; max-width: 36px; margin: 4px 0; border-radius: 6px 6px 0 0; background: #2e86c1; }
 .sos_columna span { font-size: .72rem; color: #566573; white-space: nowrap; }
 @media (max-width: 760px) { .admin_sos_graficos { grid-template-columns: minmax(0, 1fr); } }
+
+.admin_sos_panico { display: flex; align-items: center; gap: 12px; margin: 12px 0; padding: 12px 16px; border: 2px solid #d62839; border-radius: 14px; background: #fde8e8; color: #7a1020; animation: sos_pulso 1.2s ease-in-out infinite; }
+.admin_sos_panico > i { font-size: 1.6rem; color: #d62839; }
+.admin_sos_panico > div { display: grid; gap: 2px; flex: 1; min-width: 0; }
+.admin_sos_panico a { color: #7a1020; font-weight: 700; }
+@keyframes sos_pulso { 0%, 100% { box-shadow: 0 0 0 0 rgba(214, 40, 57, .45); } 50% { box-shadow: 0 0 0 10px rgba(214, 40, 57, 0); } }
+.admin_centro.urgente { border-color: #d62839; background: #fff5f5; box-shadow: 0 0 0 2px rgba(214, 40, 57, .25); }
+.admin_chip.urgente { background: #d62839; color: #ffffff; }
+.admin_sos_chat { margin: 12px 0; border: 1px solid #cfd8e3; border-radius: 12px; background: #ffffff; overflow: hidden; }
+.admin_sos_chat_lista { display: flex; flex-direction: column; gap: 6px; min-height: 56px; max-height: 180px; margin: 0; padding: 10px; list-style: none; overflow-y: auto; }
+.admin_sos_chat_lista li { max-width: 80%; padding: 6px 10px; border-radius: 12px; background: #eef3f8; font-size: .9rem; overflow-wrap: anywhere; }
+.admin_sos_chat_lista li.mio { align-self: flex-end; background: #2e86c1; color: #ffffff; }
+.admin_sos_chat_form { display: flex; gap: 6px; padding: 8px; border-top: 1px solid #e3eaf1; }
+.admin_sos_chat_form input { flex: 1; min-width: 0; padding: 8px 10px; border: 1px solid #b8c4d2; border-radius: 8px; font: inherit; }
+.admin_sos_chat_form button { padding: 8px 14px; border: 0; border-radius: 8px; background: #1b4f72; color: #ffffff; cursor: pointer; }

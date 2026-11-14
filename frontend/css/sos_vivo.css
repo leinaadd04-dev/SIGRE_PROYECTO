@@ -246,5 +246,28 @@
     background: #c53030;
 }
 
+/* Botón de pánico y chat de la videollamada */
 
+.sos_panico { display: flex; align-items: center; gap: 12px; width: 100%; margin: 14px 0; padding: 14px 16px; border: 0; border-radius: 14px; background: #d62839; color: #ffffff; font: inherit; text-align: left; cursor: pointer; animation: sos_panico_pulso 1.6s ease-in-out infinite; }
+.sos_panico[hidden] { display: none; }
+.sos_panico > i { font-size: 1.8rem; }
+.sos_panico span { display: grid; gap: 2px; }
+.sos_panico strong { font-size: 1.05rem; }
+.sos_panico small { font-size: .82rem; opacity: .92; }
+.sos_panico:disabled { cursor: default; animation: none; opacity: .85; }
+.sos_panico.enviado { background: #1f7a4d; animation: none; }
+@keyframes sos_panico_pulso { 0%, 100% { box-shadow: 0 0 0 0 rgba(214, 40, 57, .5); } 50% { box-shadow: 0 0 0 10px rgba(214, 40, 57, 0); } }
 
+.sos_chat { margin: 12px 0; border: 1px solid #cfd8e3; border-radius: 12px; background: #ffffff; overflow: hidden; }
+.sos_chat[hidden] { display: none; }
+.sos_chat_lista { display: flex; flex-direction: column; gap: 6px; min-height: 48px; max-height: 150px; margin: 0; padding: 10px; list-style: none; overflow-y: auto; }
+.sos_chat_lista li { max-width: 80%; padding: 6px 10px; border-radius: 12px; background: #eef3f8; color: #2b2d42; font-size: .9rem; overflow-wrap: anywhere; }
+.sos_chat_lista li.mio { align-self: flex-end; background: #2c7da0; color: #ffffff; }
+.sos_chat_form { display: flex; gap: 6px; padding: 8px; border-top: 1px solid #e3eaf1; }
+.sos_chat_form input { flex: 1; min-width: 0; padding: 9px 10px; border: 1px solid #b8c4d2; border-radius: 8px; font: inherit; }
+.sos_chat_form button { padding: 9px 14px; border: 0; border-radius: 8px; background: #1b4965; color: #ffffff; cursor: pointer; }
+
+/* La ventana no cabía en pantallas bajas: ahora se desplaza y el video es más bajo */
+.sos_ventana { max-height: calc(100vh - 32px); max-height: calc(100dvh - 32px); overflow-y: auto; }
+.sos_video { max-height: 36vh; }
+.sos_ventana > * { flex-shrink: 0; }

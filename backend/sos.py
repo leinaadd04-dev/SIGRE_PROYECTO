@@ -177,6 +177,8 @@ def registrar_eventos_sos(socketio, conectados):
         # Cada ciudadano en espera vuelve a pedir su posición.
         socketio.emit("cola:actualizar", to="en_espera")
 
+    urgentes = set()   # emergencias donde el ciudadano pulsó el botón de pánico
+
     # ---------- Ciudadano ----------
 
     @socketio.on("sos:crear")
@@ -252,6 +254,7 @@ def registrar_eventos_sos(socketio, conectados):
             return {"error": "La emergencia ya no está en espera."}
         leave_room("en_espera")
         leave_room(f"sos-{sesion}")
+        urgentes.discard(sesion)
         emit("sos:retirada", {"sesion": sesion, "motivo": "cancelada"}, to="operadores")
         avisar_cola()
         return {"ok": True}
@@ -309,6 +312,55 @@ def registrar_eventos_sos(socketio, conectados):
 
         return {"ok": True}
 
+    @socketio.on("sos:panico")
+    def sos_panico(datos):
+        """Alerta urgente: el ciudadano no tiene tiempo de explicar. Envía su
+        ubicación a los operadores y marca la emergencia como urgente."""
+        usuario = yo()
+        sesion = _id_sesion(datos)
+        if usuario is None or usuario["rol"] not in ROLES_CIUDADANO or sesion is None:
+            return {"error": "No permitido."}
+
+        ahora = time.monotonic()
+        if ahora - usuario.get("ultimo_panico", 0) < 10:
+            return {"ok": True}
+        usuario["ultimo_panico"] = ahora
+
+        ubicacion = _ubicacion(datos or {})
+        registrada_en = None
+        try:
+            with _conexion(usuario) as conexion:
+                fila = conexion.execute(
+                    "SELECT estado FROM sesiones_sos WHERE id = %s AND ciudadano_id = %s "
+                    "AND estado IN ('en_espera', 'en_curso')",
+                    (sesion, usuario["usuario_id"]),
+                ).fetchone()
+                if fila is None:
+                    return {"error": "No tienes una emergencia abierta."}
+                estado = fila[0]
+                if ubicacion:
+                    registrada_en = conexion.execute(
+                        "INSERT INTO ubicaciones_sos (sesion_id, latitud, longitud, precision_m) "
+                        "VALUES (%s, %s, %s, %s) RETURNING registrada_en",
+                        (sesion, *ubicacion),
+                    ).fetchone()[0]
+        except psycopg.Error:
+            registro.exception("No se pudo registrar la alerta de pánico")
+            return {"error": "No se pudo enviar la alerta. Llama al 123."}
+
+        urgentes.add(sesion)
+        punto = None
+        if ubicacion:
+            punto = {
+                "sesion": sesion, "lat": ubicacion[0], "lng": ubicacion[1],
+                "precision": ubicacion[2], "registrada_en": _fecha(registrada_en),
+            }
+        emit("sos:panico", {"sesion": sesion, "estado": estado, "ubicacion": punto}, to="operadores")
+        if punto:
+            destino = f"sos-{sesion}" if estado == "en_curso" else "operadores"
+            emit("sos:ubicacion", punto, to=destino, include_self=False)
+        return {"ok": True}
+
     # ---------- Operador ----------
 
     @socketio.on("sos:cola")
@@ -335,6 +387,7 @@ def registrar_eventos_sos(socketio, conectados):
             "lat": fila[2],
             "lng": fila[3],
             "precision": fila[4],
+            "urgente": fila[0] in urgentes,
         } for fila in filas]}
 
 
@@ -417,6 +470,7 @@ def registrar_eventos_sos(socketio, conectados):
             "duracion": duracion,
         }, to=sala)
         socketio.close_room(sala)   # nadie queda en la sala de una emergencia cerrada
+        urgentes.discard(sesion)
         return {"ok": True, "duracion": duracion}
 
 
@@ -490,3 +544,25 @@ def registrar_eventos_sos(socketio, conectados):
     for evento in ("webrtc:offer", "webrtc:answer", "webrtc:ice", "webrtc:pedir_oferta"):
 
         socketio.on_event(evento, retransmitir(evento))
+
+    @socketio.on("chat:enviar")
+    def chat_enviar(datos):
+        """Mensaje de texto durante la videollamada, entre el operador y el
+        ciudadano de la emergencia. No se guarda: solo se retransmite."""
+        usuario = yo()
+        sesion = _id_sesion(datos)
+        if usuario is None or sesion is None or not es_participante(usuario, sesion):
+            return {"error": "No participas en esta emergencia."}
+        texto = str((datos or {}).get("texto") or "").strip()[:300]
+        if not texto:
+            return {"error": "Escribe un mensaje."}
+        ahora = time.monotonic()
+        if ahora - usuario.get("ultimo_chat", 0) < 0.4:
+            return {"error": "Demasiado seguido."}
+        usuario["ultimo_chat"] = ahora
+        emit("chat:mensaje", {
+            "sesion": sesion,
+            "de": "operador" if usuario["rol"] == "autoridad" else "ciudadano",
+            "texto": texto,
+        }, to=f"sos-{sesion}")
+        return {"ok": True}

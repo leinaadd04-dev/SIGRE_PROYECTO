@@ -11,9 +11,11 @@
     const contador = document.getElementById("contador-sos");
     const atencion = document.getElementById("sos-atencion");
     const cierre = document.getElementById("sos-cierre");
+    const chatLista = document.getElementById("sos-chat-lista");
 
     let socket = null;
     let cola = [];             // emergencias en espera, en orden de llegada
+    const urgentes = new Set();   // emergencias con alerta de pánico
     let sesionAtendida = null; // la que está atendiendo este operador
 
     // Videollamada (Paso 2)
@@ -38,17 +40,19 @@
             return;
         }
 
-        lista.innerHTML = cola.map((sos, indice) => {
+        const ordenada = cola.slice().sort((a, b) => Number(urgentes.has(b.sesion)) - Number(urgentes.has(a.sesion)));
+        lista.innerHTML = ordenada.map((sos, indice) => {
             const ubicacion = sos.lat != null
                 ? `<i class="fa-solid fa-location-dot"></i> ${sos.lat.toFixed(5)}, ${sos.lng.toFixed(5)}` +
                   (sos.precision ? ` (±${Math.round(sos.precision)} m)` : "")
                 : `<i class="fa-solid fa-triangle-exclamation"></i> Sin ubicación`;
-            return `<article class="admin_centro">
+            const urgente = urgentes.has(sos.sesion);
+            return `<article class="admin_centro${urgente ? " urgente" : ""}">
                 <span class="admin_centro_icono rojo"><i class="fa-solid fa-tower-broadcast"></i></span>
                 <div class="admin_centro_datos">
                     <div class="admin_centro_cabecera">
                         <h4>SOS #${sos.sesion}</h4>
-                        <span class="admin_chip activo">${indice === 0 ? "Siguiente" : `En espera · ${indice + 1}°`}</span>
+                        <span class="admin_chip ${urgente ? "urgente" : "activo"}">${urgente ? "URGENTE · pánico" : indice === 0 ? "Siguiente" : `En espera · ${indice + 1}°`}</span>
                     </div>
                     <p class="admin_centro_tipo">Recibida ${htmlSafe(fecha(sos.creada_en, true))}</p>
                     <p class="admin_centro_meta">${ubicacion}</p>
@@ -93,6 +97,7 @@
         sesionAtendida = null;
         atencion.hidden = true;
         cierre.hidden = true;
+        chatLista.replaceChildren();
         mostrarMensaje("mensaje-sos", texto, "exito");
         pintarCola();   // los botones "Atender" se vuelven a activar
     }
@@ -107,6 +112,7 @@
             ${c.contacto_emergencia_nombre ? `<p>Contacto de emergencia: ${htmlSafe(c.contacto_emergencia_nombre)}
                 ${c.contacto_emergencia_telefono ? ` · <a href="tel:${htmlSafe(c.contacto_emergencia_telefono)}">${htmlSafe(c.contacto_emergencia_telefono)}</a>` : ""}</p>` : ""}`;
         atencion.hidden = false;
+        chatLista.replaceChildren();
         iniciarCronometro(respuesta.atendida_en);
 
         limpiarMapa();
@@ -302,6 +308,7 @@
         socket.emit("sos:cola", respuesta => {
             if (respuesta.error) return mostrarMensaje("mensaje-sos", respuesta.error, "error");
             cola = respuesta.cola;
+            cola.forEach(item => { if (item.urgente) urgentes.add(item.sesion); });
             pintarCola();
         });
     }
@@ -355,7 +362,28 @@
         // La canceló el ciudadano o la tomó otro operador: sale de la cola.
         socket.on("sos:retirada", datos => {
             cola = cola.filter(item => item.sesion !== datos.sesion);
+            urgentes.delete(datos.sesion);
             pintarCola();
+        });
+
+        // El ciudadano pulsó el botón de pánico: avisa con sonido y pasa al frente.
+        socket.on("sos:panico", datos => {
+            urgentes.add(datos.sesion);
+            const enCola = cola.find(item => item.sesion === datos.sesion);
+            if (enCola && datos.ubicacion) {
+                enCola.lat = datos.ubicacion.lat;
+                enCola.lng = datos.ubicacion.lng;
+                enCola.precision = datos.ubicacion.precision;
+            }
+            pintarCola();
+            mostrarAvisoPanico(datos);
+            sonarAlerta();
+        });
+
+        // Mensaje de texto de la videollamada.
+        socket.on("chat:mensaje", datos => {
+            if (datos.sesion !== sesionAtendida) return;
+            agregarMensajeChat(datos.de === "operador" ? "mio" : "otro", datos.texto);
         });
 
         // El ciudadano envió su offer: el operador responde.
@@ -405,6 +433,59 @@
             }
         });
     }
+
+    /* ---------- Pánico y chat ---------- */
+
+    function sonarAlerta() {
+        try {
+            const audio = new (window.AudioContext || window.webkitAudioContext)();
+            [0, 0.25, 0.5].forEach(retraso => {
+                const tono = audio.createOscillator();
+                const volumen = audio.createGain();
+                tono.frequency.value = 880;
+                volumen.gain.value = 0.15;
+                tono.connect(volumen);
+                volumen.connect(audio.destination);
+                tono.start(audio.currentTime + retraso);
+                tono.stop(audio.currentTime + retraso + 0.15);
+            });
+        } catch (error) { /* sin audio disponible */ }
+    }
+
+    function mostrarAvisoPanico(datos) {
+        const propio = datos.sesion === sesionAtendida;
+        document.getElementById("sos-panico-titulo").textContent = `PÁNICO · SOS #${datos.sesion}`;
+        document.getElementById("sos-panico-detalle").textContent = propio
+            ? " El ciudadano que atiendes pulsó el botón de pánico."
+            : " El ciudadano no puede explicar por llamada. Atiéndelo primero.";
+        const enlace = document.getElementById("sos-panico-enlace");
+        enlace.hidden = !datos.ubicacion;
+        if (datos.ubicacion) enlace.href = `https://www.google.com/maps?q=${datos.ubicacion.lat},${datos.ubicacion.lng}`;
+        document.getElementById("sos-panico-aviso").hidden = false;
+    }
+
+    document.getElementById("sos-panico-cerrar").addEventListener("click", () => {
+        document.getElementById("sos-panico-aviso").hidden = true;
+    });
+
+    function agregarMensajeChat(clase, texto) {
+        const elemento = document.createElement("li");
+        elemento.className = clase;
+        elemento.textContent = texto;
+        chatLista.appendChild(elemento);
+        chatLista.scrollTop = chatLista.scrollHeight;
+    }
+
+    document.getElementById("sos-chat-form").addEventListener("submit", evento => {
+        evento.preventDefault();
+        const campo = document.getElementById("sos-chat-texto");
+        const texto = campo.value.trim();
+        if (!texto || !sesionAtendida || !socket) return;
+        socket.emit("chat:enviar", { sesion: sesionAtendida, texto }, respuesta => {
+            if (respuesta && respuesta.ok) campo.value = "";
+            else mostrarMensaje("mensaje-sos", (respuesta && respuesta.error) || "No se pudo enviar el mensaje.", "error");
+        });
+    });
 
     /* ---------- Atender ---------- */
 

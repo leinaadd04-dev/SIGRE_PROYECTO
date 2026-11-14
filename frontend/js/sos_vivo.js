@@ -49,6 +49,11 @@
                 <strong id="sos-posicion-numero"></strong>
             </div>
 
+            <button type="button" class="sos_panico" id="sos-panico" hidden>
+                <i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i>
+                <span><strong>Botón de pánico</strong><small>Envía tu ubicación como alerta urgente</small></span>
+            </button>
+
             <div class="sos_video" id="sos-video" hidden>
                 <video id="sos-video-remoto" autoplay playsinline></video>
                 <video id="sos-video-local" autoplay playsinline muted></video>
@@ -60,6 +65,14 @@
                 <button type="button" class="sos_colgar" id="sos-colgar">
                     <i class="fa-solid fa-phone-slash" aria-hidden="true"></i> Colgar
                 </button>
+            </div>
+
+            <div class="sos_chat" id="sos-chat" hidden>
+                <ul class="sos_chat_lista" id="sos-chat-lista" aria-live="polite"></ul>
+                <form class="sos_chat_form" id="sos-chat-form">
+                    <input type="text" id="sos-chat-texto" maxlength="300" placeholder="Escribe un mensaje" autocomplete="off">
+                    <button type="submit" aria-label="Enviar mensaje"><i class="fa-solid fa-paper-plane"></i></button>
+                </form>
             </div>
 
             <button type="button" class="sos_opcion sos_opcion_123 sos_boton_estado" id="sos-boton-estado"></button>
@@ -116,6 +129,8 @@
         boton.textContent = nuevoEstado === "en_espera" ? "Cancelar SOS" : "Cerrar";
         document.getElementById("sos-video").hidden = nuevoEstado !== "en_curso";
         document.getElementById("sos-llamada").hidden = nuevoEstado !== "en_curso";
+        document.getElementById("sos-panico").hidden = nuevoEstado !== "en_espera" && nuevoEstado !== "en_curso";
+        document.getElementById("sos-chat").hidden = nuevoEstado !== "en_curso";
 
 
 
@@ -133,6 +148,7 @@
         detenerVideo();
         detenerCronometro();
         detenerRastreo();
+        limpiarChatYPanico();
         intento++;
         sesionActual = null;
         estado = null;
@@ -237,6 +253,12 @@
             }
         });
 
+        // Mensaje de texto de la videollamada.
+        socket.on("chat:mensaje", datos => {
+            if (datos.sesion !== sesionActual) return;
+            agregarMensajeChat(datos.de === "ciudadano" ? "mio" : "otro", datos.texto);
+        });
+
         // El operador finalizó la atención.
         socket.on("sos:finalizada", datos => {
             if (datos.sesion !== sesionActual) return;
@@ -307,6 +329,7 @@
         detenerVideo();
         detenerCronometro();
         detenerRastreo();
+        limpiarChatYPanico();
         sesionActual = null;
         guardarSesion(null);
         mostrarEstado("finalizada", "fa-circle-check", "La atención terminó", texto);
@@ -326,6 +349,70 @@
 
 
    
+
+    /* ---------- Botón de pánico y chat ---------- */
+
+    const TEXTO_PANICO = "Envía tu ubicación como alerta urgente";
+
+    function enviarPanico() {
+        if (!socket || !sesionActual) return;
+        const boton = document.getElementById("sos-panico");
+        const aviso = boton.querySelector("small");
+        boton.disabled = true;
+        aviso.textContent = "Enviando alerta…";
+
+        const enviar = coordenadas => {
+            const datos = { sesion: sesionActual };
+            if (coordenadas) {
+                datos.lat = coordenadas.latitude;
+                datos.lng = coordenadas.longitude;
+                datos.precision = coordenadas.accuracy;
+            }
+            socket.emit("sos:panico", datos, respuesta => {
+                if (respuesta && respuesta.ok) {
+                    boton.classList.add("enviado");
+                    aviso.textContent = "Alerta enviada. Los operadores ya la vieron.";
+                    setTimeout(restablecerPanico, 15000);
+                } else {
+                    boton.disabled = false;
+                    aviso.textContent = (respuesta && respuesta.error) || "No se pudo enviar. Llama al 123.";
+                }
+            });
+        };
+
+        if ("geolocation" in navigator) {
+            navigator.geolocation.getCurrentPosition(
+                posicion => enviar(posicion.coords),
+                () => enviar(ultimaPosicion),
+                { enableHighAccuracy: true, timeout: 4000, maximumAge: 3000 }
+            );
+        } else {
+            enviar(ultimaPosicion);
+        }
+    }
+
+    function restablecerPanico() {
+        const boton = document.getElementById("sos-panico");
+        boton.disabled = false;
+        boton.classList.remove("enviado");
+        boton.querySelector("small").textContent = TEXTO_PANICO;
+    }
+
+    function agregarMensajeChat(clase, texto) {
+        const lista = document.getElementById("sos-chat-lista");
+        const elemento = document.createElement("li");
+        elemento.className = clase;
+        elemento.textContent = texto;
+        lista.appendChild(elemento);
+        lista.scrollTop = lista.scrollHeight;
+        // En pantallas bajas el chat queda al final de la ventana: se muestra al llegar un mensaje.
+        document.getElementById("sos-chat").scrollIntoView({ block: "nearest", behavior: "smooth" });
+    }
+
+    function limpiarChatYPanico() {
+        document.getElementById("sos-chat-lista").replaceChildren();
+        restablecerPanico();
+    }
 
     function pedirPosicion() {
         if (estado !== "en_espera") return;
@@ -476,6 +563,16 @@
     document.getElementById("sos-cerrar-selector").addEventListener("click", cerrarSelector);
     document.getElementById("sos-boton-estado").addEventListener("click", botonEstado);
     document.getElementById("sos-colgar").addEventListener("click", colgar);
+    document.getElementById("sos-panico").addEventListener("click", enviarPanico);
+    document.getElementById("sos-chat-form").addEventListener("submit", evento => {
+        evento.preventDefault();
+        const campo = document.getElementById("sos-chat-texto");
+        const texto = campo.value.trim();
+        if (!texto || !sesionActual || !socket) return;
+        socket.emit("chat:enviar", { sesion: sesionActual, texto }, respuesta => {
+            if (respuesta && respuesta.ok) campo.value = "";
+        });
+    });
 
     selector.addEventListener("click", evento => {
         if (evento.target === selector) cerrarSelector();
