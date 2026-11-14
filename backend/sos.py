@@ -359,6 +359,14 @@ def registrar_eventos_sos(socketio, conectados):
         if punto:
             destino = f"sos-{sesion}" if estado == "en_curso" else "operadores"
             emit("sos:ubicacion", punto, to=destino, include_self=False)
+
+        # Campana y push en el celular de las autoridades (backend/migracion_sos_panico.sql).
+        try:
+            with _conexion(usuario) as conexion:
+                conexion.execute("SELECT sigre_notificar_panico_sos(%s)", (sesion,))
+            enviar_push_pendientes()
+        except psycopg.Error:
+            registro.exception("No se pudo notificar la alerta de pánico por push")
         return {"ok": True}
 
     # ---------- Operador ----------

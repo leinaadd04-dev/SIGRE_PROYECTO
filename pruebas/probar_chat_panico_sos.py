@@ -125,6 +125,13 @@ marcada = [item for item in cola if item["sesion"] == en_espera]
 revisar("La emergencia queda marcada como urgente en la cola",
         len(marcada) == 1 and marcada[0]["urgente"] is True and marcada[0]["lat"] == 8.7512)
 
+respuesta_campana = requests.get(f"{BASE}/api/notificaciones",
+                                 headers={"Authorization": f"Bearer {iniciar_sesion('operador2.sos@sigre.test')}"}, timeout=30)
+titulos = [n["titulo"] for n in respuesta_campana.json().get("notificaciones", [])] if respuesta_campana.ok else []
+revisar("La alerta también llega a la campana de las autoridades (para el push)",
+        any(titulo.startswith("PÁNICO") for titulo in titulos),
+        "si falla, ejecuta backend/migracion_sos_panico.sql")
+
 repetida = otro_ciudadano.call("sos:panico", {"sesion": en_espera, "lat": 8.7512, "lng": -75.8791})
 time.sleep(0.5)
 revisar("Pulsarlo varias veces seguidas no repite la alerta",
